@@ -2958,6 +2958,26 @@ main + .site-footer {
   }
 }
 
+/* Modern 3D scroll effect for sections */
+.scroll-3d-block {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
+  transform:
+    translate3d(0, var(--s3d-ty, 0), 0)
+    rotateX(var(--s3d-rx, 0deg))
+    rotateY(var(--s3d-ry, 0deg))
+    scale(var(--s3d-scale, 1));
+  transition: transform 0.44s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (max-width: 860px), (prefers-reduced-motion: reduce) {
+  .scroll-3d-block {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 /* Catalogue page layout fix */
 .catalogue-page {
   display: flex;
