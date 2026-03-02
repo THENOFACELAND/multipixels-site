@@ -21,8 +21,19 @@
         <a href="catalogue.html">Catalogue</a>
         <a href="contact.html">Nous contacter</a>
       </nav>
+      <button class="mobile-menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-menu-panel">
+        <span></span><span></span><span></span>
+      </button>
       <a class="btn btn-small" href="contact.html">Demander un devis</a>
     </div>
+  <div class="mobile-menu-panel" id="mobile-menu-panel" hidden>
+    <a href="index.html">Accueil</a>
+    <a href="galerie.html">Galerie</a>
+    <a href="tarifs.html">Tarifs</a>
+    <a href="catalogue.html">Catalogue</a>
+    <a href="contact.html">Nous contacter</a>
+    <a class="btn btn-small mobile-menu-cta" href="contact.html">Demander un devis</a>
+  </div>
   </header>
 
   <main class="container section content-shell">
@@ -200,7 +211,11 @@
       <p>site d&eacute;velopp&eacute; par Noct'Owl</p>
     </div>
   </footer>
+  <script src="mobile-menu.js"></script>
 </body>
 </html>
+
+
+
 
 
