@@ -2554,3 +2554,406 @@ body.mobile-menu-open {
     white-space: nowrap;
   }
 }
+
+/* Ultra premium modules */
+.site-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(202, 170, 99, 0), rgba(202, 170, 99, 0.85), rgba(202, 170, 99, 0));
+  pointer-events: none;
+}
+
+.premium-stat-strip {
+  margin-top: 2.2rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.premium-stat-card {
+  padding: 1.05rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 204, 238, 0.78);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(238, 246, 255, 0.9));
+  box-shadow: 0 18px 34px rgba(17, 49, 114, 0.12);
+}
+
+.premium-stat-value {
+  margin: 0;
+  font-family: "Sora", "Segoe UI", sans-serif;
+  font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #123a82;
+}
+
+.premium-stat-label {
+  margin: 0.25rem 0 0;
+  color: #4a5e88;
+  line-height: 1.55;
+  font-size: 0.9rem;
+}
+
+.premium-signature-panel {
+  margin-top: 3rem;
+  padding: clamp(1.35rem, 3vw, 2.2rem);
+  border-radius: 24px;
+  border: 1px solid rgba(177, 201, 240, 0.8);
+  background:
+    radial-gradient(28rem 18rem at 85% 10%, rgba(202, 170, 99, 0.15), transparent 72%),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(234, 244, 255, 0.88));
+  box-shadow:
+    0 28px 52px rgba(17, 49, 114, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.premium-signature-panel h2 {
+  margin: 0.15rem 0 0;
+}
+
+.premium-signature-panel p {
+  margin: 0.58rem 0 0;
+  color: #4a5e88;
+  max-width: 850px;
+}
+
+.premium-signature-actions {
+  margin-top: 1.15rem;
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.gallery-curation-strip {
+  margin-top: 1.8rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.gallery-curation-item {
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(180, 204, 240, 0.76);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(237, 246, 255, 0.88));
+  box-shadow: 0 16px 30px rgba(17, 49, 114, 0.12);
+}
+
+.gallery-curation-item h2 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.gallery-curation-item p {
+  margin: 0.45rem 0 0;
+  color: #4a5e88;
+  line-height: 1.62;
+}
+
+.pricing-includes {
+  margin-top: 1.6rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.pricing-include-card {
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(180, 204, 240, 0.74);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(239, 246, 255, 0.9));
+}
+
+.pricing-include-card h2 {
+  margin: 0;
+  font-size: 1.04rem;
+}
+
+.pricing-include-card p {
+  margin: 0.45rem 0 0;
+  color: #4a5e88;
+  line-height: 1.62;
+}
+
+.pricing-assurance-panel {
+  margin-top: 2rem;
+  padding: 1.3rem;
+  border-radius: 18px;
+  border: 1px solid rgba(180, 204, 240, 0.8);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.94), rgba(236, 245, 255, 0.88));
+}
+
+.pricing-assurance-panel h2 {
+  margin: 0.18rem 0 0;
+}
+
+.pricing-assurance-panel p {
+  margin: 0.55rem 0 0;
+  color: #4a5e88;
+}
+
+.pricing-assurance-panel .btn {
+  margin-top: 1rem;
+}
+
+.contact-premium-strip {
+  margin-top: 1.8rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.contact-premium-item {
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(180, 204, 240, 0.78);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(237, 246, 255, 0.9));
+}
+
+.contact-premium-item h2 {
+  margin: 0;
+  font-size: 1.06rem;
+}
+
+.contact-premium-item p {
+  margin: 0.42rem 0 0;
+  color: #4a5e88;
+  line-height: 1.6;
+}
+
+.catalogue-roadmap {
+  margin-top: 2rem;
+}
+
+.catalogue-roadmap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.catalogue-roadmap-card {
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(180, 204, 240, 0.76);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(237, 246, 255, 0.9));
+}
+
+.catalogue-roadmap-step {
+  margin: 0;
+  font-family: "Sora", "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2a5cb5;
+}
+
+.catalogue-roadmap-card h2 {
+  margin: 0.45rem 0 0;
+  font-size: 1.08rem;
+}
+
+.catalogue-roadmap-card p {
+  margin: 0.4rem 0 0;
+  color: #4a5e88;
+  line-height: 1.6;
+}
+
+.catalogue-roadmap-cta {
+  margin-top: 1rem;
+}
+
+.legal-quick-strip {
+  margin-top: 1.8rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.legal-quick-card {
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(180, 204, 240, 0.78);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(236, 246, 255, 0.9));
+}
+
+.legal-quick-card h2 {
+  margin: 0;
+  font-size: 1.04rem;
+}
+
+.legal-quick-card p {
+  margin: 0.45rem 0 0;
+  color: #4a5e88;
+  line-height: 1.62;
+}
+
+@media (max-width: 980px) {
+  .premium-stat-strip,
+  .gallery-curation-strip,
+  .pricing-includes,
+  .contact-premium-strip,
+  .catalogue-roadmap-grid,
+  .legal-quick-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .premium-stat-strip,
+  .gallery-curation-strip,
+  .pricing-includes,
+  .contact-premium-strip,
+  .catalogue-roadmap-grid,
+  .legal-quick-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-signature-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .premium-signature-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Background continuity + footer spacing */
+body {
+  background-color: #e7eef9;
+  background-image: linear-gradient(156deg, #eef4ff 0%, #e7effd 35%, #dce8fb 70%, #d4e3fa 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-attachment: fixed;
+}
+
+body::before {
+  opacity: 0.52;
+  background:
+    radial-gradient(42rem 28rem at -10% 8%, rgba(47, 101, 201, 0.2), transparent 72%),
+    radial-gradient(32rem 22rem at 112% 6%, rgba(128, 176, 248, 0.16), transparent 72%),
+    radial-gradient(26rem 18rem at 50% 100%, rgba(204, 172, 103, 0.1), transparent 76%);
+}
+
+body::after {
+  opacity: 0.2;
+  background-image:
+    radial-gradient(28rem 18rem at 14% 84%, rgba(106, 155, 236, 0.14), transparent 78%),
+    radial-gradient(32rem 20rem at 86% 84%, rgba(106, 155, 236, 0.12), transparent 80%),
+    linear-gradient(to top, rgba(15, 36, 79, 0.2) 0%, rgba(15, 36, 79, 0) 70%);
+  transform: perspective(1200px) rotateX(68deg) translateY(7%) scale(1.5);
+}
+
+main + .site-footer {
+  margin-top: 3rem;
+}
+
+.site-footer {
+  position: relative;
+  border-top: 0;
+  background:
+    linear-gradient(180deg, rgba(58, 98, 163, 0.18) 0%, rgba(14, 34, 74, 0.94) 38%, rgba(13, 32, 71, 0.98) 100%);
+}
+
+.site-footer::before {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  main + .site-footer {
+    margin-top: 2.1rem;
+  }
+}
+
+/* Fix background break between process and signature block */
+.process.section-glow {
+  background: linear-gradient(
+    180deg,
+    rgba(214, 227, 248, 0) 0%,
+    rgba(177, 202, 241, 0.22) 48%,
+    rgba(214, 227, 248, 0) 100%
+  );
+}
+
+.content-shell > .premium-signature-panel {
+  margin-top: 1.2rem;
+  margin-bottom: 2.6rem;
+  padding-top: 0;
+}
+
+.content-shell > .premium-signature-panel::before {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .content-shell > .premium-signature-panel {
+    margin-bottom: 2rem;
+  }
+}
+
+/* Uniform separators between blocks */
+.content-shell > .section-head + section,
+.content-shell > section + section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
+
+.content-shell > .section-head + section::before,
+.content-shell > section + section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(1120px, 92vw);
+  height: 2px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(122, 156, 219, 0), rgba(133, 169, 236, 0.68), rgba(122, 156, 219, 0));
+  box-shadow:
+    0 0 0 1px rgba(176, 203, 248, 0.22),
+    0 8px 16px rgba(90, 128, 201, 0.16);
+}
+
+.content-shell > .atelier-banner + section {
+  margin-top: 1.65rem;
+  padding-top: 1.8rem;
+}
+
+.content-shell > .atelier-banner + section::before,
+.content-shell > .premium-signature-panel::before,
+.content-shell > .shipping-block + .process.section-glow::before {
+  display: block;
+}
+
+.content-shell > .premium-signature-panel {
+  padding-top: clamp(1.35rem, 3vw, 2.2rem);
+}
+
+.content-shell > .shipping-block + .process.section-glow {
+  margin-top: 1.6rem;
+  padding-top: 0;
+}
+
+.content-shell > .shipping-block + .process.section-glow .section {
+  padding-top: 1.9rem;
+}
+
+@media (max-width: 640px) {
+  .content-shell > .section-head + section,
+  .content-shell > section + section {
+    margin-top: 1.35rem;
+    padding-top: 1.35rem;
+  }
+
+  .content-shell > .shipping-block + .process.section-glow {
+    margin-top: 1.25rem;
+  }
+
+  .content-shell > .shipping-block + .process.section-glow .section {
+    padding-top: 1.35rem;
+  }
+}
