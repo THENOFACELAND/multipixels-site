@@ -10,7 +10,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-set "MSG=%*"
+set "MSG=%~1"
 if "%~1"=="" set "MSG=Mise a jour site"
 
 echo.
