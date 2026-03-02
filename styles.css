@@ -839,6 +839,10 @@ p {
   border-radius: 18px;
 }
 
+.step p {
+  line-height: 1.68;
+}
+
 .step-icon {
   display: inline-flex;
   width: 2.95rem;
@@ -883,7 +887,7 @@ p {
 }
 
 .reviews-wrap {
-  margin-top: 2rem;
+  margin-top: 3.1rem;
   padding: 1.4rem;
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -941,9 +945,9 @@ p {
 }
 
 .review-text {
-  margin-top: 0.4rem;
+  margin-top: 0.48rem;
   font-size: 0.9rem;
-  line-height: 1.45;
+  line-height: 1.72;
 }
 
 .reviews-link {
@@ -1936,6 +1940,10 @@ th {
   .reviews-head {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .reviews-wrap {
+    margin-top: 2.35rem;
   }
 
   .atelier-banner-inner {
