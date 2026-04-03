@@ -4234,3 +4234,48 @@ html, body {
     padding: 12px;
   }
 }
+
+/* Mobile header polish */
+.mobile-menu-toggle span {
+  margin: 0;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+.mobile-menu-toggle {
+  gap: 4px;
+  flex-direction: column;
+}
+
+.mobile-menu-toggle.is-open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.mobile-menu-toggle.is-open span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-toggle.is-open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+@media (max-width: 560px) {
+  .logo-subtitle {
+    display: block;
+    font-size: 0.5rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .mobile-menu-toggle {
+    width: 42px;
+    height: 42px;
+    gap: 3px;
+  }
+
+  .mobile-menu-toggle span {
+    width: 17px;
+  }
+}
