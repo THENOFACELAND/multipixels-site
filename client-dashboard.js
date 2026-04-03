@@ -14,81 +14,6 @@
   var statusNode = document.getElementById('client-dashboard-status');
   var logoutButtons = Array.from(document.querySelectorAll('[data-client-logout]'));
   var navLinks = Array.from(document.querySelectorAll('[data-dashboard-link]'));
-  var params = new URLSearchParams(window.location.search);
-  var isPreviewMode = params.get('preview') === '1';
-
-  var previewDashboard = {
-    user: {
-      accountType: 'professionnel',
-      firstName: 'Julien',
-      lastName: 'Dubois',
-      company: 'Nord Events',
-      email: 'pro@multipixels.fr',
-      phone: '06 27 14 08 40',
-      addressLine1: '190 chemin Blanc',
-      addressLine2: 'Bâtiment atelier',
-      displayName: 'Julien Dubois - Nord Events'
-    },
-    stats: {
-      totalOrders: 2,
-      activeOrders: 1,
-      totalTickets: 1,
-      openTickets: 1
-    },
-    orders: [
-      {
-        reference: 'MP-2026-0387',
-        title: 'Polos entreprise - 42 pièces',
-        statusTone: 'success',
-        statusLabel: 'Expédiée',
-        createdAt: '2026-03-12T14:10:00.000Z',
-        estimatedShipDate: '2026-03-27T00:00:00.000Z',
-        total: 684,
-        clientNote: 'Commande prioritaire avec broderie poitrine et manche.',
-        items: [
-          { name: 'Polo premium homme', quantity: 30, technique: 'Broderie', color: 'Bleu marine' },
-          { name: 'Polo premium femme', quantity: 12, technique: 'Broderie', color: 'Blanc' }
-        ],
-        timeline: [
-          { label: 'Brief commercial validé', date: '12 mars 2026', done: true },
-          { label: 'BAT signé', date: '15 mars 2026', done: true },
-          { label: 'Production finalisée', date: '25 mars 2026', done: true },
-          { label: 'Expédition', date: '27 mars 2026', done: true }
-        ]
-      },
-      {
-        reference: 'MP-2026-0424',
-        title: 'Softshells chantier - 18 pièces',
-        statusTone: 'warning',
-        statusLabel: 'Validation devis',
-        createdAt: '2026-03-29T10:00:00.000Z',
-        estimatedShipDate: '2026-04-09T00:00:00.000Z',
-        total: 972,
-        clientNote: 'En attente de validation finale des tailles.',
-        items: [
-          { name: 'Softshell travail', quantity: 18, technique: 'Broderie', color: 'Noir' }
-        ],
-        timeline: [
-          { label: 'Demande reçue', date: '29 mars 2026', done: true },
-          { label: 'Devis émis', date: '30 mars 2026', done: true },
-          { label: 'Validation client', date: 'À confirmer', done: false },
-          { label: 'Production', date: 'À planifier', done: false }
-        ]
-      }
-    ],
-    tickets: [
-      {
-        category: 'Facturation',
-        subject: 'Besoin de duplicata facture',
-        statusTone: 'in-progress',
-        statusLabel: 'Ouvert',
-        updatedAt: '2026-03-30T09:00:00.000Z',
-        orderReference: 'MP-2026-0387',
-        messagePreview: 'Pouvez-vous envoyer la facture au format PDF pour notre comptabilité ?',
-        lastReply: 'Ticket reçu, un retour est prévu sous 24h.'
-      }
-    ]
-  };
 
   function setStatus(message, tone) {
     if (!statusNode) return;
@@ -113,10 +38,6 @@
   function setActiveNav() {
     navLinks.forEach(function (link) {
       var isActive = link.getAttribute('data-dashboard-link') === currentPage;
-      var href = link.getAttribute('href') || '';
-      if (isPreviewMode && href && href.indexOf('preview=1') === -1) {
-        link.setAttribute('href', href + (href.indexOf('?') === -1 ? '?preview=1' : '&preview=1'));
-      }
       link.classList.toggle('is-active', isActive);
       link.setAttribute('aria-current', isActive ? 'page' : 'false');
     });
@@ -124,10 +45,6 @@
 
   logoutButtons.forEach(function (button) {
     button.addEventListener('click', async function () {
-      if (isPreviewMode) {
-        window.location.href = 'espace-client.html';
-        return;
-      }
       await auth.logout();
       window.location.href = 'espace-client.html';
     });
@@ -214,11 +131,6 @@
     profileForm.addressLine1.value = user.addressLine1 || '';
     profileForm.addressLine2.value = user.addressLine2 || '';
     profileForm.accountType.value = user.accountType || 'particulier';
-    if (isPreviewMode) {
-      Array.from(profileForm.elements).forEach(function (element) {
-        element.disabled = true;
-      });
-    }
   }
 
   function renderDashboard(dashboard) {
@@ -244,17 +156,6 @@
   }
 
   async function hydrateDashboard() {
-    if (isPreviewMode) {
-      renderDashboard(previewDashboard);
-      setStatus('Mode aperçu activé. Cette vue n’est pas liée à un vrai compte.', 'muted');
-      if (ticketForm) {
-        Array.from(ticketForm.elements).forEach(function (element) {
-          element.disabled = true;
-        });
-      }
-      return;
-    }
-
     try {
       var payload = await auth.getDashboard();
       renderDashboard(payload.dashboard);
@@ -268,7 +169,6 @@
   if (ticketForm) {
     ticketForm.addEventListener('submit', async function (event) {
       event.preventDefault();
-      if (isPreviewMode) return;
       setStatus('Envoi de votre demande SAV...', 'muted');
       var submit = ticketForm.querySelector('button[type="submit"]');
       if (submit) submit.disabled = true;
@@ -293,7 +193,6 @@
   if (profileForm) {
     profileForm.addEventListener('submit', async function (event) {
       event.preventDefault();
-      if (isPreviewMode) return;
       setStatus('Mise à jour du profil...', 'muted');
       var submit = profileForm.querySelector('button[type="submit"]');
       if (submit) submit.disabled = true;
@@ -320,8 +219,3 @@
   setActiveNav();
   hydrateDashboard();
 })();
-
-
-
-
-
