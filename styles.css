@@ -2038,6 +2038,18 @@ textarea { min-height: 150px; resize: vertical; }
   gap: 18px;
   align-items: start;
 }
+
+.client-panel-top .btn-outline {
+  color: #f7faff;
+  border-color: rgba(128, 156, 199, 0.28);
+  background: rgba(255, 255, 255, 0.03);
+}
+.client-panel-top .btn-outline:hover,
+.client-panel-top .btn-outline:focus-visible {
+  color: #f7faff;
+  background: rgba(129, 172, 255, 0.12);
+  border-color: rgba(129, 172, 255, 0.34);
+}
 .client-kicker {
   display: inline-block;
   margin-bottom: 10px;
@@ -4279,3 +4291,4 @@ html, body {
     width: 17px;
   }
 }
+
