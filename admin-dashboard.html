@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Administration MULTIPIXELS | Vue d’ensemble</title>
+</head>
+<body data-admin-section="overview">
+  <main class="page-shell admin-shell">
+    <section class="section client-dashboard-section">
+      <div class="container client-dashboard-shell">
+        <div class="client-dashboard-hero reveal admin-hero-compact">
+          <div>
+            <span class="section-label">Administration</span>
+            <h1 id="admin-welcome">Administration MULTIPIXELS</h1>
+            <p id="admin-intro">Pilotez l’ensemble de l’activité administrateur depuis un seul espace.</p>
+          </div>
+          <div class="client-dashboard-actions">
+            <a class="btn btn-outline" href="/index.html">Retour au site</a>
+            <button class="btn" id="admin-logout" type="button">Se déconnecter</button>
+          </div>
+        </div>        <nav class="admin-page-nav reveal" aria-label="Navigation administrateur">
+          <a href="admin-dashboard.html" data-admin-nav="overview">Vue d’ensemble</a>
+          <a href="admin-clients.html" data-admin-nav="clients">Clients</a>
+          <a href="admin-commandes.html" data-admin-nav="commandes">Commandes</a>
+          <a href="admin-devis.html" data-admin-nav="quotes">Devis</a>
+          <a href="admin-factures.html" data-admin-nav="invoices">Factures</a>
+          <a href="admin-sav.html" data-admin-nav="sav">SAV</a>
+          <a href="admin-articles.html" data-admin-nav="articles">Articles en ligne</a>
+          <a href="admin-catalogue.html" data-admin-nav="catalogue">Catalogue</a>
+        </nav>        <div id="admin-stats" class="client-dashboard-stats reveal"></div>
+        <section class="client-dashboard-panel reveal">
+          <article class="client-panel-card admin-overview-links">
+            <span class="section-label">Accès rapide</span>
+            <h2>Choisissez une rubrique à administrer</h2>
+            <div class="client-list-grid admin-overview-grid">
+              <a class="client-panel-card admin-overview-card" href="admin-clients.html"><span class="client-kicker">Clients</span><h3>Comptes particuliers et professionnels</h3><p>Coordonnées, dossiers et informations d’accès.</p></a>
+              <a class="client-panel-card admin-overview-card" href="admin-commandes.html"><span class="client-kicker">Commandes</span><h3>Suivi atelier et statut des commandes</h3><p>Mettez à jour l’avancement et gardez une vue claire.</p></a>
+              <a class="client-panel-card admin-overview-card" href="admin-sav.html"><span class="client-kicker">SAV</span><h3>Tickets et réponses envoyées</h3><p>Centralisez les demandes support dans une seule page.</p></a>
+              <a class="client-panel-card admin-overview-card" href="admin-devis.html"><span class="client-kicker">Devis</span><h3>Créer et suivre les devis</h3><p>Préparez vos offres commerciales dans une rubrique dédiée.</p></a>
+              <a class="client-panel-card admin-overview-card" href="admin-factures.html"><span class="client-kicker">Factures</span><h3>Créer et archiver les factures</h3><p>Gardez vos factures accessibles directement dans l'administration.</p></a>
+              <a class="client-panel-card admin-overview-card" href="admin-articles.html"><span class="client-kicker">Articles</span><h3>Recherche et filtres sur les produits en ligne</h3><p>Retrouvez vite un article publié par nom, catégorie ou stock.</p></a><a class="client-panel-card admin-overview-card" href="admin-catalogue.html"><span class="client-kicker">Catalogue</span><h3>Ajout et gestion des articles</h3><p>Créez ou modifiez les produits visibles sur le site.</p></a>
+            </div>
+          </article>
+        </section>
+        <p id="admin-status" class="client-auth-status"></p>
+      </div>
+    </section>
+  </main>
+  <script src="admin-auth.js"></script>
+  <script src="admin-dashboard.js"></script>
+</body>
+</html>
+
+
+
+
+

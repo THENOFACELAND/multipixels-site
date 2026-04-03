@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réinitialiser mon mot de passe | MULTIPIXELS.FR</title>
+  <meta name="description" content="Réinitialisez l'accès à votre espace client MULTIPIXELS pour retrouver votre suivi de commande et votre SAV." />
+  <link rel="canonical" href="https://www.multipixels.fr/reinitialiser-mot-de-passe.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="logo" href="index.html"><img src="assets/Background/logo.png" alt="Logo MULTIPIXELS.FR" /><span class="logo-text"><span class="logo-title">MULTIPIXELS.FR</span><span class="logo-subtitle">Votre Expert Textile</span></span></a>
+      <nav class="main-nav" aria-label="Navigation principale">
+        <a href="index.html" data-nav-link>Accueil</a>
+        <a href="galerie.html" data-nav-link>Galerie</a>
+        <a href="catalogue.html" data-nav-link>Catalogue</a>
+        <a href="contact.html" data-nav-link>Contact</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn btn-light" href="espace-client.html">Retour à l'espace client</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero client-auth-hero">
+      <div class="container client-auth-grid">
+        <div class="client-auth-copy reveal">
+          <span class="section-label">Récupération d'accès</span>
+          <h1>Réinitialiser votre mot de passe client en toute simplicité.</h1>
+          <p>Depuis cette page, vous pouvez demander un lien de réinitialisation ou définir un nouveau mot de passe si vous avez déjà reçu un lien temporaire.</p>
+        </div>
+        <div class="client-auth-panel reveal">
+          <div class="client-auth-card" id="password-reset-request-panel">
+            <div class="client-auth-card-head">
+              <span class="section-label">Mot de passe oublié</span>
+              <h2>Recevoir un lien de réinitialisation</h2>
+            </div>
+            <form id="password-reset-request-form" class="client-form-grid">
+              <label><span>Email</span><input type="email" name="email" required /></label>
+              <button class="btn" type="submit">Envoyer le lien</button>
+            </form>
+          </div>
+          <div class="client-auth-card client-auth-card-light" id="password-reset-panel" hidden>
+            <div class="client-auth-card-head">
+              <span class="section-label">Nouveau mot de passe</span>
+              <h2>Définir un nouvel accès</h2>
+            </div>
+            <form id="password-reset-form" class="client-form-grid">
+              <input type="hidden" id="password-reset-token" />
+              <label><span>Nouveau mot de passe</span><input type="password" name="password" minlength="8" required /></label>
+              <label><span>Confirmation</span><input type="password" name="confirmPassword" minlength="8" required /></label>
+              <button class="btn" type="submit">Mettre à jour mon mot de passe</button>
+            </form>
+          </div>
+          <p id="password-reset-status" class="client-auth-status"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer-band"><div class="container footer-band-inner"><span>copyright@multipixels 2026</span><a href="mentions-legales.html">Mentions légales</a><span class="footer-payment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="M2.5 9.5h19"></path><path d="M7 14h4"></path></svg>Paiement sécurisé</span></div></footer>
+
+  <script src="client-auth.js"></script>
+  <script src="password-reset.js"></script>
+  <script src="site.js"></script>
+</body>
+</html>
+

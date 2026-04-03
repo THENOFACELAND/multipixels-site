@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+<title>Administration MULTIPIXELS | Commandes</title>
+</head>
+<body data-admin-section="commandes">
+  <main class="page-shell admin-shell">
+    <section class="section client-dashboard-section">
+      <div class="container client-dashboard-shell">
+        <div class="client-dashboard-hero reveal admin-hero-compact">
+          <div>
+            <span class="section-label">Administration</span>
+            <h1 id="admin-welcome">Administration MULTIPIXELS</h1>
+            <p id="admin-intro">Suivez l’état de chaque commande et mettez à jour l’avancement atelier.</p>
+          </div>
+          <div class="client-dashboard-actions">
+            <a class="btn btn-outline" href="/index.html">Retour au site</a>
+            <button class="btn" id="admin-logout" type="button">Se déconnecter</button>
+          </div>
+        </div>        <nav class="admin-page-nav reveal" aria-label="Navigation administrateur">
+          <a href="admin-dashboard.html" data-admin-nav="overview">Vue d’ensemble</a>
+          <a href="admin-clients.html" data-admin-nav="clients">Clients</a>
+          <a href="admin-commandes.html" data-admin-nav="commandes">Commandes</a>
+          <a href="admin-devis.html" data-admin-nav="quotes">Devis</a>
+          <a href="admin-factures.html" data-admin-nav="invoices">Factures</a>
+          <a href="admin-sav.html" data-admin-nav="sav">SAV</a>
+          <a href="admin-articles.html" data-admin-nav="articles">Articles en ligne</a>
+          <a href="admin-catalogue.html" data-admin-nav="catalogue">Catalogue</a>
+        </nav>        <section class="client-dashboard-panel reveal">
+          <article class="client-panel-card">
+            <span class="section-label">Commandes</span>
+            <h2>Suivi global des commandes</h2>
+            <div id="admin-orders-list" class="client-list-grid"></div>
+          </article>
+        </section>
+        <p id="admin-status" class="client-auth-status"></p>
+      </div>
+    </section>
+  </main>
+  <script src="admin-auth.js"></script>
+  <script src="admin-dashboard.js"></script>
+</body>
+</html>
+
+
+
+

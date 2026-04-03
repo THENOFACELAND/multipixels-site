@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="admin-factures.css" />
+  <title>Administration MULTIPIXELS | Factures</title>
+</head>
+<body data-admin-section="invoices">
+  <main class="page-shell admin-shell">
+    <section class="section client-dashboard-section">
+      <div class="container client-dashboard-shell">
+        <div class="client-dashboard-hero reveal admin-hero-compact">
+          <div>
+            <span class="section-label">Administration</span>
+            <h1 id="admin-welcome">Administration MULTIPIXELS</h1>
+            <p id="admin-intro">Préparez vos factures dans un format A4 lisible, mettez à jour les informations client et envoyez-les directement depuis l'administration.</p>
+          </div>
+          <div class="client-dashboard-actions">
+            <a class="btn btn-outline" href="/index.html">Retour au site</a>
+            <button class="btn" id="admin-logout" type="button">Se déconnecter</button>
+          </div>
+        </div>
+
+        <nav class="admin-page-nav reveal" aria-label="Navigation administrateur">
+          <a href="admin-dashboard.html" data-admin-nav="overview">Vue d’ensemble</a>
+          <a href="admin-clients.html" data-admin-nav="clients">Clients</a>
+          <a href="admin-commandes.html" data-admin-nav="commandes">Commandes</a>
+          <a href="admin-devis.html" data-admin-nav="quotes">Devis</a>
+          <a class="is-active" href="admin-factures.html" data-admin-nav="invoices" aria-current="page">Factures</a>
+          <a href="admin-sav.html" data-admin-nav="sav">SAV</a>
+          <a href="admin-articles.html" data-admin-nav="articles">Articles en ligne</a>
+          <a href="admin-catalogue.html" data-admin-nav="catalogue">Catalogue</a>
+        </nav>
+
+        <section class="admin-invoice-builder reveal">
+          <aside class="admin-invoice-sidebar">
+            <div class="admin-invoice-card">
+              <div class="admin-invoice-card-head">
+                <span class="section-label">Facturation</span>
+                <h2>Créer et envoyer une facture</h2>
+                <p>La prévisualisation A4 se met à jour en direct pendant la saisie.</p>
+              </div>
+
+              <p id="admin-status" class="client-auth-status"></p>
+
+              <form id="admin-invoice-live-form" class="admin-invoice-form" novalidate>
+  <input type="hidden" id="invoice-id" />
+
+  <section class="admin-invoice-group admin-invoice-accordion is-open" data-accordion="invoice-info">
+    <button class="admin-invoice-group-toggle" type="button" aria-expanded="true" aria-controls="accordion-invoice-info">
+      <span class="admin-invoice-group-title">Info facture</span>
+      <span class="admin-invoice-group-icon" aria-hidden="true"></span>
+    </button>
+    <div class="admin-invoice-group-body" id="accordion-invoice-info">
+      <div class="admin-invoice-grid admin-invoice-grid-2">
+        <label>
+          <span>Type</span>
+          <select id="invoice-type"><option value="Facture">Facture</option></select>
+        </label>
+        <label>
+          <span>Numéro</span>
+          <input id="invoice-reference" type="text" readonly />
+        </label>
+      </div>
+      <div class="admin-invoice-grid admin-invoice-grid-2">
+        <label>
+          <span>Date</span>
+          <input id="invoice-issue-date" type="date" />
+        </label>
+        <label>
+          <span>TVA (%)</span>
+          <input id="invoice-vat-rate" type="number" min="0" step="0.01" value="0" />
+        </label>
+      </div>
+      <div class="admin-invoice-grid admin-invoice-grid-2">
+        <label>
+          <span>Paiement sous (jours)</span>
+          <input id="invoice-payment-days" type="number" min="0" step="1" value="15" />
+        </label>
+        <label class="admin-invoice-checkbox-row">
+          <span>Statut</span>
+          <span class="admin-invoice-checkbox">
+            <input id="invoice-paid" type="checkbox" />
+            <span>Marquer comme payée</span>
+          </span>
+        </label>
+      </div>
+      <label>
+        <span>Mention TVA si taux = 0</span>
+        <input id="invoice-vat-mention" type="text" value="TVA non applicable, art. 293B du CGI" />
+      </label>
+    </div>
+  </section>
+
+  <section class="admin-invoice-group admin-invoice-accordion" data-accordion="invoice-client">
+    <button class="admin-invoice-group-toggle" type="button" aria-expanded="false" aria-controls="accordion-invoice-client">
+      <span class="admin-invoice-group-title">Infos client</span>
+      <span class="admin-invoice-group-icon" aria-hidden="true"></span>
+    </button>
+    <div class="admin-invoice-group-body" id="accordion-invoice-client">
+      <div class="admin-invoice-grid admin-invoice-grid-2">
+        <label><span>Nom / société</span><input id="invoice-customer-name" type="text" placeholder="Nom du client" /></label>
+        <label><span>Email client</span><input id="invoice-customer-email" type="email" placeholder="client@email.fr" /></label>
+      </div>
+      <div class="admin-invoice-grid admin-invoice-grid-2">
+        <label><span>Téléphone</span><input id="invoice-customer-phone" type="text" placeholder="06 00 00 00 00" /></label>
+        <label><span>Complément</span><input id="invoice-customer-company" type="text" placeholder="Société, service, référence..." /></label>
+      </div>
+      <label><span>Adresse</span><input id="invoice-address-line1" type="text" placeholder="1 rue exemple" /></label>
+      <label><span>Complément d’adresse</span><input id="invoice-address-line2" type="text" placeholder="Bâtiment, étage, atelier..." /></label>
+      <div class="admin-invoice-grid admin-invoice-grid-3">
+        <label><span>Code postal</span><input id="invoice-postal-code" type="text" placeholder="62180" /></label>
+        <label><span>Ville</span><input id="invoice-city" type="text" placeholder="Rang-du-Fliers" /></label>
+        <label><span>Pays</span><input id="invoice-country" type="text" value="France" /></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-invoice-group admin-invoice-accordion" data-accordion="invoice-lines">
+    <button class="admin-invoice-group-toggle" type="button" aria-expanded="false" aria-controls="accordion-invoice-lines">
+      <span class="admin-invoice-group-title">Lignes facture</span>
+      <span class="admin-invoice-group-icon" aria-hidden="true"></span>
+    </button>
+    <div class="admin-invoice-group-body" id="accordion-invoice-lines">
+      <div class="admin-invoice-group-head">
+        <div></div>
+        <button class="btn btn-outline btn-sm" id="invoice-add-line" type="button">Ajouter une ligne</button>
+      </div>
+      <div id="invoice-lines" class="admin-invoice-lines"></div>
+    </div>
+  </section>
+
+  <section class="admin-invoice-group admin-invoice-accordion" data-accordion="invoice-email">
+    <button class="admin-invoice-group-toggle" type="button" aria-expanded="false" aria-controls="accordion-invoice-email">
+      <span class="admin-invoice-group-title">Email client</span>
+      <span class="admin-invoice-group-icon" aria-hidden="true"></span>
+    </button>
+    <div class="admin-invoice-group-body" id="accordion-invoice-email">
+      <label><span>Objet email</span><input id="invoice-email-subject" type="text" /></label>
+      <label><span>Message email</span><textarea id="invoice-email-message" rows="9"></textarea></label>
+    </div>
+  </section>
+
+  <div class="admin-invoice-actions">
+    <button class="btn btn-outline" id="invoice-new" type="button">Nouvelle facture</button>
+    <button class="btn" id="invoice-send" type="submit">Envoyer au client</button>
+  </div>
+</form>
+            </div>
+          </aside>
+
+          <div class="admin-invoice-preview-area">
+            <div class="admin-invoice-preview-toolbar">
+              <div>
+                <span class="section-label">Prévisualisation</span>
+                <h2>Format A4 en temps réel</h2>
+              </div>
+              <p id="invoice-preview-meta" class="admin-invoice-preview-meta"></p>
+            </div>
+            <div class="admin-invoice-sheet-wrap">
+              <article id="invoice-preview-sheet" class="admin-invoice-sheet"></article>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin-auth.js"></script>
+  <script src="admin-factures.js"></script>
+</body>
+</html>
+
+
+
+

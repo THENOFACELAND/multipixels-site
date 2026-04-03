@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Administration MULTIPIXELS | Articles en ligne</title>
+</head>
+<body data-admin-section="articles">
+  <main class="page-shell admin-shell">
+    <section class="section client-dashboard-section">
+      <div class="container client-dashboard-shell">
+        <div class="client-dashboard-hero reveal admin-hero-compact">
+          <div>
+            <span class="section-label">Administration</span>
+            <h1 id="admin-welcome">Administration MULTIPIXELS</h1>
+            <p id="admin-intro">Retrouvez rapidement tous les articles mis en ligne avec une recherche et des filtres dédiés.</p>
+          </div>
+          <div class="client-dashboard-actions">
+            <a class="btn btn-outline" href="/index.html">Retour au site</a>
+            <button class="btn" id="admin-logout" type="button">Se déconnecter</button>
+          </div>
+        </div>
+
+        <nav class="admin-page-nav reveal" aria-label="Navigation administrateur">
+          <a href="admin-dashboard.html" data-admin-nav="overview">Vue d’ensemble</a>
+          <a href="admin-clients.html" data-admin-nav="clients">Clients</a>
+          <a href="admin-commandes.html" data-admin-nav="commandes">Commandes</a>
+          <a href="admin-devis.html" data-admin-nav="quotes">Devis</a>
+          <a href="admin-factures.html" data-admin-nav="invoices">Factures</a>
+          <a href="admin-sav.html" data-admin-nav="sav">SAV</a>
+          <a href="admin-articles.html" data-admin-nav="articles">Articles en ligne</a>
+          <a href="admin-catalogue.html" data-admin-nav="catalogue">Catalogue</a>
+        </nav>
+
+        <section class="client-dashboard-panel reveal">
+          <article class="client-panel-card">
+            <div class="admin-products-toolbar">
+              <div>
+                <span class="section-label">Articles en ligne</span>
+                <h2>Recherche et filtrage des produits publiés</h2>
+              </div>
+              <strong id="admin-products-count" class="admin-products-count">0 article</strong>
+            </div>
+
+            <div class="admin-products-filters admin-products-filters-extended">
+              <label>
+                <span>Recherche</span>
+                <input type="search" id="admin-products-search" placeholder="Nom du produit..." />
+              </label>
+              <label>
+                <span>Catégorie</span>
+                <select id="admin-products-category">
+                  <option value="">Toutes</option>
+                  <option value="homme">Homme</option>
+                  <option value="femme">Femme</option>
+                  <option value="enfant">Enfant</option>
+                  <option value="accessoires">Accessoires</option>
+                  <option value="vetement-travail">Vêtement de travail</option>
+                </select>
+              </label>
+              <label>
+                <span>Stock</span>
+                <select id="admin-products-stock">
+                  <option value="">Tous</option>
+                  <option value="in-stock">En stock</option>
+                  <option value="out-of-stock">Hors stock</option>
+                </select>
+              </label>
+              <label>
+                <span>Trier par</span>
+                <select id="admin-products-sort">
+                  <option value="updatedAt-desc">Plus récents</option>
+                  <option value="updatedAt-asc">Plus anciens</option>
+                  <option value="price-asc">Prix croissant</option>
+                  <option value="price-desc">Prix décroissant</option>
+                  <option value="name-asc">Nom A à Z</option>
+                  <option value="name-desc">Nom Z à A</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="admin-products-list" class="client-list-grid"></div>
+            <div class="admin-products-pagination">
+              <button type="button" class="btn btn-outline" id="admin-products-prev">Précédent</button>
+              <span id="admin-products-page" class="admin-products-page">Page 1 / 1</span>
+              <button type="button" class="btn btn-outline" id="admin-products-next">Suivant</button>
+            </div>
+          </article>
+        </section>
+
+        <p id="admin-status" class="client-auth-status"></p>
+      </div>
+    </section>
+  </main>
+  <script src="admin-auth.js"></script>
+  <script src="admin-dashboard.js"></script>
+</body>
+</html>
+
+

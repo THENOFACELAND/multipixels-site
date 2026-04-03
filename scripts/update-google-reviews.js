@@ -1,4 +1,4 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const { URL } = require("url");
@@ -46,18 +46,55 @@ function httpGetJson(urlString) {
   });
 }
 
+function normalizeWhitespace(value) {
+  return String(value || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function repairText(value) {
-  const raw = String(value || "");
-  if (!raw) return "";
+  let repaired = String(value || "");
+  if (!repaired) return "";
 
-  const maybeMojibake = /Ã|Â|ðŸ|�/.test(raw);
-  if (!maybeMojibake) {
-    return raw;
-  }
+  const replacements = [
+    [/Ã‰/g, "É"],
+    [/Ãˆ/g, "È"],
+    [/Ã€/g, "À"],
+    [/Ã™/g, "Ù"],
+    [/Ã‚/g, "Â"],
+    [/Ãª/g, "ê"],
+    [/Ã¨/g, "è"],
+    [/Ã©/g, "é"],
+    [/Ã«/g, "ë"],
+    [/Ã /g, "à"],
+    [/Ã¹/g, "ù"],
+    [/Ã¢/g, "â"],
+    [/Ã´/g, "ô"],
+    [/Ã®/g, "î"],
+    [/Ã¯/g, "ï"],
+    [/Ã§/g, "ç"],
+    [/Ã»/g, "û"],
+    [/Ã¼/g, "ü"],
+    [/â€™/g, "’"],
+    [/â€œ/g, '"'],
+    [/â€/g, '"'],
+    [/â€“/g, "-"],
+    [/â€”/g, "-"],
+    [/Â/g, ""],
+    [/ðŸ‘/g, "👍"],
+    [/ðŸ”¥/g, "🔥"],
+    [/ðŸ˜Š/g, "😊"],
+    [/ï¿½/g, ""]
+  ];
 
-  const repaired = Buffer.from(raw, "latin1").toString("utf8");
-  const stillBroken = /Ã|Â|ðŸ|�/.test(repaired);
-  return stillBroken ? raw : repaired;
+  replacements.forEach(([pattern, replacement]) => {
+    repaired = repaired.replace(pattern, replacement);
+  });
+
+  return normalizeWhitespace(repaired);
 }
 
 async function findPlaceIdByQuery(query, apiKey) {
@@ -90,7 +127,7 @@ async function getPlaceDetails(placeId, apiKey) {
   }
 
   const result = body.result;
-  const reviews = Array.isArray(result.reviews) ? result.reviews.slice(0, 3) : [];
+  const reviews = Array.isArray(result.reviews) ? result.reviews.slice(0, 5) : [];
 
   return {
     ok: true,
@@ -104,10 +141,18 @@ async function getPlaceDetails(placeId, apiKey) {
     reviews: reviews.map((review) => ({
       author: repairText(review.author_name || "Client Google"),
       rating: Number(review.rating || 0),
-      text: repairText(review.text || "Avis client Google"),
+      text: repairText(review.text || "Avis client Google", { preserveLineBreaks: true }),
       time: repairText(review.relative_time_description || "")
     }))
   };
+}
+
+function assertCleanReviewJson(filePath) {
+  const raw = fs.readFileSync(filePath, "utf8");
+  const brokenSequences = ["Ã", "â€™", "â€œ", "â€", "ðŸ", "�"];
+  if (brokenSequences.some((token) => raw.includes(token))) {
+    throw new Error("Le JSON avis Google contient encore des sequences d'encodage casse.");
+  }
 }
 
 async function main() {
@@ -139,6 +184,7 @@ async function main() {
 
   fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(payload, null, 2) + "\n", "utf8");
+  assertCleanReviewJson(OUTPUT_PATH);
   console.log("Avis Google mis a jour:", OUTPUT_PATH);
 }
 
@@ -146,3 +192,7 @@ main().catch((error) => {
   console.error("Echec mise a jour avis Google:", error && error.message ? error.message : error);
   process.exit(1);
 });
+
+
+
+

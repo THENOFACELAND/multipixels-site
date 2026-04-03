@@ -3,261 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Galerie Flocage & Broderie à Rang-du-Fliers | MULTIPIXELS.FR</title>
-  <meta name="description" content="Découvrez nos réalisations de flocage textile et broderie à Rang-du-Fliers, près de Berck, pour les professionnels et associations de la Côte d'Opale." />
+  <title>Galerie | MULTIPIXELS.FR</title>
+  <meta name="description" content="Une partie des réalisations MULTIPIXELS en galerie." />
   <link rel="canonical" href="https://www.multipixels.fr/galerie.html" />
-  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="MULTIPIXELS.FR" />
-  <meta property="og:title" content="Galerie Flocage & Broderie à Rang-du-Fliers | MULTIPIXELS.FR" />
-  <meta property="og:description" content="Exemples de flocage textile et broderie réalisés dans notre atelier à Rang-du-Fliers, proche de Berck." />
-  <meta property="og:url" content="https://www.multipixels.fr/galerie.html" />
-  <meta property="og:image" content="https://www.multipixels.fr/assets/Background/logo.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Galerie Flocage & Broderie à Rang-du-Fliers | MULTIPIXELS.FR" />
-  <meta name="twitter:description" content="Un aperçu premium de nos projets textile sur la Côte d'Opale." />
-  <meta name="twitter:image" content="https://www.multipixels.fr/assets/Background/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" type="image/png" href="assets/Background/logo.png" />
-  <link rel="apple-touch-icon" href="assets/Background/logo.png" />
 </head>
 <body>
   <header class="site-header">
-    <div class="container nav-wrap">
-      <a class="logo" href="index.html"><img class="logo-mark" src="assets/Background/logo.png" alt="Logo MULTIPIXELS.FR" /><span>MULTIPIXELS.FR</span></a>
+    <div class="container nav-shell">
+      <a class="logo" href="index.html"><img src="assets/Background/logo.png" alt="Logo MULTIPIXELS.FR" /><span class="logo-text"><span class="logo-title">MULTIPIXELS.FR</span><span class="logo-subtitle">Votre Expert Textile</span></span></a>
       <nav class="main-nav" aria-label="Navigation principale">
-        <a href="index.html">Accueil</a>
-        <a class="active" href="galerie.html">Galerie</a>
-        <a href="tarifs.html">Tarifs</a>
-        <a href="catalogue.html">Catalogue</a>
-        <a href="contact.html">Nous contacter</a>
+        <a href="index.html" data-nav-link>Accueil</a>
+        <a href="galerie.html" data-nav-link>Galerie</a>
+        <a href="catalogue.html" data-nav-link>Catalogue</a>
+        <a href="contact.html" data-nav-link>Contact</a>
       </nav>
-      <button class="mobile-menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-menu-panel">
-        <span></span><span></span><span></span>
-      </button>
-      <a class="btn btn-small" href="contact.html">Demander un devis</a>
+      <div class="header-actions">
+        <a class="header-cart" href="panier.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M3 4h2l2.3 10.2a1 1 0 0 0 1 .8h8.8a1 1 0 0 0 1-.8L20 7H7.2"></path></svg><span>Panier</span><span class="cart-count" data-cart-count hidden>0</span></a>
+        <a class="btn btn-light" href="contact.html">Demander un devis</a>
+        <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu-panel" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+      </div>
     </div>
-  <div class="mobile-menu-panel" id="mobile-menu-panel" hidden>
-    <a href="index.html">Accueil</a>
-    <a href="galerie.html">Galerie</a>
-    <a href="tarifs.html">Tarifs</a>
-    <a href="catalogue.html">Catalogue</a>
-    <a href="contact.html">Nous contacter</a>
-    <a class="btn btn-small mobile-menu-cta" href="contact.html">Demander un devis</a>
-  </div>
+    <div class="container mobile-nav" id="mobile-menu-panel" hidden>
+      <div class="mobile-nav-panel">
+        <a href="index.html" data-nav-link>Accueil</a>
+        <a href="galerie.html" data-nav-link>Galerie</a>
+        <a href="catalogue.html" data-nav-link>Catalogue</a>
+        <a href="contact.html" data-nav-link>Contact</a>
+        <a class="btn" href="panier.html">Voir le panier</a>
+      </div>
+    </div>
   </header>
 
-  <main class="container section content-shell">
-    <div class="section-head reveal">
-      <p class="eyebrow">Nos réalisations</p>
-      <h1>Galerie de projets flocage et broderie.</h1>
-      <p>Un aperçu de nos productions pour entreprises, clubs sportifs et collections événementielles.</p>
-    </div>
-
-    <section class="gallery-curation-strip reveal">
-      <article class="gallery-curation-item">
-        <h2>Direction artistique contrôlée</h2>
-        <p>Chaque rendu est calibré pour conserver les couleurs, la lisibilité et l'impact de votre logo.</p>
-      </article>
-      <article class="gallery-curation-item">
-        <h2>Finitions premium</h2>
-        <p>Broderie précise, flocage net, contrôles visuels avant livraison et tenue au lavage.</p>
-      </article>
-      <article class="gallery-curation-item">
-        <h2>Approche sur mesure</h2>
-        <p>Petites séries, événements, dotation entreprise: composition adaptée à votre besoin.</p>
-      </article>
-    </section>
-
-    <section class="gallery-3d reveal" aria-label="Carrousel 3D de réalisations">
-      <div class="gallery-3d-stage" id="gallery-3d-stage">
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/1.jpeg" alt="Flocage de t-shirts pour une équipe événementielle" loading="lazy" />
-            <p>Flocage net et résistant pour des t-shirts en grande série.</p>
-          </figure>
-        </article>
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/2.jpeg" alt="Sweats d'association personnalisés" loading="lazy" />
-            <p>Personnalisation de t-shirts avec logos poitrine et dos.</p>
-          </figure>
-        </article>
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/3.jpeg" alt="Polos brodés pour entreprise" loading="lazy" />
-            <p>Broderie premium sur polos professionnels avec rendu haute précision.</p>
-          </figure>
-        </article>
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/4.jpeg" alt="Vêtements de travail personnalisés" loading="lazy" />
-            <p>Personnalisation de t-shirts avec logos dos associatif.</p>
-          </figure>
-        </article>
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/5.jpeg" alt="Casquettes brodées avec logo" loading="lazy" />
-            <p>Broderie de casquettes avec finitions propres et durables.</p>
-          </figure>
-        </article>
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/6.jpeg" alt="Maillots sportifs personnalisés" loading="lazy" />
-            <p>Idées cadeaux à offrir.</p>
-          </figure>
-        </article>
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/7.jpeg" alt="Veste d'entreprise avec logo brodé" loading="lazy" />
-            <p>Créations de broderies sur mesure.</p>
-          </figure>
-        </article>
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/8.jpeg" alt="Uniformes de restauration personnalisés" loading="lazy" />
-            <p>Broderies personnalisées sur bonnets.</p>
-          </figure>
-        </article>
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/9.jpeg" alt="Textiles événementiels multi-supports" loading="lazy" />
-            <p>Personnalisation de serviettes.</p>
-          </figure>
-        </article>
-        <article class="gallery-3d-item">
-          <figure class="gallery-card">
-            <img src="assets/Galerie/10.jpeg" alt="Pack textile complet pour entreprise" loading="lazy" />
-            <p>Personnalisations soignées sur peignoirs.</p>
-          </figure>
-        </article>
-      </div>
-
-      <div class="gallery-3d-controls">
-        <button class="gallery-3d-btn" id="gallery-prev" type="button" aria-label="Image précédente">&#10094;</button>
-        <div class="gallery-3d-dots" id="gallery-3d-dots" aria-label="Choisir une image"></div>
-        <button class="gallery-3d-btn" id="gallery-next" type="button" aria-label="Image suivante">&#10095;</button>
-      </div>
-    </section>
-
-    <section class="premium-signature-panel reveal">
-      <p class="eyebrow">Votre image de marque</p>
-      <h2>Transformons vos idées en supports qui marquent les esprits.</h2>
-      <p>Nous vous guidons sur les techniques, les placements logo et les finitions pour garantir un rendu professionnel.</p>
-      <div class="premium-signature-actions">
-        <a class="btn" href="contact.html">Demander une proposition</a>
-        <a class="btn btn-ghost" href="tarifs.html">Consulter les tarifs</a>
+  <main class="page-shell">
+    <section class="hero galerie-page-hero">
+      <div class="container galerie-shell">
+        <div class="section-heading reveal galerie-heading">
+          <span class="section-label">GALERIE</span>
+          <h1>Une partie de nos réalisations</h1>
+        </div>
+        <div class="galerie-grid reveal">
+          <article class="galerie-card"><img src="assets/Galerie/1.jpg" alt="Réalisation MULTIPIXELS 1" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/2.jpg" alt="Réalisation MULTIPIXELS 2" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/3.jpg" alt="Réalisation MULTIPIXELS 3" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/4.jpg" alt="Réalisation MULTIPIXELS 4" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/5.jpg" alt="Réalisation MULTIPIXELS 5" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/6.jpg" alt="Réalisation MULTIPIXELS 6" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/7.jpg" alt="Réalisation MULTIPIXELS 7" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/8.jpg" alt="Réalisation MULTIPIXELS 8" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/9.jpg" alt="Réalisation MULTIPIXELS 9" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/10.jpg" alt="Réalisation MULTIPIXELS 10" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/11.jpg" alt="Réalisation MULTIPIXELS 11" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/12.jpg" alt="Réalisation MULTIPIXELS 12" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/13.jpg" alt="Réalisation MULTIPIXELS 13" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/14.jpg" alt="Réalisation MULTIPIXELS 14" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/15.jpg" alt="Réalisation MULTIPIXELS 15" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/16.jpg" alt="Réalisation MULTIPIXELS 16" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/17.jpg" alt="Réalisation MULTIPIXELS 17" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/18.jpg" alt="Réalisation MULTIPIXELS 18" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/19.jpg" alt="Réalisation MULTIPIXELS 19" loading="lazy" /></article>
+          <article class="galerie-card"><img src="assets/Galerie/20.jpg" alt="Réalisation MULTIPIXELS 20" loading="lazy" /></article>
+        </div>
       </div>
     </section>
   </main>
 
-  <script>
-    (function setup3DGallery() {
-      const stage = document.getElementById("gallery-3d-stage");
-      const items = Array.from(document.querySelectorAll(".gallery-3d-item"));
-      const prev = document.getElementById("gallery-prev");
-      const next = document.getElementById("gallery-next");
-      const dotsWrap = document.getElementById("gallery-3d-dots");
-      if (!stage || !items.length || !prev || !next || !dotsWrap) return;
+  <footer class="footer-band"><div class="container footer-band-inner"><span>copyright@multipixels 2026</span><a href="mentions-legales.html">Mentions légales</a><span class="footer-payment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="M2.5 9.5h19"></path><path d="M7 14h4"></path></svg>Paiement sécurisé</span></div></footer>
 
-      let current = 0;
-      let autoplayId;
-
-      function circularDelta(from, to, total) {
-        let delta = to - from;
-        if (delta > total / 2) delta -= total;
-        if (delta < -total / 2) delta += total;
-        return delta;
-      }
-
-      function renderDots() {
-        dotsWrap.innerHTML = "";
-        items.forEach(function (_, index) {
-          const dot = document.createElement("button");
-          dot.type = "button";
-          dot.className = "gallery-3d-dot" + (index === current ? " active" : "");
-          dot.setAttribute("aria-label", "Aller à l'image " + (index + 1));
-          dot.addEventListener("click", function () {
-            goTo(index);
-          });
-          dotsWrap.appendChild(dot);
-        });
-      }
-
-      function applyPositions() {
-        items.forEach(function (item, index) {
-          const delta = circularDelta(current, index, items.length);
-          item.className = "gallery-3d-item";
-          if (delta === 0) item.classList.add("is-center");
-          else if (delta === -1) item.classList.add("is-left-1");
-          else if (delta === 1) item.classList.add("is-right-1");
-          else if (delta === -2) item.classList.add("is-left-2");
-          else if (delta === 2) item.classList.add("is-right-2");
-          else item.classList.add("is-hidden");
-
-          item.setAttribute("aria-hidden", delta === 0 ? "false" : "true");
-        });
-      }
-
-      function goTo(index) {
-        current = (index + items.length) % items.length;
-        applyPositions();
-        renderDots();
-      }
-
-      function startAutoplay() {
-        stopAutoplay();
-        autoplayId = window.setInterval(function () {
-          goTo(current + 1);
-        }, 5000);
-      }
-
-      function stopAutoplay() {
-        window.clearInterval(autoplayId);
-      }
-
-      prev.addEventListener("click", function () {
-        goTo(current - 1);
-      });
-
-      next.addEventListener("click", function () {
-        goTo(current + 1);
-      });
-
-      items.forEach(function (item, index) {
-        item.addEventListener("click", function () {
-          if (index !== current) goTo(index);
-        });
-      });
-
-      stage.addEventListener("mouseenter", stopAutoplay);
-      stage.addEventListener("mouseleave", startAutoplay);
-
-      goTo(0);
-      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        startAutoplay();
-      }
-    })();
-  </script>
-
-    <footer class="site-footer">
-    <div class="container footer-meta">
-      <p>copyright@multipixels 2026</p>
-      <p class="footer-legal"><a href="mentions-legales.html">mentions l&eacute;gales</a></p>
-      <p>site d&eacute;velopp&eacute; par Noct'Owl</p>
-    </div>
-  </footer>
-  <script src="mobile-menu.js"></script>
-  <script src="scroll-3d.js"></script>
+  <script src="site.js"></script>
 </body>
 </html>
-
-
-
-
-
 
 

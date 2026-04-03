@@ -1,2 +1,9 @@
+node_modules
 .env
-node_modules/
+assets/data/*.sqlite
+assets/data/*.sqlite-shm
+assets/data/*.sqlite-wal
+assets/data/client-space.json
+assets/data/admin-documents.json
+tmp/
+cron/

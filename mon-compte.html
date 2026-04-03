@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vue d'ensemble client | MULTIPIXELS.FR</title>
+  <meta name="description" content="Retrouvez la vue d'ensemble de votre espace client MULTIPIXELS avec vos commandes, votre SAV et votre profil." />
+  <link rel="canonical" href="https://www.multipixels.fr/mon-compte.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/png" href="assets/Background/favicon.png" />
+</head>
+<body data-client-page="overview">
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="logo" href="index.html" aria-label="Accueil MULTIPIXELS.FR">
+        <img src="assets/Background/logo.png" alt="Logo MULTIPIXELS.FR" />
+        <span class="logo-text">
+          <span class="logo-title">MULTIPIXELS.FR</span>
+          <span class="logo-subtitle">Votre Expert Textile</span>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Navigation principale">
+        <a href="index.html" data-nav-link>Accueil</a>
+        <a href="galerie.html" data-nav-link>Galerie</a>
+        <a href="catalogue.html" data-nav-link>Catalogue</a>
+        <a href="contact.html" data-nav-link>Contact</a>
+      </nav>
+      <div class="header-actions">
+        <a class="header-cart" href="panier.html" aria-label="Voir le panier">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M3 4h2l2.3 10.2a1 1 0 0 0 1 .8h8.8a1 1 0 0 0 1-.8L20 7H7.2"></path></svg>
+          <span>Panier</span>
+          <span class="cart-count" data-cart-count hidden>0</span>
+        </a>
+        <a class="btn btn-light" href="contact.html">Demander un devis</a>
+        <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu-panel" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="container mobile-nav" id="mobile-menu-panel" hidden>
+      <div class="mobile-nav-panel">
+        <a href="index.html" data-nav-link>Accueil</a>
+        <a href="galerie.html" data-nav-link>Galerie</a>
+        <a href="catalogue.html" data-nav-link>Catalogue</a>
+        <a href="contact.html" data-nav-link>Contact</a>
+        <a class="btn" href="panier.html">Voir le panier</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="section client-dashboard-section">
+      <div class="container client-dashboard-shell">
+        <div class="client-dashboard-hero reveal">
+          <div>
+            <span class="section-label">Mon compte</span>
+            <h1 id="client-dashboard-welcome">Bonjour,</h1>
+            <p id="client-dashboard-lead">Votre espace client centralise commandes, SAV et informations de profil.</p>
+          </div>
+          <div class="client-dashboard-actions">
+            <a class="btn btn-outline" href="catalogue.html">Retour au catalogue</a>
+            <button class="btn" type="button" data-client-logout>Se déconnecter</button>
+          </div>
+        </div>
+
+        <div id="client-dashboard-stats" class="client-dashboard-stats reveal"></div>
+        <p id="client-dashboard-status" class="client-auth-status"></p>
+
+        <nav class="client-dashboard-tabs reveal" aria-label="Navigation du compte client">
+          <a class="client-dashboard-tab" data-dashboard-link="overview" href="mon-compte.html">Vue d'ensemble</a>
+          <a class="client-dashboard-tab" data-dashboard-link="orders" href="mon-compte-commandes.html">Suivi de commande</a>
+          <a class="client-dashboard-tab" data-dashboard-link="sav" href="mon-compte-sav.html">SAV</a>
+          <a class="client-dashboard-tab" data-dashboard-link="profile" href="mon-compte-profil.html">Profil</a>
+        </nav>
+
+        <section class="client-dashboard-panel" id="dashboard-panel-overview" data-dashboard-panel="overview">
+          <div class="client-overview-grid">
+            <article class="client-panel-card">
+              <span class="section-label">Suivi de commande</span>
+              <h2>Une vision claire sur les dossiers en cours</h2>
+              <p>Retrouvez vos commandes ouvertes, les étapes de production, la date d'expédition estimée et les détails utiles pour échanger rapidement avec l'atelier.</p>
+            </article>
+            <article class="client-panel-card client-panel-card-light">
+              <span class="section-label">SAV et support</span>
+              <h2>Un canal dédié pour vos ajustements</h2>
+              <p>Question, modification, facturation, logistique ou SAV : chaque demande client peut être suivie dans le même espace.</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer-band"><div class="container footer-band-inner"><span>copyright@multipixels 2026</span><a href="mentions-legales.html">Mentions légales</a><span class="footer-payment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="M2.5 9.5h19"></path><path d="M7 14h4"></path></svg>Paiement sécurisé</span></div></footer>
+
+  <script src="client-auth.js"></script>
+  <script src="client-dashboard.js"></script>
+  <script src="site.js"></script>
+</body>
+</html>

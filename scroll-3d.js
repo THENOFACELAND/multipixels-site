@@ -9,7 +9,9 @@
   }
 
   const blocks = Array.from(
-    document.querySelectorAll("main .content-shell > section, main .content-shell > .section-head")
+    document.querySelectorAll(
+      "main.content-shell > section, main.content-shell > .section-head, main .content-shell > section, main .content-shell > .section-head"
+    )
   );
 
   if (!blocks.length) {
