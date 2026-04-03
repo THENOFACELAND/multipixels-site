@@ -111,6 +111,17 @@
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') closeMenu();
     });
+
+    var desktopMedia = window.matchMedia('(min-width: 921px)');
+    var syncMenuState = function (event) {
+      if (event.matches) closeMenu();
+    };
+
+    if (typeof desktopMedia.addEventListener === 'function') {
+      desktopMedia.addEventListener('change', syncMenuState);
+    } else if (typeof desktopMedia.addListener === 'function') {
+      desktopMedia.addListener(syncMenuState);
+    }
   }
 
   document.addEventListener('click', function (event) {
@@ -161,4 +172,5 @@
   ensureClientEntry();
   applyContactPrefill();
 })();
+
 
