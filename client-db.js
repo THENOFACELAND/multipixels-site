@@ -222,6 +222,8 @@ function buildClientDb() {
         company: payload.company || '',
         email: String(payload.email || '').toLowerCase(),
         phone: payload.phone || '',
+        addressLine1: payload.addressLine1 || '',
+        addressLine2: payload.addressLine2 || '',
         createdAt: nowIso(),
         lastLoginAt: null,
         passwordSalt: passwordRecord.salt,
@@ -494,6 +496,7 @@ module.exports = {
   verifyPassword,
   createPasswordRecord
 };
+
 
 
 
