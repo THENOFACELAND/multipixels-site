@@ -4336,3 +4336,66 @@ html, body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Client dashboard polish */
+.client-dashboard-hero {
+  border: 1px solid rgba(127, 156, 199, 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(150deg, rgba(8, 18, 35, 0.97), rgba(16, 34, 68, 0.93)),
+    radial-gradient(circle at top left, rgba(129, 172, 255, 0.14), transparent 34%);
+  box-shadow: 0 24px 54px rgba(2, 8, 20, 0.26);
+}
+
+.client-dashboard-panel {
+  border: 1px solid rgba(127, 156, 199, 0.14);
+  border-radius: 18px;
+  background: rgba(8, 18, 35, 0.38);
+  box-shadow: 0 18px 36px rgba(4, 10, 24, 0.16);
+}
+
+.client-overview-link-card,
+.client-profile-card {
+  border-radius: 16px;
+  box-shadow: 0 16px 32px rgba(4, 12, 26, 0.12);
+}
+
+.client-dashboard-section .client-dashboard-actions .btn-outline,
+.client-dashboard-section .client-dashboard-actions .btn-outline:visited,
+.client-dashboard-section .client-dashboard-actions a.btn-outline {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.32) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.client-dashboard-section .client-dashboard-actions .btn-outline:hover,
+.client-dashboard-section .client-dashboard-actions .btn-outline:focus-visible,
+.client-dashboard-section .client-dashboard-actions a.btn-outline:hover,
+.client-dashboard-section .client-dashboard-actions a.btn-outline:focus-visible {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.46) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+@media (max-width: 920px) {
+  .client-dashboard-hero {
+    padding: 22px;
+  }
+
+  .client-dashboard-panel {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .client-dashboard-hero {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .client-dashboard-panel,
+  .client-overview-link-card,
+  .client-profile-card {
+    border-radius: 14px;
+  }
+}
