@@ -509,8 +509,13 @@
       }
 
       setStatus('Accès administrateur actif pour ' + session.admin.email + '.', 'success');
-    } catch (_) {
-      window.location.href = 'admin.html';
+    } catch (error) {
+      const message = String((error && error.message) || '');
+      if (/Connexion administrateur requise|Identifiants administrateur invalides|ADMIN_UNAUTHORIZED|unauthorized/i.test(message)) {
+        window.location.href = 'admin.html';
+        return;
+      }
+      setStatus(message || 'Une erreur administrateur est survenue.', 'error');
     }
   }
 
@@ -774,6 +779,7 @@
 
   hydrate();
 })();
+
 
 
 

@@ -57,10 +57,9 @@ function createAdminTools(options) {
   const productsPath = path.join(root, 'assets', 'data', 'admin-products.json');
   const documentsPath = path.join(root, 'assets', 'data', 'admin-documents.json');
   const sessionTtlMs = 1000 * 60 * 60 * 12;
-  const sessions = new Map();
+  const adminSessionSecret = String(env.ADMIN_SESSION_SECRET || (String(env.ADMIN_PASSWORD || 'Brucamps80690') + '|' + String(env.ADMIN_EMAIL || 'contact@multipixels.fr')));
 
   ensureJsonFile(productsPath, { products: [] });
-  ensureJsonFile(documentsPath, { quotes: [], invoices: [] });
 
   function getAdminCredentials() {
     return {
@@ -73,29 +72,53 @@ function createAdminTools(options) {
     return new DatabaseSync(dbPath);
   }
 
-  function cleanupSessions() {
-    const now = Date.now();
-    Array.from(sessions.entries()).forEach(([token, session]) => {
-      if (!session || session.expiresAt <= now) sessions.delete(token);
-    });
+  function toBase64Url(value) {
+    return Buffer.from(String(value || ''), 'utf8').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+
+  function fromBase64Url(value) {
+    const input = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
+    const padding = input.length % 4 === 0 ? '' : '='.repeat(4 - (input.length % 4));
+    return Buffer.from(input + padding, 'base64').toString('utf8');
+  }
+
+  function signAdminToken(payload) {
+    const body = toBase64Url(JSON.stringify(payload));
+    const signature = crypto.createHmac('sha256', adminSessionSecret).update(body).digest('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    return body + '.' + signature;
+  }
+
+  function readAdminToken(token) {
+    const raw = String(token || '').trim();
+    if (!raw || raw.indexOf('.') < 0) return null;
+    const parts = raw.split('.');
+    if (parts.length !== 2) return null;
+    const body = parts[0];
+    const signature = parts[1];
+    const expected = crypto.createHmac('sha256', adminSessionSecret).update(body).digest('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    if (!safeEqual(signature, expected)) return null;
+    try {
+      const payload = JSON.parse(fromBase64Url(body));
+      if (!payload || !payload.exp || Number(payload.exp) <= Date.now()) return null;
+      return payload;
+    } catch (_) {
+      return null;
+    }
   }
 
   function createSession() {
-    cleanupSessions();
-    const token = crypto.randomBytes(24).toString('hex');
-    sessions.set(token, {
-      email: getAdminCredentials().email,
-      createdAt: new Date().toISOString(),
-      expiresAt: Date.now() + sessionTtlMs
+    const creds = getAdminCredentials();
+    const now = Date.now();
+    return signAdminToken({
+      email: creds.email,
+      createdAt: new Date(now).toISOString(),
+      exp: now + sessionTtlMs
     });
-    return token;
   }
 
   function getSession(token) {
-    cleanupSessions();
-    const session = sessions.get(String(token || ''));
+    const session = readAdminToken(token);
     if (!session) return null;
-    session.expiresAt = Date.now() + sessionTtlMs;
     return {
       email: session.email,
       createdAt: session.createdAt
@@ -117,13 +140,12 @@ function createAdminTools(options) {
     };
   }
 
-  function logout(token) {
-    if (token) sessions.delete(String(token));
+  function logout() {
+    return true;
   }
 
   function readProductsStore() {
     ensureJsonFile(productsPath, { products: [] });
-  ensureJsonFile(documentsPath, { quotes: [], invoices: [] });
     try {
       const raw = fs.readFileSync(productsPath, 'utf8').replace(/^\uFEFF/, '');
       const parsed = JSON.parse(raw);
@@ -549,6 +571,9 @@ function createAdminTools(options) {
 module.exports = {
   createAdminTools
 };
+
+
+
 
 
 
