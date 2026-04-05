@@ -53,9 +53,10 @@ function parseJsonSafe(value, fallback) {
 function createAdminTools(options) {
   const root = options.root;
   const env = options.env || process.env;
-  const dbPath = path.join(root, 'assets', 'data', 'client-space.sqlite');
-  const productsPath = path.join(root, 'assets', 'data', 'admin-products.json');
-  const documentsPath = path.join(root, 'assets', 'data', 'admin-documents.json');
+  const dataDir = env.MULTIPIXELS_DATA_DIR || env.DATA_DIR || env.RAILWAY_VOLUME_MOUNT_PATH || path.join(root, 'assets', 'data');
+  const dbPath = path.join(dataDir, 'client-space.sqlite');
+  const productsPath = path.join(dataDir, 'admin-products.json');
+  const documentsPath = path.join(dataDir, 'admin-documents.json');
   const sessionTtlMs = 1000 * 60 * 60 * 12;
   const adminSessionSecret = String(env.ADMIN_SESSION_SECRET || (String(env.ADMIN_PASSWORD || 'Brucamps80690') + '|' + String(env.ADMIN_EMAIL || 'contact@multipixels.fr')));
 
