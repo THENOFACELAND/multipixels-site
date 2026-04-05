@@ -1795,14 +1795,20 @@ async function handleClientProfileApi(req, res) {
     return;
   }
 
+  const hasField = function (field) {
+    return Object.prototype.hasOwnProperty.call(body, field);
+  };
+
   const updated = clientDb.updateProfile(auth.user.id, {
-    firstName: sanitizeLine(body.firstName || auth.user.firstName, 80) || auth.user.firstName,
-    lastName: sanitizeLine(body.lastName || auth.user.lastName, 80) || auth.user.lastName,
-    company: sanitizeLine(body.company || auth.user.company, 140),
-    phone: sanitizeLine(body.phone || auth.user.phone, 40),
-    addressLine1: sanitizeLine(body.addressLine1 || auth.user.addressLine1, 180),
-    addressLine2: sanitizeLine(body.addressLine2 || auth.user.addressLine2, 180),
-    accountType: sanitizeLine(body.accountType || auth.user.accountType, 40)
+    firstName: hasField('firstName') ? (sanitizeLine(body.firstName, 80) || auth.user.firstName) : auth.user.firstName,
+    lastName: hasField('lastName') ? (sanitizeLine(body.lastName, 80) || auth.user.lastName) : auth.user.lastName,
+    company: hasField('company') ? sanitizeLine(body.company, 140) : auth.user.company,
+    phone: hasField('phone') ? sanitizeLine(body.phone, 40) : auth.user.phone,
+    addressLine1: hasField('addressLine1') ? sanitizeLine(body.addressLine1, 180) : auth.user.addressLine1,
+    addressLine2: hasField('addressLine2') ? sanitizeLine(body.addressLine2, 180) : auth.user.addressLine2,
+    postalCode: hasField('postalCode') ? sanitizeLine(body.postalCode, 10) : auth.user.postalCode,
+    city: hasField('city') ? sanitizeLine(body.city, 120) : auth.user.city,
+    accountType: hasField('accountType') ? sanitizeLine(body.accountType, 40) : auth.user.accountType
   });
 
   sendJson(res, 200, { ok: true, user: dbToPublicUser(updated), dashboard: clientDb.getDashboard(auth.user.id) });
@@ -2477,6 +2483,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 

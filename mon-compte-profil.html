@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profil client | MULTIPIXELS.FR</title>
-  <meta name="description" content="Mettez à jour vos informations client MULTIPIXELS depuis votre espace dédié." />
+  <meta name="description" content="Mettez a jour vos informations client MULTIPIXELS depuis votre espace dedie." />
   <link rel="canonical" href="https://www.multipixels.fr/mon-compte-profil.html" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -60,7 +60,7 @@
           </div>
           <div class="client-dashboard-actions">
             <a class="btn btn-outline" href="catalogue.html">Retour au catalogue</a>
-            <button class="btn" type="button" data-client-logout>Se déconnecter</button>
+            <button class="btn" type="button" data-client-logout>Se deconnecter</button>
           </div>
         </div>
 
@@ -75,13 +75,18 @@
         </nav>
 
         <section class="client-dashboard-panel" id="dashboard-panel-profile" data-dashboard-panel="profile">
-          <article class="client-panel-card client-profile-card">
-            <span class="section-label">Profil client</span>
-            <h2>Mettre à jour mes informations</h2>
-            <form id="client-profile-form" class="client-form-grid">
+          <article class="client-panel-card client-profile-card client-profile-card-compact">
+            <div class="client-profile-card-head">
+              <div>
+                <span class="section-label">Profil client</span>
+                <h2>Mettre a jour mes informations</h2>
+              </div>
+              <p class="client-form-help">Renseignez votre adresse de livraison ou de facturation. La commune se propose automatiquement des que le code postal est reconnu.</p>
+            </div>
+            <form id="client-profile-form" class="client-form-grid client-form-grid-compact">
               <div class="client-form-two">
                 <label>
-                  <span>Prénom</span>
+                  <span>Prenom</span>
                   <input type="text" name="firstName" required />
                 </label>
                 <label>
@@ -91,33 +96,47 @@
               </div>
               <div class="client-form-two">
                 <label>
-                  <span>Société</span>
+                  <span>Societe</span>
                   <input type="text" name="company" />
                 </label>
                 <label>
-                  <span>Téléphone</span>
+                  <span>Telephone</span>
                   <input type="tel" name="phone" />
                 </label>
               </div>
-              <label>
-                <span>Adresse email</span>
-                <input type="email" name="email" readonly />
-              </label>
+              <div class="client-form-two">
+                <label>
+                  <span>Adresse email</span>
+                  <input type="email" name="email" readonly />
+                </label>
+                <label>
+                  <span>Type de compte</span>
+                  <select name="accountType">
+                    <option value="particulier">Particulier</option>
+                    <option value="professionnel">Professionnel</option>
+                  </select>
+                </label>
+              </div>
               <label>
                 <span>Adresse</span>
-                <input type="text" name="addressLine1" />
+                <input type="text" name="addressLine1" placeholder="Numero, rue, voie..." />
               </label>
               <label>
-                <span>Complément d'adresse</span>
-                <input type="text" name="addressLine2" />
+                <span>Complement d'adresse</span>
+                <input type="text" name="addressLine2" placeholder="Batiment, etage, atelier..." />
               </label>
-              <label>
-                <span>Type de compte</span>
-                <select name="accountType">
-                  <option value="particulier">Particulier</option>
-                  <option value="professionnel">Professionnel</option>
-                </select>
-              </label>
+              <div class="client-form-two client-form-address-row">
+                <label>
+                  <span>Code postal</span>
+                  <input type="text" name="postalCode" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="62180" />
+                </label>
+                <label>
+                  <span>Commune</span>
+                  <input type="text" name="city" list="client-city-suggestions" autocomplete="address-level2" placeholder="Commune" />
+                </label>
+              </div>
+              <datalist id="client-city-suggestions"></datalist>
+              <p id="client-postal-lookup-status" class="client-form-inline-note" hidden></p>
               <button class="btn" type="submit">Enregistrer mes informations</button>
             </form>
           </article>
@@ -126,12 +145,10 @@
     </section>
   </main>
 
-  <footer class="footer-band"><div class="container footer-band-inner"><span>copyright@multipixels 2026</span><a href="mentions-legales.html">Mentions légales</a><span class="footer-payment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="M2.5 9.5h19"></path><path d="M7 14h4"></path></svg>Paiement sécurisé</span></div></footer>
+  <footer class="footer-band"><div class="container footer-band-inner"><span>copyright@multipixels 2026</span><a href="mentions-legales.html">Mentions legales</a><span class="footer-payment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="M2.5 9.5h19"></path><path d="M7 14h4"></path></svg>Paiement securise</span></div></footer>
 
   <script src="client-auth.js"></script>
   <script src="client-dashboard.js"></script>
   <script src="site.js"></script>
 </body>
 </html>
-
-

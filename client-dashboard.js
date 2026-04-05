@@ -14,12 +14,30 @@
   var statusNode = document.getElementById('client-dashboard-status');
   var logoutButtons = Array.from(document.querySelectorAll('[data-client-logout]'));
   var navLinks = Array.from(document.querySelectorAll('[data-dashboard-link]'));
+  var postalLookupTimer = null;
+  var postalLookupStatus = document.getElementById('client-postal-lookup-status');
+  var citySuggestions = document.getElementById('client-city-suggestions');
 
   function setStatus(message, tone) {
     if (!statusNode) return;
     statusNode.textContent = message || '';
     statusNode.className = 'client-auth-status';
     if (tone) statusNode.classList.add('is-' + tone);
+  }
+
+  function setPostalLookupStatus(message, tone) {
+    if (!postalLookupStatus) return;
+    postalLookupStatus.hidden = !message;
+    postalLookupStatus.textContent = message || '';
+    postalLookupStatus.className = 'client-form-inline-note';
+    if (tone) postalLookupStatus.classList.add('is-' + tone);
+  }
+
+  function setCitySuggestions(items) {
+    if (!citySuggestions) return;
+    citySuggestions.innerHTML = (items || []).map(function (name) {
+      return '<option value="' + name.replace(/"/g, '&quot;') + '"></option>';
+    }).join('');
   }
 
   function formatDate(value) {
@@ -40,6 +58,89 @@
       var isActive = link.getAttribute('data-dashboard-link') === currentPage;
       link.classList.toggle('is-active', isActive);
       link.setAttribute('aria-current', isActive ? 'page' : 'false');
+    });
+  }
+
+  async function fetchCitiesForPostalCode(postalCode) {
+    var normalized = String(postalCode || '').replace(/\D/g, '').slice(0, 5);
+    if (normalized.length !== 5) {
+      setCitySuggestions([]);
+      setPostalLookupStatus('', '');
+      return [];
+    }
+
+    setPostalLookupStatus('Recherche de la commune...', 'muted');
+    try {
+      var response = await window.fetch('https://geo.api.gouv.fr/communes?codePostal=' + encodeURIComponent(normalized) + '&fields=nom&boost=population&limit=10');
+      var data = [];
+      try {
+        data = await response.json();
+      } catch (_) {
+        data = [];
+      }
+
+      if (!response.ok || !Array.isArray(data)) {
+        throw new Error('lookup_failed');
+      }
+
+      var cities = data
+        .map(function (entry) { return entry && entry.nom ? String(entry.nom).trim() : ''; })
+        .filter(Boolean)
+        .filter(function (name, index, array) { return array.indexOf(name) === index; });
+
+      setCitySuggestions(cities);
+      if (!cities.length) {
+        setPostalLookupStatus('Aucune commune trouvee pour ce code postal.', 'error');
+      } else if (cities.length === 1) {
+        setPostalLookupStatus('Commune detectee automatiquement.', 'success');
+      } else {
+        setPostalLookupStatus('Plusieurs communes sont possibles, vous pouvez ajuster si besoin.', 'muted');
+      }
+      return cities;
+    } catch (_) {
+      setCitySuggestions([]);
+      setPostalLookupStatus('Impossible de recuperer la commune automatiquement pour le moment.', 'error');
+      return [];
+    }
+  }
+
+  function setupPostalLookup() {
+    if (!profileForm || !profileForm.postalCode || !profileForm.city) return;
+    var postalCodeInput = profileForm.postalCode;
+    var cityInput = profileForm.city;
+
+    function runLookup(immediate) {
+      var execute = async function () {
+        var cities = await fetchCitiesForPostalCode(postalCodeInput.value);
+        if (!cities.length) return;
+        var currentCity = String(cityInput.value || '').trim().toLowerCase();
+        var matched = cities.some(function (city) { return city.toLowerCase() === currentCity; });
+        if (!matched) {
+          cityInput.value = cities[0];
+        }
+      };
+
+      if (immediate) {
+        if (postalLookupTimer) window.clearTimeout(postalLookupTimer);
+        execute();
+        return;
+      }
+
+      if (postalLookupTimer) window.clearTimeout(postalLookupTimer);
+      postalLookupTimer = window.setTimeout(execute, 260);
+    }
+
+    postalCodeInput.addEventListener('input', function () {
+      postalCodeInput.value = postalCodeInput.value.replace(/\D/g, '').slice(0, 5);
+      if (postalCodeInput.value.length < 5) {
+        setCitySuggestions([]);
+        setPostalLookupStatus('', '');
+      }
+      runLookup(false);
+    });
+
+    postalCodeInput.addEventListener('blur', function () {
+      runLookup(true);
     });
   }
 
@@ -66,7 +167,7 @@
   function renderOrders(orders) {
     if (!ordersNode) return;
     if (!orders.length) {
-      ordersNode.innerHTML = '<article class="client-empty-card"><h3>Aucune commande pour le moment</h3><p>Votre suivi de commande apparaîtra ici dès qu\'un dossier sera lancé avec l\'atelier.</p></article>';
+      ordersNode.innerHTML = '<article class="client-empty-card"><h3>Aucune commande pour le moment</h3><p>Votre suivi de commande apparaitra ici des qu\'un dossier sera lance avec l\'atelier.</p></article>';
       return;
     }
 
@@ -84,8 +185,8 @@
         '<span class="client-status-chip is-' + order.statusTone + '">' + order.statusLabel + '</span>',
         '</div>',
         '<div class="client-order-meta">',
-        '<span>Passée le ' + formatDate(order.createdAt) + '</span>',
-        '<span>Expédition prévue ' + formatDate(order.estimatedShipDate) + '</span>',
+        '<span>Passee le ' + formatDate(order.createdAt) + '</span>',
+        '<span>Expedition prevue ' + formatDate(order.estimatedShipDate) + '</span>',
         '<span>' + formatPrice(order.total) + '</span>',
         '</div>',
         '<p class="client-order-note">' + (order.clientNote || '') + '</p>',
@@ -111,8 +212,8 @@
         '<span class="client-status-chip is-' + ticket.statusTone + '">' + ticket.statusLabel + '</span>',
         '</div>',
         '<div class="client-order-meta">',
-        '<span>Mise à jour le ' + formatDate(ticket.updatedAt) + '</span>',
-        '<span>' + (ticket.orderReference || 'Sans référence de commande') + '</span>',
+        '<span>Mise a jour le ' + formatDate(ticket.updatedAt) + '</span>',
+        '<span>' + (ticket.orderReference || 'Sans reference de commande') + '</span>',
         '</div>',
         '<p class="client-order-note">' + (ticket.messagePreview || '') + '</p>',
         '<p class="client-ticket-reply">' + (ticket.lastReply || '') + '</p>',
@@ -130,6 +231,8 @@
     profileForm.phone.value = user.phone || '';
     profileForm.addressLine1.value = user.addressLine1 || '';
     profileForm.addressLine2.value = user.addressLine2 || '';
+    if (profileForm.postalCode) profileForm.postalCode.value = user.postalCode || '';
+    if (profileForm.city) profileForm.city.value = user.city || '';
     profileForm.accountType.value = user.accountType || 'particulier';
   }
 
@@ -138,15 +241,15 @@
     if (welcomeNode) welcomeNode.textContent = 'Bonjour ' + (user.firstName || user.displayName || 'client') + ',';
     if (leadNode) {
       if (currentPage === 'orders') {
-        leadNode.textContent = 'Retrouvez ici vos commandes en cours, les étapes de production et les dates d’expédition prévues.';
+        leadNode.textContent = 'Retrouvez ici vos commandes en cours, les etapes de production et les dates d\'expedition prevues.';
       } else if (currentPage === 'sav') {
-        leadNode.textContent = 'Centralisez vos demandes SAV, vos ajustements et vos échanges avec l’atelier dans un seul espace.';
+        leadNode.textContent = 'Centralisez vos demandes SAV, vos ajustements et vos echanges avec l\'atelier dans un seul espace.';
       } else if (currentPage === 'profile') {
-        leadNode.textContent = 'Mettez à jour vos informations client pour garder un suivi clair sur vos futures commandes.';
+        leadNode.textContent = 'Mettez a jour vos informations client pour garder un suivi clair sur vos futures commandes.';
       } else {
         leadNode.textContent = user.accountType === 'professionnel'
           ? 'Votre espace professionnel centralise le suivi des commandes, la coordination atelier et le SAV.'
-          : 'Retrouvez ici vos commandes, vos demandes SAV et vos informations de suivi avec l’atelier.';
+          : 'Retrouvez ici vos commandes, vos demandes SAV et vos informations de suivi avec l\'atelier.';
       }
     }
     renderStats(dashboard.stats || {});
@@ -181,9 +284,9 @@
         });
         ticketForm.reset();
         await hydrateDashboard();
-        setStatus('Votre demande a bien été enregistrée.', 'success');
+        setStatus('Votre demande a bien ete enregistree.', 'success');
       } catch (error) {
-        setStatus(error.message || 'Impossible d’envoyer la demande SAV.', 'error');
+        setStatus(error.message || 'Impossible d\'envoyer la demande SAV.', 'error');
       } finally {
         if (submit) submit.disabled = false;
       }
@@ -191,9 +294,11 @@
   }
 
   if (profileForm) {
+    setupPostalLookup();
+
     profileForm.addEventListener('submit', async function (event) {
       event.preventDefault();
-      setStatus('Mise à jour du profil...', 'muted');
+      setStatus('Mise a jour du profil...', 'muted');
       var submit = profileForm.querySelector('button[type="submit"]');
       if (submit) submit.disabled = true;
       try {
@@ -204,12 +309,14 @@
           phone: profileForm.phone.value,
           addressLine1: profileForm.addressLine1.value,
           addressLine2: profileForm.addressLine2.value,
+          postalCode: profileForm.postalCode ? profileForm.postalCode.value : '',
+          city: profileForm.city ? profileForm.city.value : '',
           accountType: profileForm.accountType.value
         });
         await hydrateDashboard();
-        setStatus('Vos informations ont été mises à jour.', 'success');
+        setStatus('Vos informations ont ete mises a jour.', 'success');
       } catch (error) {
-        setStatus(error.message || 'Impossible de mettre à jour le profil.', 'error');
+        setStatus(error.message || 'Impossible de mettre a jour le profil.', 'error');
       } finally {
         if (submit) submit.disabled = false;
       }

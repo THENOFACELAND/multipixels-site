@@ -89,6 +89,8 @@ function toPublicUser(row) {
     phone: row.phone || '',
     addressLine1: row.addressLine1 || '',
     addressLine2: row.addressLine2 || '',
+    postalCode: row.postalCode || '',
+    city: row.city || '',
     createdAt: row.createdAt,
     lastLoginAt: row.lastLoginAt || null,
     displayName: getDisplayName(row)
@@ -142,6 +144,8 @@ function mapUserRow(row) {
     phone: row.phone,
     addressLine1: row.addressLine1,
     addressLine2: row.addressLine2,
+    postalCode: row.postalCode,
+    city: row.city,
     createdAt: row.createdAt,
     lastLoginAt: row.lastLoginAt,
     passwordSalt: row.passwordSalt,
@@ -218,6 +222,8 @@ function buildClientDb() {
 
   ensureUserColumn(db, 'addressLine1', 'TEXT');
   ensureUserColumn(db, 'addressLine2', 'TEXT');
+  ensureUserColumn(db, 'postalCode', 'TEXT');
+  ensureUserColumn(db, 'city', 'TEXT');
 
   const count = db.prepare('SELECT COUNT(*) as count FROM client_users').get().count;
   if (!count) {
@@ -247,14 +253,16 @@ function buildClientDb() {
         phone: payload.phone || '',
         addressLine1: payload.addressLine1 || '',
         addressLine2: payload.addressLine2 || '',
+        postalCode: payload.postalCode || '',
+        city: payload.city || '',
         createdAt: nowIso(),
         lastLoginAt: null,
         passwordSalt: passwordRecord.salt,
         passwordHash: passwordRecord.hash
       };
-      db.prepare(`INSERT INTO client_users (id, accountType, firstName, lastName, company, email, phone, addressLine1, addressLine2, createdAt, lastLoginAt, passwordSalt, passwordHash)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(user.id, user.accountType, user.firstName, user.lastName, user.company, user.email, user.phone, user.addressLine1, user.addressLine2, user.createdAt, user.lastLoginAt, user.passwordSalt, user.passwordHash);
+      db.prepare(`INSERT INTO client_users (id, accountType, firstName, lastName, company, email, phone, addressLine1, addressLine2, postalCode, city, createdAt, lastLoginAt, passwordSalt, passwordHash)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(user.id, user.accountType, user.firstName, user.lastName, user.company, user.email, user.phone, user.addressLine1, user.addressLine2, user.postalCode, user.city, user.createdAt, user.lastLoginAt, user.passwordSalt, user.passwordHash);
       return user;
     },
     verifyUser(email, password) {
@@ -337,13 +345,15 @@ function buildClientDb() {
       return serializeTicket(db.prepare('SELECT * FROM client_tickets WHERE id = ?').get(ticket.id));
     },
     updateProfile(userId, payload) {
-      db.prepare(`UPDATE client_users SET firstName = ?, lastName = ?, company = ?, phone = ?, addressLine1 = ?, addressLine2 = ?, accountType = ? WHERE id = ?`).run(
+      db.prepare(`UPDATE client_users SET firstName = ?, lastName = ?, company = ?, phone = ?, addressLine1 = ?, addressLine2 = ?, postalCode = ?, city = ?, accountType = ? WHERE id = ?`).run(
         payload.firstName,
         payload.lastName,
         payload.company || '',
         payload.phone || '',
         payload.addressLine1 || '',
         payload.addressLine2 || '',
+        payload.postalCode || '',
+        payload.city || '',
         payload.accountType === 'professionnel' ? 'professionnel' : 'particulier',
         userId
       );
@@ -520,6 +530,9 @@ module.exports = {
   verifyPassword,
   createPasswordRecord
 };
+
+
+
 
 
 

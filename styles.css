@@ -4399,3 +4399,75 @@ html, body {
     border-radius: 14px;
   }
 }
+
+/* Client profile compact form */
+.client-profile-card-compact {
+  gap: 14px;
+}
+
+.client-profile-card-head {
+  display: grid;
+  gap: 8px;
+}
+
+.client-profile-card-compact h2 {
+  margin: 0;
+}
+
+.client-form-grid-compact {
+  gap: 12px;
+}
+
+.client-form-grid-compact label {
+  gap: 6px;
+}
+
+.client-form-grid-compact span {
+  font-size: 0.74rem;
+  line-height: 1;
+}
+
+.client-form-grid-compact input,
+.client-form-grid-compact select {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 9px;
+}
+
+.client-form-grid-compact .client-form-two {
+  gap: 10px;
+}
+
+.client-form-address-row {
+  align-items: end;
+}
+
+.client-form-help,
+.client-form-inline-note {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: rgba(224, 232, 246, 0.76);
+}
+
+.client-form-inline-note.is-success {
+  color: #9fe0af;
+}
+
+.client-form-inline-note.is-error {
+  color: #ff9a9a;
+}
+
+.client-form-inline-note.is-muted {
+  color: rgba(224, 232, 246, 0.7);
+}
+
+@media (max-width: 760px) {
+  .client-profile-card-compact {
+    padding: 18px;
+  }
+
+  .client-form-grid-compact {
+    gap: 10px;
+  }
+}
