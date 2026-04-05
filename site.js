@@ -147,7 +147,15 @@
         }
       });
     }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-    revealNodes.forEach(function (node) { observer.observe(node); });
+    revealNodes.forEach(function (node) {
+      var nodeHeight = node.offsetHeight || 0;
+      var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      if (viewportHeight && nodeHeight > viewportHeight * 1.1) {
+        node.classList.add('is-visible');
+        return;
+      }
+      observer.observe(node);
+    });
   }
 
   function applyContactPrefill() {
@@ -172,5 +180,6 @@
   ensureClientEntry();
   applyContactPrefill();
 })();
+
 
 
