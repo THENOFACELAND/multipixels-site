@@ -17,6 +17,7 @@
   var postalLookupTimer = null;
   var postalLookupStatus = document.getElementById('client-postal-lookup-status');
   var citySuggestions = document.getElementById('client-city-suggestions');
+  var citySuggestionItems = [];
 
   function setStatus(message, tone) {
     if (!statusNode) return;
@@ -33,11 +34,39 @@
     if (tone) postalLookupStatus.classList.add('is-' + tone);
   }
 
-  function setCitySuggestions(items) {
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function closeCitySuggestions() {
     if (!citySuggestions) return;
-    citySuggestions.innerHTML = (items || []).map(function (name) {
-      return '<option value="' + name.replace(/"/g, '&quot;') + '"></option>';
+    citySuggestions.hidden = true;
+    citySuggestions.innerHTML = '';
+    if (profileForm && profileForm.city) {
+      profileForm.city.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function setCitySuggestions(items) {
+    citySuggestionItems = Array.isArray(items) ? items.slice() : [];
+    if (!citySuggestions) return;
+    if (!citySuggestionItems.length) {
+      closeCitySuggestions();
+      return;
+    }
+
+    citySuggestions.innerHTML = citySuggestionItems.map(function (name) {
+      return '<button class="client-city-suggestion" type="button" data-city-option="' + escapeHtml(name) + '">' + escapeHtml(name) + '</button>';
     }).join('');
+    citySuggestions.hidden = false;
+    if (profileForm && profileForm.city) {
+      profileForm.city.setAttribute('aria-expanded', 'true');
+    }
   }
 
   function formatDate(value) {
@@ -94,7 +123,7 @@
       } else if (cities.length === 1) {
         setPostalLookupStatus('Commune detectee automatiquement.', 'success');
       } else {
-        setPostalLookupStatus('Plusieurs communes sont possibles, vous pouvez ajuster si besoin.', 'muted');
+        setPostalLookupStatus('Plusieurs communes sont possibles, selectionnez la bonne commune ci-dessous.', 'muted');
       }
       return cities;
     } catch (_) {
@@ -109,15 +138,22 @@
     var postalCodeInput = profileForm.postalCode;
     var cityInput = profileForm.city;
 
+    function applySuggestedCities(cities) {
+      var currentValue = String(cityInput.value || '').trim();
+      var normalizedCurrent = currentValue.toLowerCase();
+      if (cities.length === 1 && normalizedCurrent !== cities[0].toLowerCase()) {
+        cityInput.value = cities[0];
+      }
+      if (cities.length > 1 || !currentValue) {
+        setCitySuggestions(cities);
+      }
+    }
+
     function runLookup(immediate) {
       var execute = async function () {
         var cities = await fetchCitiesForPostalCode(postalCodeInput.value);
         if (!cities.length) return;
-        var currentCity = String(cityInput.value || '').trim().toLowerCase();
-        var matched = cities.some(function (city) { return city.toLowerCase() === currentCity; });
-        if (!matched) {
-          cityInput.value = cities[0];
-        }
+        applySuggestedCities(cities);
       };
 
       if (immediate) {
@@ -133,14 +169,66 @@
     postalCodeInput.addEventListener('input', function () {
       postalCodeInput.value = postalCodeInput.value.replace(/\D/g, '').slice(0, 5);
       if (postalCodeInput.value.length < 5) {
-        setCitySuggestions([]);
+        citySuggestionItems = [];
+        closeCitySuggestions();
         setPostalLookupStatus('', '');
+        return;
       }
       runLookup(false);
     });
 
     postalCodeInput.addEventListener('blur', function () {
       runLookup(true);
+    });
+
+    cityInput.addEventListener('focus', function () {
+      if (citySuggestionItems.length) {
+        setCitySuggestions(citySuggestionItems);
+      }
+    });
+
+    cityInput.addEventListener('input', function () {
+      var query = String(cityInput.value || '').trim().toLowerCase();
+      if (!query) {
+        if (citySuggestionItems.length) setCitySuggestions(citySuggestionItems);
+        return;
+      }
+
+      var filtered = citySuggestionItems.filter(function (name) {
+        return name.toLowerCase().indexOf(query) !== -1;
+      });
+
+      if (filtered.length) {
+        setCitySuggestions(filtered);
+      } else {
+        closeCitySuggestions();
+      }
+    });
+
+    cityInput.addEventListener('blur', function () {
+      window.setTimeout(closeCitySuggestions, 140);
+    });
+
+    cityInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeCitySuggestions();
+      }
+    });
+
+    if (citySuggestions) {
+      citySuggestions.addEventListener('click', function (event) {
+        var option = event.target.closest('[data-city-option]');
+        if (!option) return;
+        cityInput.value = option.getAttribute('data-city-option') || '';
+        closeCitySuggestions();
+        setPostalLookupStatus('Commune selectionnee.', 'success');
+      });
+    }
+
+    document.addEventListener('click', function (event) {
+      if (!citySuggestions || citySuggestions.hidden) return;
+      if (event.target === cityInput || citySuggestions.contains(event.target)) return;
+      closeCitySuggestions();
     });
   }
 
@@ -326,3 +414,6 @@
   setActiveNav();
   hydrateDashboard();
 })();
+
+
+

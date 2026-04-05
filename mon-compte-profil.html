@@ -130,12 +130,12 @@
                   <span>Code postal</span>
                   <input type="text" name="postalCode" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="62180" />
                 </label>
-                <label>
+                <label class="client-city-field">
                   <span>Commune</span>
-                  <input type="text" name="city" list="client-city-suggestions" autocomplete="address-level2" placeholder="Commune" />
+                  <input type="text" name="city" autocomplete="address-level2" placeholder="Commune" aria-autocomplete="list" aria-expanded="false" aria-controls="client-city-suggestions" />
+                  <div id="client-city-suggestions" class="client-city-suggestions" hidden></div>
                 </label>
               </div>
-              <datalist id="client-city-suggestions"></datalist>
               <p id="client-postal-lookup-status" class="client-form-inline-note" hidden></p>
               <button class="btn" type="submit">Enregistrer mes informations</button>
             </form>
@@ -152,3 +152,5 @@
   <script src="site.js"></script>
 </body>
 </html>
+
+

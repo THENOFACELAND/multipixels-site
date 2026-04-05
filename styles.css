@@ -4471,3 +4471,46 @@ html, body {
     gap: 10px;
   }
 }
+
+.client-city-field {
+  position: relative;
+}
+
+.client-city-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: grid;
+  gap: 4px;
+  max-height: 220px;
+  padding: 8px;
+  overflow-y: auto;
+  border: 1px solid rgba(127, 156, 199, 0.18);
+  border-radius: 10px;
+  background: rgba(10, 23, 44, 0.98);
+  box-shadow: 0 18px 32px rgba(4, 12, 26, 0.24);
+}
+
+.client-city-suggestions[hidden] {
+  display: none;
+}
+
+.client-city-suggestion {
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f2f6ff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.client-city-suggestion:hover,
+.client-city-suggestion:focus-visible {
+  background: rgba(129, 172, 255, 0.18);
+  outline: none;
+}
