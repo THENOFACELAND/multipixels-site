@@ -4292,3 +4292,47 @@ html, body {
   }
 }
 
+
+.client-dashboard-hero.admin-hero-compact .btn-outline {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+}
+.client-dashboard-hero.admin-hero-compact .btn-outline:hover,
+.client-dashboard-hero.admin-hero-compact .btn-outline:focus-visible {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.36);
+}
+
+.client-overview-links {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.client-overview-link-card {
+  display: grid;
+  gap: 10px;
+  min-height: 100%;
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+.client-overview-link-card p {
+  margin: 0;
+}
+.client-overview-link-card:hover,
+.client-overview-link-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(129, 172, 255, 0.28);
+  background: linear-gradient(160deg, rgba(12, 27, 52, 0.98), rgba(20, 43, 82, 0.94));
+}
+@media (max-width: 980px) {
+  .client-overview-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .client-overview-links {
+    grid-template-columns: 1fr;
+  }
+}

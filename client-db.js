@@ -3,13 +3,36 @@ const path = require('path');
 const crypto = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
 
-const DB_PATH = path.join(__dirname, 'assets', 'data', 'client-space.sqlite');
-const LEGACY_JSON_PATH = path.join(__dirname, 'assets', 'data', 'client-space.json');
+const APP_DATA_DIR = path.join(__dirname, 'assets', 'data');
+const LEGACY_JSON_PATH = path.join(APP_DATA_DIR, 'client-space.json');
+const DB_DATA_DIR = resolveDataDirectory();
+const DB_PATH = path.join(DB_DATA_DIR, 'client-space.sqlite');
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const RESET_TTL_MS = 1000 * 60 * 30;
 
 function ensureDirectory(dirPath) {
   if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+}
+
+function resolveDataDirectory() {
+  const candidates = [
+    process.env.MULTIPIXELS_DATA_DIR,
+    process.env.DATA_DIR,
+    process.env.RAILWAY_VOLUME_MOUNT_PATH,
+    process.platform === 'win32' ? '' : '/data'
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    try {
+      ensureDirectory(candidate);
+      return candidate;
+    } catch (_) {
+      // Ignore invalid or unavailable runtime data directories.
+    }
+  }
+
+  ensureDirectory(APP_DATA_DIR);
+  return APP_DATA_DIR;
 }
 
 function nowIso() {
@@ -228,7 +251,8 @@ function buildClientDb() {
         lastLoginAt: null,
         passwordSalt: passwordRecord.salt,
         passwordHash: passwordRecord.hash
-      };      db.prepare(`INSERT INTO client_users (id, accountType, firstName, lastName, company, email, phone, addressLine1, addressLine2, createdAt, lastLoginAt, passwordSalt, passwordHash)
+      };
+      db.prepare(`INSERT INTO client_users (id, accountType, firstName, lastName, company, email, phone, addressLine1, addressLine2, createdAt, lastLoginAt, passwordSalt, passwordHash)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .run(user.id, user.accountType, user.firstName, user.lastName, user.company, user.email, user.phone, user.addressLine1, user.addressLine2, user.createdAt, user.lastLoginAt, user.passwordSalt, user.passwordHash);
       return user;
@@ -496,6 +520,11 @@ module.exports = {
   verifyPassword,
   createPasswordRecord
 };
+
+
+
+
+
 
 
 
