@@ -9,9 +9,10 @@
     "reviews:update": "node scripts/update-google-reviews.js"
   },
   "dependencies": {
-    "nodemailer": "^6.9.16"
+    "nodemailer": "^6.9.16",
+    "stripe": "^18.1.1"
   },
   "engines": {
-  "node": "24.x"
-}
+    "node": "24.x"
+  }
 }
