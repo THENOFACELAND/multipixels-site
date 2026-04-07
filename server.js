@@ -2147,6 +2147,87 @@ function handleAdminDeleteQuoteApi(req, res, requestUrl) {
   sendJson(res, 200, { ok: true, quotes: adminTools.listQuotes() });
 }
 
+
+function handleAdminInvoiceClientsApi(req, res) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+  sendJson(res, 200, { ok: true, clients: adminTools.listInvoiceClients() });
+}
+
+async function handleAdminCreateInvoiceClientApi(req, res) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+  let body;
+  try {
+    body = await parseJsonBody(req, 128 * 1024);
+  } catch (_) {
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    return;
+  }
+  if (!sanitizeLine(body.name, 160)) {
+    sendJson(res, 400, { ok: false, error: { code: 'INVOICE_CLIENT_INVALID', message: 'Le nom du client est obligatoire.' } });
+    return;
+  }
+  const client = adminTools.createInvoiceClient(body);
+  sendJson(res, 201, { ok: true, client, clients: adminTools.listInvoiceClients() });
+}
+
+function handleAdminDeleteInvoiceClientApi(req, res, requestUrl) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+  const clientId = sanitizeLine(requestUrl.searchParams.get('id'), 120);
+  if (!clientId) {
+    sendJson(res, 400, { ok: false, error: { code: 'INVOICE_CLIENT_ID_MISSING', message: 'Client introuvable.' } });
+    return;
+  }
+  const deleted = adminTools.deleteInvoiceClient(clientId);
+  if (!deleted) {
+    sendJson(res, 404, { ok: false, error: { code: 'INVOICE_CLIENT_NOT_FOUND', message: 'Client introuvable.' } });
+    return;
+  }
+  sendJson(res, 200, { ok: true, clients: adminTools.listInvoiceClients() });
+}
+
+function handleAdminInvoiceReferencesApi(req, res) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+  sendJson(res, 200, { ok: true, references: adminTools.listInvoiceReferences() });
+}
+
+async function handleAdminCreateInvoiceReferenceApi(req, res) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+  let body;
+  try {
+    body = await parseJsonBody(req, 128 * 1024);
+  } catch (_) {
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    return;
+  }
+  if (!sanitizeLine(body.reference, 80) || !sanitizeLine(body.designation, 260)) {
+    sendJson(res, 400, { ok: false, error: { code: 'INVOICE_REFERENCE_INVALID', message: 'La référence et la désignation sont obligatoires.' } });
+    return;
+  }
+  const reference = adminTools.createInvoiceReference(body);
+  sendJson(res, 201, { ok: true, reference, references: adminTools.listInvoiceReferences() });
+}
+
+function handleAdminDeleteInvoiceReferenceApi(req, res, requestUrl) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+  const referenceId = sanitizeLine(requestUrl.searchParams.get('id'), 120);
+  if (!referenceId) {
+    sendJson(res, 400, { ok: false, error: { code: 'INVOICE_REFERENCE_ID_MISSING', message: 'Référence introuvable.' } });
+    return;
+  }
+  const deleted = adminTools.deleteInvoiceReference(referenceId);
+  if (!deleted) {
+    sendJson(res, 404, { ok: false, error: { code: 'INVOICE_REFERENCE_NOT_FOUND', message: 'Référence introuvable.' } });
+    return;
+  }
+  sendJson(res, 200, { ok: true, references: adminTools.listInvoiceReferences() });
+}
+
 function handleAdminInvoicesApi(req, res) {
   const session = requireAuthenticatedAdmin(req, res);
   if (!session) return;
@@ -2387,6 +2468,37 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'DELETE' && requestUrl.pathname === '/api/admin/quotes') {
     handleAdminDeleteQuoteApi(req, res, requestUrl);
+    return;
+  }
+
+
+  if (req.method === 'GET' && requestUrl.pathname === '/api/admin/invoice-clients') {
+    handleAdminInvoiceClientsApi(req, res);
+    return;
+  }
+
+  if (req.method === 'POST' && requestUrl.pathname === '/api/admin/invoice-clients') {
+    await handleAdminCreateInvoiceClientApi(req, res);
+    return;
+  }
+
+  if (req.method === 'DELETE' && requestUrl.pathname === '/api/admin/invoice-clients') {
+    handleAdminDeleteInvoiceClientApi(req, res, requestUrl);
+    return;
+  }
+
+  if (req.method === 'GET' && requestUrl.pathname === '/api/admin/invoice-references') {
+    handleAdminInvoiceReferencesApi(req, res);
+    return;
+  }
+
+  if (req.method === 'POST' && requestUrl.pathname === '/api/admin/invoice-references') {
+    await handleAdminCreateInvoiceReferenceApi(req, res);
+    return;
+  }
+
+  if (req.method === 'DELETE' && requestUrl.pathname === '/api/admin/invoice-references') {
+    handleAdminDeleteInvoiceReferenceApi(req, res, requestUrl);
     return;
   }
 

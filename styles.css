@@ -4514,3 +4514,74 @@ html, body {
   background: rgba(129, 172, 255, 0.18);
   outline: none;
 }
+
+
+/* Admin invoice databases */
+.admin-invoice-data-panel {
+  margin-top: 18px;
+}
+.admin-invoice-data-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+.admin-invoice-data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.admin-invoice-data-grid-reference {
+  grid-template-columns: minmax(120px, 0.7fr) minmax(220px, 1.6fr) minmax(120px, 0.7fr);
+}
+.admin-invoice-data-span {
+  grid-column: 1 / -1;
+}
+.admin-invoice-data-form label,
+.admin-invoice-select-row {
+  display: grid;
+  gap: 7px;
+  color: rgba(218, 228, 245, 0.82);
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.admin-invoice-data-form input,
+.admin-invoice-select-row select {
+  min-height: 42px;
+  border: 1px solid rgba(129, 163, 228, 0.22);
+  border-radius: 10px;
+  padding: 0 12px;
+  background: rgba(235, 241, 251, 0.96);
+  color: var(--navy);
+  font: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.admin-invoice-data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.admin-invoice-data-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+.admin-invoice-data-card {
+  padding: 16px;
+}
+.admin-invoice-reference-tools {
+  align-items: end;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.admin-invoice-reference-tools .admin-invoice-select-row {
+  width: 100%;
+}
+@media (max-width: 760px) {
+  .admin-invoice-data-grid,
+  .admin-invoice-data-grid-reference,
+  .admin-invoice-reference-tools {
+    grid-template-columns: 1fr;
+  }
+}

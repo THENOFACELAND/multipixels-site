@@ -29,6 +29,8 @@
   const countryInput = document.getElementById('invoice-country');
   const subjectInput = document.getElementById('invoice-email-subject');
   const messageInput = document.getElementById('invoice-email-message');
+  const clientSelect = document.getElementById('invoice-client-select');
+  const referenceSelect = document.getElementById('invoice-reference-select');
   const accordionNodes = Array.from(document.querySelectorAll('.admin-invoice-accordion'));
 
   if (!form || !statusNode || !previewSheet) return;
@@ -57,6 +59,8 @@
 
   let subjectLocked = false;
   let messageLocked = false;
+  let invoiceClients = [];
+  let invoiceReferences = [];
 
   document.querySelectorAll('.reveal').forEach(function (node) {
     node.classList.add('is-visible');
@@ -161,6 +165,62 @@
       quantity: Math.max(1, Number(item && item.quantity || 1)),
       unitPrice: Number(item && item.unitPrice || 0)
     };
+  }
+
+  function renderInvoiceDataSelects() {
+    if (clientSelect) {
+      clientSelect.innerHTML = '<option value="">Saisie manuelle</option>' + invoiceClients.map(function (client) {
+        return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(client.name) + (client.email ? ' - ' + escapeHtml(client.email) : '') + '</option>';
+      }).join('');
+    }
+    if (referenceSelect) {
+      referenceSelect.innerHTML = '<option value="">Choisir une référence</option>' + invoiceReferences.map(function (item) {
+        return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.reference) + ' - ' + escapeHtml(item.designation) + ' (' + formatMoney(item.price) + ')</option>';
+      }).join('');
+    }
+  }
+
+  async function loadInvoiceDataSources() {
+    try {
+      const clientsPayload = await auth.request('/api/admin/invoice-clients');
+      invoiceClients = clientsPayload.clients || [];
+    } catch (_) {
+      invoiceClients = [];
+    }
+    try {
+      const referencesPayload = await auth.request('/api/admin/invoice-references');
+      invoiceReferences = referencesPayload.references || [];
+    } catch (_) {
+      invoiceReferences = [];
+    }
+    renderInvoiceDataSelects();
+  }
+
+  function applyInvoiceClient(client) {
+    if (!client) return;
+    customerNameInput.value = client.name || '';
+    customerEmailInput.value = client.email || '';
+    customerPhoneInput.value = client.phone || '';
+    customerCompanyInput.value = client.company || '';
+    address1Input.value = client.addressLine1 || '';
+    address2Input.value = client.addressLine2 || '';
+    postalCodeInput.value = client.postalCode || '';
+    cityInput.value = client.city || '';
+    countryInput.value = client.country || 'France';
+    renderPreview();
+  }
+
+  function addInvoiceReferenceLine(reference) {
+    if (!reference) return;
+    const lines = readLineItems();
+    lines.push(createLineItem({
+      reference: reference.reference || '',
+      description: reference.designation || '',
+      quantity: 1,
+      unitPrice: Number(reference.price || 0)
+    }));
+    renderLineItems(lines.length ? lines : [createLineItem()]);
+    renderPreview();
   }
 
   function renderLineItems(items) {
@@ -334,6 +394,7 @@
   async function boot() {
     try {
       await auth.request('/api/admin/session');
+      await loadInvoiceDataSources();
     } catch (_) {
       window.location.href = 'admin.html';
       return;
@@ -372,6 +433,21 @@
   subjectInput.addEventListener('input', function () { subjectLocked = true; });
   messageInput.addEventListener('input', function () { messageLocked = true; });
   newButton.addEventListener('click', resetForm);
+
+  if (clientSelect) {
+    clientSelect.addEventListener('change', function () {
+      const selected = invoiceClients.find(function (client) { return client.id === clientSelect.value; });
+      applyInvoiceClient(selected);
+    });
+  }
+
+  if (referenceSelect) {
+    referenceSelect.addEventListener('change', function () {
+      const selected = invoiceReferences.find(function (item) { return item.id === referenceSelect.value; });
+      addInvoiceReferenceLine(selected);
+      referenceSelect.value = '';
+    });
+  }
 
   form.addEventListener('submit', async function (event) {
     event.preventDefault();

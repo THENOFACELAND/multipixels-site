@@ -348,6 +348,9 @@ function createAdminTools(options) {
       ? 'out-of-stock'
       : 'in-stock';
     const sizes = normalizeSizes(payload.sizes, previous && previous.sizes);
+    const basePrice = Math.max(0, Number(payload.price != null && payload.price !== '' ? payload.price : (previous && previous.price) || 0));
+    const discountPrice = Math.max(0, Number(payload.discountPrice != null && payload.discountPrice !== '' ? payload.discountPrice : (previous && previous.discountPrice) || 0));
+    const discountPercent = basePrice > 0 && discountPrice > 0 && discountPrice < basePrice ? Math.round(((basePrice - discountPrice) / basePrice) * 100) : 0;
     return {
       id: previous ? previous.id : slugify(payload.id || ((payload.slug || baseName) + '-' + Date.now())),
       slug,
@@ -357,6 +360,8 @@ function createAdminTools(options) {
       segmentGroups: PRODUCT_CATEGORY_CONFIG[category].segments,
       audience: normalizeLine(payload.audience || (previous && previous.audience) || PRODUCT_CATEGORY_CONFIG[category].label, 140),
       price: basePrice,
+      discountPrice: discountPercent > 0 ? discountPrice : 0,
+      discountPercent,
       minimum: normalizeLine(payload.minimum || (previous && previous.minimum) || 'À partir de 1 pièce', 80),
       image: gallery[0] || '',
       gallery,
@@ -404,16 +409,18 @@ function createAdminTools(options) {
 
 
   function readDocumentsStore() {
-    ensureJsonFile(documentsPath, { quotes: [], invoices: [] });
+    ensureJsonFile(documentsPath, { quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] });
     try {
       const raw = fs.readFileSync(documentsPath, 'utf8').replace(/^\uFEFF/, '');
       const parsed = JSON.parse(raw);
       return {
         quotes: Array.isArray(parsed.quotes) ? parsed.quotes : [],
-        invoices: Array.isArray(parsed.invoices) ? parsed.invoices : []
+        invoices: Array.isArray(parsed.invoices) ? parsed.invoices : [],
+        invoiceClients: Array.isArray(parsed.invoiceClients) ? parsed.invoiceClients : [],
+        invoiceReferences: Array.isArray(parsed.invoiceReferences) ? parsed.invoiceReferences : []
       };
     } catch (_) {
-      return { quotes: [], invoices: [] };
+      return { quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] };
     }
   }
 
@@ -498,6 +505,79 @@ function createAdminTools(options) {
     writeDocumentsStore(store);
     return true;
   }
+
+  function normalizeInvoiceClientPayload(payload) {
+    return {
+      id: normalizeLine(payload.id, 120) || createId('invoice_client'),
+      name: normalizeLine(payload.name, 160),
+      company: normalizeLine(payload.company, 160),
+      email: normalizeLine(payload.email, 180),
+      phone: normalizeLine(payload.phone, 60),
+      addressLine1: normalizeLine(payload.addressLine1, 260),
+      addressLine2: normalizeLine(payload.addressLine2, 260),
+      postalCode: normalizeLine(payload.postalCode, 20),
+      city: normalizeLine(payload.city, 120),
+      country: normalizeLine(payload.country || 'France', 80),
+      createdAt: normalizeLine(payload.createdAt, 60) || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function normalizeInvoiceReferencePayload(payload) {
+    return {
+      id: normalizeLine(payload.id, 120) || createId('invoice_ref'),
+      reference: normalizeLine(payload.reference, 80),
+      designation: normalizeLine(payload.designation, 260),
+      price: Math.max(0, Number(payload.price || 0)),
+      createdAt: normalizeLine(payload.createdAt, 60) || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function listInvoiceClients() {
+    return readDocumentsStore().invoiceClients.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr'));
+  }
+
+  function createInvoiceClient(payload) {
+    const store = readDocumentsStore();
+    const client = normalizeInvoiceClientPayload(payload);
+    store.invoiceClients = store.invoiceClients.filter((entry) => entry.id !== client.id);
+    store.invoiceClients.unshift(client);
+    writeDocumentsStore(store);
+    return client;
+  }
+
+  function deleteInvoiceClient(clientId) {
+    const store = readDocumentsStore();
+    const nextItems = store.invoiceClients.filter((entry) => entry.id !== String(clientId));
+    if (nextItems.length === store.invoiceClients.length) return false;
+    store.invoiceClients = nextItems;
+    writeDocumentsStore(store);
+    return true;
+  }
+
+  function listInvoiceReferences() {
+    return readDocumentsStore().invoiceReferences.slice().sort((a, b) => String(a.reference || '').localeCompare(String(b.reference || ''), 'fr'));
+  }
+
+  function createInvoiceReference(payload) {
+    const store = readDocumentsStore();
+    const reference = normalizeInvoiceReferencePayload(payload);
+    store.invoiceReferences = store.invoiceReferences.filter((entry) => entry.id !== reference.id);
+    store.invoiceReferences.unshift(reference);
+    writeDocumentsStore(store);
+    return reference;
+  }
+
+  function deleteInvoiceReference(referenceId) {
+    const store = readDocumentsStore();
+    const nextItems = store.invoiceReferences.filter((entry) => entry.id !== String(referenceId));
+    if (nextItems.length === store.invoiceReferences.length) return false;
+    store.invoiceReferences = nextItems;
+    writeDocumentsStore(store);
+    return true;
+  }
+
   function updateOrder(orderId, payload) {
     const db = openDb();
     try {

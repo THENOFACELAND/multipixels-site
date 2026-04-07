@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Administration MULTIPIXELS | Clients facture</title>
+</head>
+<body data-admin-section="invoice-clients">
+  <main class="page-shell admin-shell">
+    <section class="section client-dashboard-section">
+      <div class="container client-dashboard-shell">
+        <div class="client-dashboard-hero reveal admin-hero-compact">
+          <div>
+            <span class="section-label">Administration</span>
+            <h1 id="admin-welcome">Administration MULTIPIXELS</h1>
+            <p id="admin-intro">Créez une base de clients de facturation réutilisable directement dans vos factures.</p>
+          </div>
+          <div class="client-dashboard-actions">
+            <a class="btn btn-outline" href="/index.html">Retour au site</a>
+            <button class="btn" id="admin-logout" type="button">Se déconnecter</button>
+          </div>
+        </div>
+
+        <nav class="admin-page-nav reveal" aria-label="Navigation administrateur">
+          <a href="admin-dashboard.html" data-admin-nav="overview">Vue d’ensemble</a>
+          <a href="admin-clients.html" data-admin-nav="clients">Clients</a>
+          <a href="admin-commandes.html" data-admin-nav="commandes">Commandes</a>
+          <a href="admin-devis.html" data-admin-nav="quotes">Devis</a>
+          <a href="admin-factures.html" data-admin-nav="invoices">Factures</a>
+          <a href="admin-facture-clients.html" class="is-active" data-admin-nav="invoice-clients" aria-current="page">Clients facture</a>
+          <a href="admin-facture-references.html" data-admin-nav="invoice-references">Références facture</a>
+          <a href="admin-sav.html" data-admin-nav="sav">SAV</a>
+          <a href="admin-articles.html" data-admin-nav="articles">Articles en ligne</a>
+          <a href="admin-catalogue.html" data-admin-nav="catalogue">Catalogue</a>
+        </nav>
+
+                <section class="client-panel-card reveal admin-invoice-data-panel">
+          <div class="client-panel-top">
+            <div>
+              <span class="section-label">Clients facture</span>
+              <h2>Base clients facturation</h2>
+              <p>Ajoutez vos clients récurrents avec leurs coordonnées pour les sélectionner rapidement dans une facture.</p>
+            </div>
+          </div>
+          <p id="admin-status" class="client-auth-status"></p>
+          <form id="invoice-client-form" class="admin-invoice-data-form" novalidate>
+            <input type="hidden" name="id" />
+            <div class="admin-invoice-data-grid">
+              <label><span>Nom / société</span><input name="name" type="text" required placeholder="Nom du client ou société" /></label>
+              <label><span>Email</span><input name="email" type="email" placeholder="client@email.fr" /></label>
+              <label><span>Téléphone</span><input name="phone" type="text" placeholder="06 00 00 00 00" /></label>
+              <label><span>Complément</span><input name="company" type="text" placeholder="Service, référence, contact..." /></label>
+              <label class="admin-invoice-data-span"><span>Adresse</span><input name="addressLine1" type="text" placeholder="Adresse principale" /></label>
+              <label class="admin-invoice-data-span"><span>Complément d’adresse</span><input name="addressLine2" type="text" placeholder="Bâtiment, étage, atelier..." /></label>
+              <label><span>Code postal</span><input name="postalCode" type="text" placeholder="62180" /></label>
+              <label><span>Ville</span><input name="city" type="text" placeholder="Rang-du-Fliers" /></label>
+              <label><span>Pays</span><input name="country" type="text" value="France" /></label>
+            </div>
+            <div class="admin-invoice-data-actions">
+              <button class="btn" type="submit">Ajouter le client</button>
+              <button class="btn btn-outline" id="invoice-client-reset" type="button">Réinitialiser</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="client-panel-card reveal admin-invoice-data-panel">
+          <div class="client-panel-top">
+            <div>
+              <span class="section-label">Liste</span>
+              <h2>Clients enregistrés</h2>
+            </div>
+            <span id="invoice-client-count" class="client-status-chip is-in-progress">0 client</span>
+          </div>
+          <div id="invoice-client-list" class="admin-invoice-data-list"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin-auth.js"></script>
+  <script src="admin-invoice-data.js"></script>
+</body>
+</html>
