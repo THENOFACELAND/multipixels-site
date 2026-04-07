@@ -644,6 +644,12 @@ function createAdminTools(options) {
     updateInvoice: function (documentId, payload) { return updateDocument('invoice', documentId, payload); },
     deleteQuote: function (documentId) { return deleteDocument('quote', documentId); },
     deleteInvoice: function (documentId) { return deleteDocument('invoice', documentId); },
+    listInvoiceClients,
+    createInvoiceClient,
+    deleteInvoiceClient,
+    listInvoiceReferences,
+    createInvoiceReference,
+    deleteInvoiceReference,
     updateOrder,
     updateTicket
   };
@@ -652,6 +658,7 @@ function createAdminTools(options) {
 module.exports = {
   createAdminTools
 };
+
 
 
 
