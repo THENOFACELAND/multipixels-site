@@ -60,6 +60,9 @@ const SMTP_PASS = (process.env.SMTP_PASS || "").trim();
 const DEFAULT_CONTACT_EMAIL = 'contact@multipixels.fr';
 const CONTACT_FROM = (process.env.CONTACT_FROM || DEFAULT_CONTACT_EMAIL).trim() || DEFAULT_CONTACT_EMAIL;
 const INVOICE_COPY_TO = (process.env.INVOICE_COPY_TO || CONTACT_FROM || DEFAULT_CONTACT_EMAIL).trim();
+const MAIL_FROM_NAME = (process.env.MAIL_FROM_NAME || 'MULTIPIXELS').trim() || 'MULTIPIXELS';
+const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
+const BREVO_API_KEY = (process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY || '').trim();
 const ADMIN_DOCUMENTS_PATH = path.join(ROOT, "assets", "data", "admin-documents.json");
 const INVOICE_SEQUENCE_START = Math.max(1, Number(process.env.INVOICE_SEQUENCE_START || 33));
 
@@ -1401,18 +1404,65 @@ function getClientAuth(req) {
   return clientDb.getSession(token);
 }
 
-async function sendClientEmail(options) {
-  if (!nodemailer || !SMTP_HOST || !SMTP_USER || !SMTP_PASS || !options || !options.to) {
-    throw new Error('Configuration SMTP incomplète.');
-  }
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_SECURE,
-    auth: { user: SMTP_USER, pass: SMTP_PASS }
+async function sendViaResend(mail) {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + RESEND_API_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: MAIL_FROM_NAME + ' <' + mail.from + '>',
+      to: [mail.to],
+      bcc: mail.bcc ? [mail.bcc] : undefined,
+      reply_to: mail.replyTo || undefined,
+      subject: mail.subject,
+      text: mail.text,
+      html: mail.html
+    })
   });
+  const payload = await response.json().catch(function () { return null; });
+  if (!response.ok) {
+    throw new Error((payload && (payload.message || payload.error)) || ('Resend HTTP ' + response.status));
+  }
+  return { ok: true, provider: 'resend', id: payload && payload.id ? payload.id : '' };
+}
+
+async function sendViaBrevo(mail) {
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      sender: { name: MAIL_FROM_NAME, email: mail.from },
+      to: [{ email: mail.to }],
+      bcc: mail.bcc ? [{ email: mail.bcc }] : undefined,
+      replyTo: mail.replyTo ? { email: mail.replyTo } : undefined,
+      subject: mail.subject,
+      textContent: mail.text,
+      htmlContent: mail.html
+    })
+  });
+  const payload = await response.json().catch(function () { return null; });
+  if (!response.ok) {
+    const message = payload && payload.message
+      ? (Array.isArray(payload.message) ? payload.message.join(' ') : payload.message)
+      : ('Brevo HTTP ' + response.status);
+    throw new Error(message);
+  }
+  return { ok: true, provider: 'brevo', id: payload && payload.messageId ? payload.messageId : '' };
+}
+
+async function sendClientEmail(options) {
+  if (!options || !options.to) {
+    throw new Error('Destinataire email manquant.');
+  }
   const preferredFrom = options.from || CONTACT_FROM;
   const baseMail = {
+    from: preferredFrom,
     to: options.to,
     bcc: options.bcc || undefined,
     replyTo: options.replyTo || undefined,
@@ -1420,12 +1470,35 @@ async function sendClientEmail(options) {
     text: options.text,
     html: options.html
   };
+
+  if (RESEND_API_KEY) {
+    return sendViaResend(baseMail);
+  }
+
+  if (BREVO_API_KEY) {
+    return sendViaBrevo(baseMail);
+  }
+
+  if (!nodemailer || !SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    throw new Error('Configuration email incomplète. Ajoutez RESEND_API_KEY, BREVO_API_KEY ou un SMTP complet.');
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_SECURE,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+    auth: { user: SMTP_USER, pass: SMTP_PASS }
+  });
+
   try {
     await transporter.sendMail(Object.assign({}, baseMail, {
       from: preferredFrom,
       sender: SMTP_USER || preferredFrom
     }));
-    return { ok: true, fromUsed: preferredFrom };
+    return { ok: true, fromUsed: preferredFrom, provider: 'smtp' };
   } catch (primaryError) {
     const fallbackFrom = SMTP_USER || preferredFrom;
     if (fallbackFrom && fallbackFrom !== preferredFrom) {
@@ -1435,13 +1508,19 @@ async function sendClientEmail(options) {
           sender: fallbackFrom,
           replyTo: preferredFrom
         }));
-        return { ok: true, fromUsed: fallbackFrom, fallback: true };
+        return { ok: true, fromUsed: fallbackFrom, fallback: true, provider: 'smtp' };
       } catch (fallbackError) {
         console.error('[invoice-email] SMTP fallback send failed', fallbackError);
+        if (/timeout|ETIMEDOUT/i.test(String(fallbackError && fallbackError.message || ''))) {
+          throw new Error('Connection timeout. Sur Railway, utilisez de préférence RESEND_API_KEY ou BREVO_API_KEY.');
+        }
         throw fallbackError;
       }
     }
     console.error('[invoice-email] SMTP send failed', primaryError);
+    if (/timeout|ETIMEDOUT/i.test(String(primaryError && primaryError.message || ''))) {
+      throw new Error('Connection timeout. Sur Railway, utilisez de préférence RESEND_API_KEY ou BREVO_API_KEY.');
+    }
     throw primaryError;
   }
 }
@@ -2634,6 +2713,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 
