@@ -61,6 +61,8 @@ const DEFAULT_CONTACT_EMAIL = 'contact@multipixels.fr';
 const CONTACT_FROM = (process.env.CONTACT_FROM || DEFAULT_CONTACT_EMAIL).trim() || DEFAULT_CONTACT_EMAIL;
 const INVOICE_COPY_TO = (process.env.INVOICE_COPY_TO || CONTACT_FROM || DEFAULT_CONTACT_EMAIL).trim();
 const MAIL_FROM_NAME = (process.env.MAIL_FROM_NAME || 'MULTIPIXELS').trim() || 'MULTIPIXELS';
+const DEFAULT_RESEND_FROM_EMAIL = 'contact@mail.multipixels.fr';
+const RESEND_FROM_EMAIL = (process.env.RESEND_FROM_EMAIL || DEFAULT_RESEND_FROM_EMAIL).trim() || DEFAULT_RESEND_FROM_EMAIL;
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
 const BREVO_API_KEY = (process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY || '').trim();
 const ADMIN_DOCUMENTS_PATH = path.join(ROOT, "assets", "data", "admin-documents.json");
@@ -1472,7 +1474,10 @@ async function sendClientEmail(options) {
   };
 
   if (RESEND_API_KEY) {
-    return sendViaResend(baseMail);
+    return sendViaResend(Object.assign({}, baseMail, {
+      from: RESEND_FROM_EMAIL,
+      replyTo: baseMail.replyTo || CONTACT_FROM
+    }));
   }
 
   if (BREVO_API_KEY) {
@@ -2713,6 +2718,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
+
 
 
 
