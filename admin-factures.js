@@ -296,7 +296,7 @@
 
   function renderPreview() {
     const state = collectState();
-    const addressLines = [state.customerName, state.company, state.addressLine1, state.addressLine2, [state.postalCode, state.city].filter(Boolean).join(' '), state.country].filter(Boolean);
+    const addressLines = [state.customerName, state.company, state.email, state.addressLine1, state.addressLine2, [state.postalCode, state.city].filter(Boolean).join(' '), state.country].filter(Boolean);
     const paymentText = 'Paiement à ' + state.paymentDueDays + ' jours des réception de la facture';
     const linesMarkup = state.items.length
       ? state.items.map(function (item) {
@@ -473,6 +473,7 @@
 
   boot();
 })();
+
 
 
 

@@ -1,7 +1,7 @@
 ﻿.admin-invoice-builder {
   display: grid;
-  grid-template-columns: minmax(360px, 430px) minmax(0, 1fr);
-  gap: 22px;
+  grid-template-columns: minmax(460px, 560px) minmax(0, 1fr);
+  gap: 26px;
   align-items: start;
 }
 
@@ -125,7 +125,7 @@
 
 .admin-invoice-group-head {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
@@ -613,11 +613,13 @@
 
 /* Invoice admin mobile polish */
 .admin-invoice-reference-tools {
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 154px;
+  align-items: end;
+  gap: 12px;
 }
 
 .admin-invoice-reference-tools .admin-invoice-select-row {
-  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -636,7 +638,7 @@
 }
 
 .admin-invoice-line {
-  grid-template-columns: minmax(88px, 108px) minmax(0, 1fr) minmax(72px, 84px) minmax(92px, 110px) minmax(108px, 122px);
+  grid-template-columns: minmax(96px, 118px) minmax(0, 1.35fr) minmax(78px, 92px) minmax(110px, 128px) 124px;
 }
 
 .admin-invoice-line .btn {
@@ -668,3 +670,16 @@
     min-height: 42px;
   }
 }
+
+.admin-invoice-line .btn-outline {
+  min-width: 124px;
+}
+
+.admin-invoice-line-field input,
+.admin-invoice-line-field select,
+.admin-invoice-line-field textarea {
+  height: 44px;
+}
+
+
+

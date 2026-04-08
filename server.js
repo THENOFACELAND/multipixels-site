@@ -57,7 +57,9 @@ const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_SECURE = String(process.env.SMTP_SECURE || "").trim().toLowerCase() === "true" || SMTP_PORT === 465;
 const SMTP_USER = (process.env.SMTP_USER || "").trim();
 const SMTP_PASS = (process.env.SMTP_PASS || "").trim();
-const CONTACT_FROM = (process.env.CONTACT_FROM || SMTP_USER || "no-reply@multipixels.fr").trim();
+const DEFAULT_CONTACT_EMAIL = 'contact@multipixels.fr';
+const CONTACT_FROM = (process.env.CONTACT_FROM || DEFAULT_CONTACT_EMAIL).trim() || DEFAULT_CONTACT_EMAIL;
+const INVOICE_COPY_TO = (process.env.INVOICE_COPY_TO || CONTACT_FROM || DEFAULT_CONTACT_EMAIL).trim();
 const ADMIN_DOCUMENTS_PATH = path.join(ROOT, "assets", "data", "admin-documents.json");
 const INVOICE_SEQUENCE_START = Math.max(1, Number(process.env.INVOICE_SEQUENCE_START || 33));
 
@@ -1055,7 +1057,7 @@ function formatInvoiceMoney(value) {
 }
 
 function buildInvoiceEmailHtml(invoice) {
-  const addressLines = [invoice.customerName, invoice.company, invoice.addressLine1, invoice.addressLine2, [invoice.postalCode, invoice.city].filter(Boolean).join(' '), invoice.country].filter(Boolean);
+  const addressLines = [invoice.customerName, invoice.company, invoice.email, invoice.addressLine1, invoice.addressLine2, [invoice.postalCode, invoice.city].filter(Boolean).join(' '), invoice.country].filter(Boolean);
   const rows = (invoice.items || []).map((item) => '<tr><td style="padding:8px;border:1px solid #c6d6e7;">' + escapeInvoiceHtml(item.reference || '-') + '</td><td style="padding:8px;border:1px solid #c6d6e7;">' + escapeInvoiceHtml(item.description || '-') + '</td><td style="padding:8px;border:1px solid #c6d6e7;text-align:center;">' + item.quantity + '</td><td style="padding:8px;border:1px solid #c6d6e7;text-align:right;">' + escapeInvoiceHtml(formatInvoiceMoney(item.unitPrice)) + '</td><td style="padding:8px;border:1px solid #c6d6e7;text-align:right;">' + escapeInvoiceHtml(formatInvoiceMoney(item.total)) + '</td></tr>').join('');
   const intro = invoice.emailMessage ? invoice.emailMessage.split(/\r?\n/).map((line) => '<div>' + escapeInvoiceHtml(line) + '</div>').join('') : '<div>Bonjour,</div><div style="margin-top:12px;">Veuillez trouver ci-dessous votre facture.</div>';
   return '<div style="font-family:Arial,sans-serif;color:#10213b;background:#eef5fd;padding:24px;">'
@@ -1143,7 +1145,10 @@ async function handleAdminSendInvoiceApi(req, res) {
   const invoice = buildInvoiceRecord(existingInvoice, Object.assign({}, body, { items: items, email: email, customerName: customerName }), officialReference);
 
   const sent = await sendClientEmail({
+    from: CONTACT_FROM,
     to: invoice.email,
+    bcc: INVOICE_COPY_TO || undefined,
+    replyTo: CONTACT_FROM,
     subject: invoice.emailSubject,
     text: buildInvoiceEmailText(invoice),
     html: buildInvoiceEmailHtml(invoice)
@@ -1403,8 +1408,10 @@ async function sendClientEmail(options) {
     auth: { user: SMTP_USER, pass: SMTP_PASS }
   });
   await transporter.sendMail({
-    from: CONTACT_FROM,
+    from: options.from || CONTACT_FROM,
     to: options.to,
+    bcc: options.bcc || undefined,
+    replyTo: options.replyTo || undefined,
     subject: options.subject,
     text: options.text,
     html: options.html
@@ -1566,7 +1573,7 @@ function formatInvoiceMoney(value) {
 }
 
 function buildInvoiceEmailHtml(invoice) {
-  const addressLines = [invoice.customerName, invoice.company, invoice.addressLine1, invoice.addressLine2, [invoice.postalCode, invoice.city].filter(Boolean).join(' '), invoice.country].filter(Boolean);
+  const addressLines = [invoice.customerName, invoice.company, invoice.email, invoice.addressLine1, invoice.addressLine2, [invoice.postalCode, invoice.city].filter(Boolean).join(' '), invoice.country].filter(Boolean);
   const rows = (invoice.items || []).map((item) => '<tr><td style="padding:8px;border:1px solid #c6d6e7;">' + escapeInvoiceHtml(item.reference || '-') + '</td><td style="padding:8px;border:1px solid #c6d6e7;">' + escapeInvoiceHtml(item.description || '-') + '</td><td style="padding:8px;border:1px solid #c6d6e7;text-align:center;">' + item.quantity + '</td><td style="padding:8px;border:1px solid #c6d6e7;text-align:right;">' + escapeInvoiceHtml(formatInvoiceMoney(item.unitPrice)) + '</td><td style="padding:8px;border:1px solid #c6d6e7;text-align:right;">' + escapeInvoiceHtml(formatInvoiceMoney(item.total)) + '</td></tr>').join('');
   const intro = invoice.emailMessage ? invoice.emailMessage.split(/\r?\n/).map((line) => '<div>' + escapeInvoiceHtml(line) + '</div>').join('') : '<div>Bonjour,</div><div style="margin-top:12px;">Veuillez trouver ci-dessous votre facture.</div>';
   return '<div style="font-family:Arial,sans-serif;color:#10213b;background:#eef5fd;padding:24px;">'
@@ -1654,7 +1661,10 @@ async function handleAdminSendInvoiceApi(req, res) {
   const invoice = buildInvoiceRecord(existingInvoice, Object.assign({}, body, { items: items, email: email, customerName: customerName }), officialReference);
 
   const sent = await sendClientEmail({
+    from: CONTACT_FROM,
     to: invoice.email,
+    bcc: INVOICE_COPY_TO || undefined,
+    replyTo: CONTACT_FROM,
     subject: invoice.emailSubject,
     text: buildInvoiceEmailText(invoice),
     html: buildInvoiceEmailHtml(invoice)
@@ -2595,6 +2605,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 
