@@ -445,6 +445,10 @@ function createAdminTools(options) {
       }));
   }
 
+  function createId(prefix) {
+    return String(prefix || 'item') + '_' + crypto.randomBytes(8).toString('hex');
+  }
+
   function normalizeDocumentPayload(type, payload, previous) {
     const items = normalizeDocumentItems(payload.items, previous && previous.items);
     const total = Number(items.reduce((sum, item) => sum + item.total, 0).toFixed(2));
@@ -658,6 +662,7 @@ function createAdminTools(options) {
 module.exports = {
   createAdminTools
 };
+
 
 
 
