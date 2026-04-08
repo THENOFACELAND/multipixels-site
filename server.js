@@ -21,6 +21,12 @@ try {
   Stripe = null;
 }
 
+try {
+  PDFDocument = require("pdfkit");
+} catch (_) {
+  PDFDocument = null;
+}
+
 const ROOT = __dirname;
 
 function loadDotEnvFile() {
@@ -1098,18 +1104,123 @@ function buildInvoiceEmailText(invoice) {
   return [
     'Bonjour,',
     '',
-    'Voici votre facture ' + invoice.reference + '.',
+    'Veuillez trouver en pièce jointe votre facture ' + invoice.reference + '.',
     'Date : ' + formatInvoiceDateFr(invoice.issueDate),
     'Total TTC : ' + formatInvoiceMoney(invoice.total),
     '',
-    'Client : ' + invoice.customerName,
+    'Pour toute question, vous pouvez répondre à cet email ou nous contacter à contact@multipixels.fr.',
     '',
-    'MULTIPIXELS.FR',
-    '190 Chemin Blanc',
-    '62180 Rang du Fliers',
-    '06 27 14 08 40',
-    'contact@multipixels.fr'
+    'Cordialement,',
+    'MULTIPIXELS.FR'
   ].join('\n');
+}
+
+function buildInvoiceAttachmentName(invoice) {
+  const safeReference = String(invoice && invoice.reference || 'facture').replace(/[^a-zA-Z0-9_-]+/g, '-');
+  return 'facture-' + safeReference + '.pdf';
+}
+
+function buildInvoiceEmailHtml(invoice) {
+  const intro = invoice.emailMessage
+    ? invoice.emailMessage.split(/\r?\n/).map((line) => '<div>' + escapeInvoiceHtml(line) + '</div>').join('')
+    : '<div>Bonjour,</div><div style="margin-top:12px;">Veuillez trouver votre facture en pièce jointe.</div>';
+  return '<div style="font-family:Arial,sans-serif;color:#10213b;background:#eef5fd;padding:24px;">'
+    + '<div style="max-width:760px;margin:0 auto;background:#ffffff;border:1px solid #d8e4f2;padding:28px;border-radius:12px;">'
+    + '<div style="font-size:28px;font-weight:800;color:#0f2350;">MULTIPIXELS.FR</div>'
+    + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
+    + '<div style="margin-top:18px;line-height:1.7;font-size:15px;">' + intro + '</div>'
+    + '<div style="margin-top:22px;padding:16px 18px;border:1px solid #d7e8f3;background:#f7fbff;border-radius:10px;">'
+    + '<div><strong>Référence :</strong> ' + escapeInvoiceHtml(invoice.reference) + '</div>'
+    + '<div style="margin-top:6px;"><strong>Date :</strong> ' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</div>'
+    + '<div style="margin-top:6px;"><strong>Total TTC :</strong> ' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div>'
+    + '</div>'
+    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, répondez simplement à cet email ou contactez-nous au 06 27 14 08 40.</div>'
+    + '</div>'
+    + '</div>';
+}
+
+async function buildInvoicePdfBuffer(invoice) {
+  if (!PDFDocument) {
+    throw new Error('Le module PDF n\'est pas disponible sur le serveur.');
+  }
+
+  return await new Promise(function (resolve, reject) {
+    const doc = new PDFDocument({ size: 'A4', margin: 36 });
+    const chunks = [];
+    const lineItems = Array.isArray(invoice.items) ? invoice.items : [];
+    const logoPath = path.join(ROOT, 'assets', 'Background', 'favicon.png');
+    const addressLines = [invoice.customerName, invoice.company, invoice.email, invoice.addressLine1, invoice.addressLine2, [invoice.postalCode, invoice.city].filter(Boolean).join(' '), invoice.country].filter(Boolean);
+
+    doc.on('data', function (chunk) { chunks.push(chunk); });
+    doc.on('end', function () { resolve(Buffer.concat(chunks)); });
+    doc.on('error', reject);
+
+    doc.rect(36, 36, 523, 770).fill('#f8fbff');
+    doc.fillColor('#10213b');
+
+    if (fs.existsSync(logoPath)) {
+      try {
+        doc.image(logoPath, 54, 54, { fit: [72, 72], align: 'center', valign: 'center' });
+      } catch (_) {}
+    }
+
+    doc.font('Helvetica-Bold').fontSize(22).fillColor('#0f2350').text('MULTIPIXELS.FR', 54, 136);
+    doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
+
+    doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, 98).stroke();
+    doc.rect(360, 54, 165, 22).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('ADRESSE DE FACTURATION', 368, 61, { width: 149, align: 'center' });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressLines.length ? addressLines.join('\n') : 'Informations client à compléter', 374, 87, { width: 136, align: 'center', lineGap: 2 });
+
+    doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
+    doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('FACTURE N° ' + invoice.reference, 62, 276);
+    doc.font('Helvetica').fontSize(9);
+    doc.rect(54, 288, 471, 18).stroke('#8ca6ba');
+    doc.text('Date de facturation', 62, 294);
+    doc.font('Helvetica-Bold').text(formatInvoiceDateFr(invoice.issueDate), 420, 294, { width: 90, align: 'right' });
+    doc.font('Helvetica');
+    doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
+    doc.text('Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture', 62, 312);
+
+    const tableY = 340;
+    const colX = [54, 130, 304, 348, 438];
+    const colW = [76, 174, 44, 90, 87];
+    const headers = ['Référence', 'Description', 'Qté', 'Prix unitaire', 'Total TTC'];
+    headers.forEach(function (header, index) {
+      doc.rect(colX[index], tableY, colW[index], 18).fillAndStroke('#d7e8f3', '#8ca6ba');
+      doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(8.5).text(header, colX[index] + 4, tableY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
+    });
+
+    let currentY = tableY + 18;
+    const rows = lineItems.length ? lineItems : [{ reference: '-', description: 'Aucune ligne pour le moment', quantity: 0, unitPrice: 0, total: 0 }];
+    rows.forEach(function (item) {
+      const rowHeight = 22;
+      const values = [String(item.reference || '-'), String(item.description || '-'), String(item.quantity || 0), formatInvoiceMoney(item.unitPrice || 0), formatInvoiceMoney(item.total || 0)];
+      values.forEach(function (value, index) {
+        doc.rect(colX[index], currentY, colW[index], rowHeight).stroke('#c6d6e7');
+        doc.font(index >= 2 ? 'Helvetica' : 'Helvetica').fontSize(8.5).fillColor('#10213b').text(value, colX[index] + 4, currentY + 6, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
+      });
+      currentY += rowHeight;
+    });
+
+    const bottomY = 560;
+    doc.rect(54, bottomY, 330, 150).stroke('#435774');
+    doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
+    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+
+    doc.rect(404, bottomY, 121, 76).stroke('#435774');
+    doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', 404, bottomY + 6, { width: 121, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(invoice.total), 404, bottomY + 34, { width: 121, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
+
+    doc.moveTo(54, 744).lineTo(525, 744).stroke('#c2d4e8');
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, 752, { width: 471, align: 'center' });
+    doc.end();
+  });
 }
 
 function handleAdminInvoiceNextReferenceApi(req, res, requestUrl) {
@@ -1120,6 +1231,54 @@ function handleAdminInvoiceNextReferenceApi(req, res, requestUrl) {
   sendJson(res, 200, { ok: true, reference: getNextInvoiceReference(issueDate, documentId) });
 }
 
+async function handleAdminInvoicePdfApi(req, res) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+
+  let body;
+  try {
+    body = await parseJsonBody(req, 1024 * 1024);
+  } catch (_) {
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requ?te invalide.' } });
+    return;
+  }
+
+  const items = normalizeInvoiceItems(body.items);
+  const customerName = cleanInvoiceField(body.customerName, 140);
+  const email = cleanInvoiceField(body.email, 180).toLowerCase();
+  if (!customerName || !items.length) {
+    sendJson(res, 400, { ok: false, error: { code: 'ADMIN_INVOICE_INVALID', message: 'Nom client et au moins une ligne sont obligatoires.' } });
+    return;
+  }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    sendJson(res, 400, { ok: false, error: { code: 'ADMIN_INVOICE_EMAIL_INVALID', message: 'L?adresse email client est invalide.' } });
+    return;
+  }
+
+  const store = readAdminDocumentsStore();
+  const existingInvoice = (store.invoices || []).find((entry) => String(entry.id) === String(cleanInvoiceField(body.id, 120))) || null;
+  const officialReference = existingInvoice && existingInvoice.sentAt ? existingInvoice.reference : getNextInvoiceReference(body.issueDate, existingInvoice && existingInvoice.id);
+  const invoice = buildInvoiceRecord(existingInvoice, Object.assign({}, body, { items: items, email: email, customerName: customerName }), officialReference);
+
+  let pdfBuffer;
+  try {
+    pdfBuffer = await buildInvoicePdfBuffer(invoice);
+  } catch (_) {
+    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_INVOICE_PDF_FAILED', message: 'Impossible de g?n?rer le PDF pour le moment.' } });
+    return;
+  }
+
+  const filename = buildInvoiceAttachmentName(invoice);
+  res.writeHead(200, {
+    'Content-Type': 'application/pdf',
+    'Content-Length': pdfBuffer.length,
+    'Content-Disposition': 'attachment; filename="' + filename + '"',
+    'X-Invoice-Filename': filename,
+    'Cache-Control': 'no-store'
+  });
+  res.end(pdfBuffer);
+}
+
 async function handleAdminSendInvoiceApi(req, res) {
   const session = requireAuthenticatedAdmin(req, res);
   if (!session) return;
@@ -1128,7 +1287,7 @@ async function handleAdminSendInvoiceApi(req, res) {
   try {
     body = await parseJsonBody(req, 1024 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requ?te invalide.' } });
     return;
   }
 
@@ -1140,7 +1299,7 @@ async function handleAdminSendInvoiceApi(req, res) {
     return;
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    sendJson(res, 400, { ok: false, error: { code: 'ADMIN_INVOICE_EMAIL_INVALID', message: 'L’adresse email client est invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'ADMIN_INVOICE_EMAIL_INVALID', message: 'L?adresse email client est invalide.' } });
     return;
   }
 
@@ -1149,20 +1308,32 @@ async function handleAdminSendInvoiceApi(req, res) {
   const officialReference = existingInvoice && existingInvoice.sentAt ? existingInvoice.reference : getNextInvoiceReference(body.issueDate, existingInvoice && existingInvoice.id);
   const invoice = buildInvoiceRecord(existingInvoice, Object.assign({}, body, { items: items, email: email, customerName: customerName }), officialReference);
 
-  let sent;
+  let pdfBuffer;
   try {
-    sent = await sendClientEmail({
+    pdfBuffer = await buildInvoicePdfBuffer(invoice);
+  } catch (_) {
+    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_INVOICE_PDF_FAILED', message: 'Impossible de g?n?rer le PDF pour le moment.' } });
+    return;
+  }
+
+  try {
+    await sendClientEmail({
       from: CONTACT_FROM,
       to: invoice.email,
       bcc: INVOICE_COPY_TO || undefined,
       replyTo: CONTACT_FROM,
       subject: invoice.emailSubject,
       text: buildInvoiceEmailText(invoice),
-      html: buildInvoiceEmailHtml(invoice)
+      html: buildInvoiceEmailHtml(invoice),
+      attachments: [{
+        filename: buildInvoiceAttachmentName(invoice),
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      }]
     });
   } catch (error) {
-    const detail = error && error.message ? String(error.message) : 'Vérifiez la configuration SMTP.';
-    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d’envoyer la facture pour le moment. ' + detail } });
+    const detail = error && error.message ? String(error.message) : 'V?rifiez la configuration email.';
+    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d?envoyer la facture pour le moment. ' + detail } });
     return;
   }
 
@@ -1420,7 +1591,16 @@ async function sendViaResend(mail) {
       reply_to: mail.replyTo || undefined,
       subject: mail.subject,
       text: mail.text,
-      html: mail.html
+      html: mail.html,
+      attachments: Array.isArray(mail.attachments) && mail.attachments.length
+        ? mail.attachments.map(function (attachment) {
+            return {
+              filename: attachment.filename,
+              content: Buffer.isBuffer(attachment.content) ? attachment.content.toString('base64') : String(attachment.content || ''),
+              content_type: attachment.contentType || 'application/octet-stream'
+            };
+          })
+        : undefined
     })
   });
   const payload = await response.json().catch(function () { return null; });
@@ -1445,7 +1625,15 @@ async function sendViaBrevo(mail) {
       replyTo: mail.replyTo ? { email: mail.replyTo } : undefined,
       subject: mail.subject,
       textContent: mail.text,
-      htmlContent: mail.html
+      htmlContent: mail.html,
+      attachment: Array.isArray(mail.attachments) && mail.attachments.length
+        ? mail.attachments.map(function (attachment) {
+            return {
+              name: attachment.filename,
+              content: Buffer.isBuffer(attachment.content) ? attachment.content.toString('base64') : String(attachment.content || '')
+            };
+          })
+        : undefined
     })
   });
   const payload = await response.json().catch(function () { return null; });
@@ -1470,7 +1658,8 @@ async function sendClientEmail(options) {
     replyTo: options.replyTo || undefined,
     subject: options.subject,
     text: options.text,
-    html: options.html
+    html: options.html,
+    attachments: Array.isArray(options.attachments) ? options.attachments : []
   };
 
   if (RESEND_API_KEY) {
@@ -1720,18 +1909,123 @@ function buildInvoiceEmailText(invoice) {
   return [
     'Bonjour,',
     '',
-    'Voici votre facture ' + invoice.reference + '.',
+    'Veuillez trouver en pièce jointe votre facture ' + invoice.reference + '.',
     'Date : ' + formatInvoiceDateFr(invoice.issueDate),
     'Total TTC : ' + formatInvoiceMoney(invoice.total),
     '',
-    'Client : ' + invoice.customerName,
+    'Pour toute question, vous pouvez répondre à cet email ou nous contacter à contact@multipixels.fr.',
     '',
-    'MULTIPIXELS.FR',
-    '190 Chemin Blanc',
-    '62180 Rang du Fliers',
-    '06 27 14 08 40',
-    'contact@multipixels.fr'
+    'Cordialement,',
+    'MULTIPIXELS.FR'
   ].join('\n');
+}
+
+function buildInvoiceAttachmentName(invoice) {
+  const safeReference = String(invoice && invoice.reference || 'facture').replace(/[^a-zA-Z0-9_-]+/g, '-');
+  return 'facture-' + safeReference + '.pdf';
+}
+
+function buildInvoiceEmailHtml(invoice) {
+  const intro = invoice.emailMessage
+    ? invoice.emailMessage.split(/\r?\n/).map((line) => '<div>' + escapeInvoiceHtml(line) + '</div>').join('')
+    : '<div>Bonjour,</div><div style="margin-top:12px;">Veuillez trouver votre facture en pièce jointe.</div>';
+  return '<div style="font-family:Arial,sans-serif;color:#10213b;background:#eef5fd;padding:24px;">'
+    + '<div style="max-width:760px;margin:0 auto;background:#ffffff;border:1px solid #d8e4f2;padding:28px;border-radius:12px;">'
+    + '<div style="font-size:28px;font-weight:800;color:#0f2350;">MULTIPIXELS.FR</div>'
+    + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
+    + '<div style="margin-top:18px;line-height:1.7;font-size:15px;">' + intro + '</div>'
+    + '<div style="margin-top:22px;padding:16px 18px;border:1px solid #d7e8f3;background:#f7fbff;border-radius:10px;">'
+    + '<div><strong>Référence :</strong> ' + escapeInvoiceHtml(invoice.reference) + '</div>'
+    + '<div style="margin-top:6px;"><strong>Date :</strong> ' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</div>'
+    + '<div style="margin-top:6px;"><strong>Total TTC :</strong> ' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div>'
+    + '</div>'
+    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, répondez simplement à cet email ou contactez-nous au 06 27 14 08 40.</div>'
+    + '</div>'
+    + '</div>';
+}
+
+async function buildInvoicePdfBuffer(invoice) {
+  if (!PDFDocument) {
+    throw new Error('Le module PDF n\'est pas disponible sur le serveur.');
+  }
+
+  return await new Promise(function (resolve, reject) {
+    const doc = new PDFDocument({ size: 'A4', margin: 36 });
+    const chunks = [];
+    const lineItems = Array.isArray(invoice.items) ? invoice.items : [];
+    const logoPath = path.join(ROOT, 'assets', 'Background', 'favicon.png');
+    const addressLines = [invoice.customerName, invoice.company, invoice.email, invoice.addressLine1, invoice.addressLine2, [invoice.postalCode, invoice.city].filter(Boolean).join(' '), invoice.country].filter(Boolean);
+
+    doc.on('data', function (chunk) { chunks.push(chunk); });
+    doc.on('end', function () { resolve(Buffer.concat(chunks)); });
+    doc.on('error', reject);
+
+    doc.rect(36, 36, 523, 770).fill('#f8fbff');
+    doc.fillColor('#10213b');
+
+    if (fs.existsSync(logoPath)) {
+      try {
+        doc.image(logoPath, 54, 54, { fit: [72, 72], align: 'center', valign: 'center' });
+      } catch (_) {}
+    }
+
+    doc.font('Helvetica-Bold').fontSize(22).fillColor('#0f2350').text('MULTIPIXELS.FR', 54, 136);
+    doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
+
+    doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, 98).stroke();
+    doc.rect(360, 54, 165, 22).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('ADRESSE DE FACTURATION', 368, 61, { width: 149, align: 'center' });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressLines.length ? addressLines.join('\n') : 'Informations client à compléter', 374, 87, { width: 136, align: 'center', lineGap: 2 });
+
+    doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
+    doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('FACTURE N° ' + invoice.reference, 62, 276);
+    doc.font('Helvetica').fontSize(9);
+    doc.rect(54, 288, 471, 18).stroke('#8ca6ba');
+    doc.text('Date de facturation', 62, 294);
+    doc.font('Helvetica-Bold').text(formatInvoiceDateFr(invoice.issueDate), 420, 294, { width: 90, align: 'right' });
+    doc.font('Helvetica');
+    doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
+    doc.text('Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture', 62, 312);
+
+    const tableY = 340;
+    const colX = [54, 130, 304, 348, 438];
+    const colW = [76, 174, 44, 90, 87];
+    const headers = ['Référence', 'Description', 'Qté', 'Prix unitaire', 'Total TTC'];
+    headers.forEach(function (header, index) {
+      doc.rect(colX[index], tableY, colW[index], 18).fillAndStroke('#d7e8f3', '#8ca6ba');
+      doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(8.5).text(header, colX[index] + 4, tableY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
+    });
+
+    let currentY = tableY + 18;
+    const rows = lineItems.length ? lineItems : [{ reference: '-', description: 'Aucune ligne pour le moment', quantity: 0, unitPrice: 0, total: 0 }];
+    rows.forEach(function (item) {
+      const rowHeight = 22;
+      const values = [String(item.reference || '-'), String(item.description || '-'), String(item.quantity || 0), formatInvoiceMoney(item.unitPrice || 0), formatInvoiceMoney(item.total || 0)];
+      values.forEach(function (value, index) {
+        doc.rect(colX[index], currentY, colW[index], rowHeight).stroke('#c6d6e7');
+        doc.font(index >= 2 ? 'Helvetica' : 'Helvetica').fontSize(8.5).fillColor('#10213b').text(value, colX[index] + 4, currentY + 6, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
+      });
+      currentY += rowHeight;
+    });
+
+    const bottomY = 560;
+    doc.rect(54, bottomY, 330, 150).stroke('#435774');
+    doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
+    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+
+    doc.rect(404, bottomY, 121, 76).stroke('#435774');
+    doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', 404, bottomY + 6, { width: 121, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(invoice.total), 404, bottomY + 34, { width: 121, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
+
+    doc.moveTo(54, 744).lineTo(525, 744).stroke('#c2d4e8');
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, 752, { width: 471, align: 'center' });
+    doc.end();
+  });
 }
 
 function handleAdminInvoiceNextReferenceApi(req, res, requestUrl) {
@@ -2630,6 +2924,11 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === 'POST' && requestUrl.pathname === '/api/admin/invoices/pdf') {
+      await handleAdminInvoicePdfApi(req, res);
+      return;
+    }
+
     if (req.method === 'POST' && requestUrl.pathname === '/api/admin/invoices/send') {
       await handleAdminSendInvoiceApi(req, res);
       return;
@@ -2718,6 +3017,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
+
 
 
 

@@ -10,6 +10,7 @@
   const lineItemsNode = document.getElementById('invoice-lines');
   const addLineButton = document.getElementById('invoice-add-line');
   const newButton = document.getElementById('invoice-new');
+  const downloadButton = document.getElementById('invoice-download');
   const idInput = document.getElementById('invoice-id');
   const referenceInput = document.getElementById('invoice-reference');
   const typeInput = document.getElementById('invoice-type');
@@ -448,6 +449,50 @@
       referenceSelect.value = '';
     });
   }
+
+  downloadButton.addEventListener('click', async function () {
+    const payload = collectState();
+    if (!payload.customerName) return setStatus('Le nom du client est obligatoire.', 'error');
+    if (!payload.items.length) return setStatus('Ajoutez au moins une ligne ? la facture.', 'error');
+
+    setStatus('G?n?ration du PDF en cours...', 'warning');
+    try {
+      const token = localStorage.getItem(auth.tokenKey || 'multipixels_admin_token');
+      const response = await fetch('/api/admin/invoices/pdf', {
+        method: 'POST',
+        headers: Object.assign(
+          {
+            'Content-Type': 'application/json'
+          },
+          token
+            ? {
+                Authorization: 'Bearer ' + token
+              }
+            : {}
+        ),
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(function () { return null; });
+        throw new Error((data && data.error && data.error.message) || 'Impossible de g?n?rer le PDF.');
+      }
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const filename = response.headers.get('X-Invoice-Filename') || 'facture.pdf';
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(function () {
+        URL.revokeObjectURL(objectUrl);
+      }, 1000);
+      setStatus('PDF g?n?r? avec succ?s.', 'success');
+    } catch (error) {
+      setStatus(error.message || 'Impossible de g?n?rer le PDF.', 'error');
+    }
+  });
 
   form.addEventListener('submit', async function (event) {
     event.preventDefault();
