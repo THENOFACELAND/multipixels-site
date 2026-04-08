@@ -1144,18 +1144,20 @@ async function handleAdminSendInvoiceApi(req, res) {
   const officialReference = existingInvoice && existingInvoice.sentAt ? existingInvoice.reference : getNextInvoiceReference(body.issueDate, existingInvoice && existingInvoice.id);
   const invoice = buildInvoiceRecord(existingInvoice, Object.assign({}, body, { items: items, email: email, customerName: customerName }), officialReference);
 
-  const sent = await sendClientEmail({
-    from: CONTACT_FROM,
-    to: invoice.email,
-    bcc: INVOICE_COPY_TO || undefined,
-    replyTo: CONTACT_FROM,
-    subject: invoice.emailSubject,
-    text: buildInvoiceEmailText(invoice),
-    html: buildInvoiceEmailHtml(invoice)
-  }).catch(function () { return false; });
-
-  if (!sent) {
-    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d’envoyer la facture pour le moment. Vérifiez la configuration SMTP.' } });
+  let sent;
+  try {
+    sent = await sendClientEmail({
+      from: CONTACT_FROM,
+      to: invoice.email,
+      bcc: INVOICE_COPY_TO || undefined,
+      replyTo: CONTACT_FROM,
+      subject: invoice.emailSubject,
+      text: buildInvoiceEmailText(invoice),
+      html: buildInvoiceEmailHtml(invoice)
+    });
+  } catch (error) {
+    const detail = error && error.message ? String(error.message) : 'Vérifiez la configuration SMTP.';
+    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d’envoyer la facture pour le moment. ' + detail } });
     return;
   }
 
@@ -1400,24 +1402,48 @@ function getClientAuth(req) {
 }
 
 async function sendClientEmail(options) {
-  if (!nodemailer || !SMTP_HOST || !SMTP_USER || !SMTP_PASS || !options || !options.to) return false;
+  if (!nodemailer || !SMTP_HOST || !SMTP_USER || !SMTP_PASS || !options || !options.to) {
+    throw new Error('Configuration SMTP incomplète.');
+  }
   const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_SECURE,
     auth: { user: SMTP_USER, pass: SMTP_PASS }
   });
-  await transporter.sendMail({
-    from: options.from || CONTACT_FROM,
-    sender: SMTP_USER || CONTACT_FROM,
+  const preferredFrom = options.from || CONTACT_FROM;
+  const baseMail = {
     to: options.to,
     bcc: options.bcc || undefined,
     replyTo: options.replyTo || undefined,
     subject: options.subject,
     text: options.text,
     html: options.html
-  });
-  return true;
+  };
+  try {
+    await transporter.sendMail(Object.assign({}, baseMail, {
+      from: preferredFrom,
+      sender: SMTP_USER || preferredFrom
+    }));
+    return { ok: true, fromUsed: preferredFrom };
+  } catch (primaryError) {
+    const fallbackFrom = SMTP_USER || preferredFrom;
+    if (fallbackFrom && fallbackFrom !== preferredFrom) {
+      try {
+        await transporter.sendMail(Object.assign({}, baseMail, {
+          from: fallbackFrom,
+          sender: fallbackFrom,
+          replyTo: preferredFrom
+        }));
+        return { ok: true, fromUsed: fallbackFrom, fallback: true };
+      } catch (fallbackError) {
+        console.error('[invoice-email] SMTP fallback send failed', fallbackError);
+        throw fallbackError;
+      }
+    }
+    console.error('[invoice-email] SMTP send failed', primaryError);
+    throw primaryError;
+  }
 }
 
 function ensureAdminDocumentsStore() {
@@ -1661,18 +1687,20 @@ async function handleAdminSendInvoiceApi(req, res) {
   const officialReference = existingInvoice && existingInvoice.sentAt ? existingInvoice.reference : getNextInvoiceReference(body.issueDate, existingInvoice && existingInvoice.id);
   const invoice = buildInvoiceRecord(existingInvoice, Object.assign({}, body, { items: items, email: email, customerName: customerName }), officialReference);
 
-  const sent = await sendClientEmail({
-    from: CONTACT_FROM,
-    to: invoice.email,
-    bcc: INVOICE_COPY_TO || undefined,
-    replyTo: CONTACT_FROM,
-    subject: invoice.emailSubject,
-    text: buildInvoiceEmailText(invoice),
-    html: buildInvoiceEmailHtml(invoice)
-  }).catch(function () { return false; });
-
-  if (!sent) {
-    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d’envoyer la facture pour le moment. Vérifiez la configuration SMTP.' } });
+  let sent;
+  try {
+    sent = await sendClientEmail({
+      from: CONTACT_FROM,
+      to: invoice.email,
+      bcc: INVOICE_COPY_TO || undefined,
+      replyTo: CONTACT_FROM,
+      subject: invoice.emailSubject,
+      text: buildInvoiceEmailText(invoice),
+      html: buildInvoiceEmailHtml(invoice)
+    });
+  } catch (error) {
+    const detail = error && error.message ? String(error.message) : 'Vérifiez la configuration SMTP.';
+    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d’envoyer la facture pour le moment. ' + detail } });
     return;
   }
 
@@ -2606,6 +2634,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 
