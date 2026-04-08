@@ -228,11 +228,11 @@
     lineItemsNode.innerHTML = source.map(function (item, index) {
       return [
         '<div class="admin-invoice-line" data-line-index="' + index + '">',
-        '<label class="admin-invoice-line-field"><span>Référence</span><input type="text" data-line-field="reference" value="' + escapeHtml(item.reference) + '" /></label>',
-        '<label class="admin-invoice-line-field"><span>Description</span><input type="text" data-line-field="description" value="' + escapeHtml(item.description) + '" /></label>',
-        '<label class="admin-invoice-line-field"><span>Qté</span><input type="number" min="1" step="1" data-line-field="quantity" value="' + item.quantity + '" /></label>',
-        '<label class="admin-invoice-line-field"><span>Prix unitaire</span><input type="number" min="0" step="0.01" data-line-field="unitPrice" value="' + item.unitPrice + '" /></label>',
-        '<button class="btn btn-outline" type="button" data-line-remove="' + index + '">Supprimer</button>',
+        '<label class="admin-invoice-line-field admin-invoice-line-field-reference"><span>Référence</span><input type="text" data-line-field="reference" value="' + escapeHtml(item.reference) + '" /></label>',
+        '<label class="admin-invoice-line-field admin-invoice-line-field-quantity"><span>Qté</span><input type="number" min="1" step="1" data-line-field="quantity" value="' + item.quantity + '" /></label>',
+        '<label class="admin-invoice-line-field admin-invoice-line-field-price"><span>Prix unitaire</span><input type="number" min="0" step="0.01" data-line-field="unitPrice" value="' + item.unitPrice + '" /></label>',
+        '<button class="btn btn-outline admin-invoice-line-remove" type="button" data-line-remove="' + index + '">Supprimer</button>',
+        '<label class="admin-invoice-line-field admin-invoice-line-field-description"><span>Description</span><input type="text" data-line-field="description" value="' + escapeHtml(item.description) + '" /></label>',
         '</div>'
       ].join('');
     }).join('');
@@ -473,6 +473,7 @@
 
   boot();
 })();
+
 
 
 

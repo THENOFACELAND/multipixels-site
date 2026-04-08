@@ -1409,6 +1409,7 @@ async function sendClientEmail(options) {
   });
   await transporter.sendMail({
     from: options.from || CONTACT_FROM,
+    sender: SMTP_USER || CONTACT_FROM,
     to: options.to,
     bcc: options.bcc || undefined,
     replyTo: options.replyTo || undefined,
@@ -2605,6 +2606,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 

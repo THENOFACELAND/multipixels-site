@@ -638,7 +638,10 @@
 }
 
 .admin-invoice-line {
-  grid-template-columns: minmax(96px, 118px) minmax(0, 1.35fr) minmax(78px, 92px) minmax(110px, 128px) 124px;
+  grid-template-columns: minmax(116px, 140px) minmax(84px, 96px) minmax(116px, 134px) 124px;
+  grid-template-areas:
+    'reference quantity price remove'
+    'description description description remove';
 }
 
 .admin-invoice-line .btn {
@@ -682,4 +685,11 @@
 }
 
 
+
+
+.admin-invoice-line-field-reference { grid-area: reference; }
+.admin-invoice-line-field-quantity { grid-area: quantity; }
+.admin-invoice-line-field-price { grid-area: price; }
+.admin-invoice-line-field-description { grid-area: description; }
+.admin-invoice-line-remove { grid-area: remove; align-self: stretch; }
 
