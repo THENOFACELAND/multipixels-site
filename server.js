@@ -1929,10 +1929,20 @@ function buildInvoiceEmailHtml(invoice) {
   const intro = invoice.emailMessage
     ? invoice.emailMessage.split(/\r?\n/).map((line) => '<div>' + escapeInvoiceHtml(line) + '</div>').join('')
     : '<div>Bonjour,</div><div style="margin-top:12px;">Veuillez trouver votre facture en pièce jointe.</div>';
+  const logoUrl = 'https://www.multipixels.fr/assets/Background/favicon.png';
   return '<div style="font-family:Arial,sans-serif;color:#10213b;background:#eef5fd;padding:24px;">'
     + '<div style="max-width:760px;margin:0 auto;background:#ffffff;border:1px solid #d8e4f2;padding:28px;border-radius:12px;">'
-    + '<div style="font-size:28px;font-weight:800;color:#0f2350;">MULTIPIXELS.FR</div>'
+    + '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">'
+    + '<tr>'
+    + '<td style="width:72px;vertical-align:middle;">'
+    + '<img src="' + logoUrl + '" alt="MULTIPIXELS" width="56" height="56" style="display:block;width:56px;height:56px;border:0;">'
+    + '</td>'
+    + '<td style="vertical-align:middle;">'
+    + '<div style="font-size:28px;font-weight:800;color:#0f2350;line-height:1.1;">MULTIPIXELS.FR</div>'
     + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
+    + '</td>'
+    + '</tr>'
+    + '</table>'
     + '<div style="margin-top:18px;line-height:1.7;font-size:15px;">' + intro + '</div>'
     + '<div style="margin-top:22px;padding:16px 18px;border:1px solid #d7e8f3;background:#f7fbff;border-radius:10px;">'
     + '<div><strong>Référence :</strong> ' + escapeInvoiceHtml(invoice.reference) + '</div>'
@@ -2027,15 +2037,6 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.end();
   });
 }
-
-function handleAdminInvoiceNextReferenceApi(req, res, requestUrl) {
-  const session = requireAuthenticatedAdmin(req, res);
-  if (!session) return;
-  const issueDate = cleanInvoiceField(requestUrl.searchParams.get('issueDate'), 20) || new Date().toISOString().slice(0, 10);
-  const documentId = cleanInvoiceField(requestUrl.searchParams.get('id'), 120);
-  sendJson(res, 200, { ok: true, reference: getNextInvoiceReference(issueDate, documentId) });
-}
-
 async function handleAdminSendInvoiceApi(req, res) {
   const session = requireAuthenticatedAdmin(req, res);
   if (!session) return;
@@ -2065,6 +2066,15 @@ async function handleAdminSendInvoiceApi(req, res) {
   const officialReference = existingInvoice && existingInvoice.sentAt ? existingInvoice.reference : getNextInvoiceReference(body.issueDate, existingInvoice && existingInvoice.id);
   const invoice = buildInvoiceRecord(existingInvoice, Object.assign({}, body, { items: items, email: email, customerName: customerName }), officialReference);
 
+  let pdfBuffer;
+  try {
+    pdfBuffer = await buildInvoicePdfBuffer(invoice);
+  } catch (error) {
+    const detail = error && error.message ? String(error.message) : 'Génération PDF impossible.';
+    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_INVOICE_PDF_FAILED', message: 'Impossible de générer le PDF de la facture. ' + detail } });
+    return;
+  }
+
   let sent;
   try {
     sent = await sendClientEmail({
@@ -2074,10 +2084,15 @@ async function handleAdminSendInvoiceApi(req, res) {
       replyTo: CONTACT_FROM,
       subject: invoice.emailSubject,
       text: buildInvoiceEmailText(invoice),
-      html: buildInvoiceEmailHtml(invoice)
+      html: buildInvoiceEmailHtml(invoice),
+      attachments: [{
+        filename: buildInvoiceAttachmentName(invoice),
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      }]
     });
   } catch (error) {
-    const detail = error && error.message ? String(error.message) : 'Vérifiez la configuration SMTP.';
+    const detail = error && error.message ? String(error.message) : 'Vérifiez la configuration email.';
     sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d’envoyer la facture pour le moment. ' + detail } });
     return;
   }
@@ -3017,6 +3032,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 
