@@ -387,6 +387,8 @@
 
 .invoice-address-box .body {
   min-height: 39.5mm;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .invoice-meta-box {
@@ -407,6 +409,9 @@
   padding: 1.55mm 2.1mm;
   font-size: 2.85mm;
   line-height: 1.2;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .invoice-meta-table th,
@@ -704,5 +709,7 @@
 .admin-invoice-line-field-price { grid-area: price; }
 .admin-invoice-line-field-description { grid-area: description; }
 .admin-invoice-line-remove { grid-area: remove; align-self: stretch; }
+
+
 
 

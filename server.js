@@ -1168,10 +1168,14 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
     doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, 98).stroke();
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
+    doc.font('Helvetica').fontSize(9);
+    const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
+    const addressBoxHeight = 22 + addressBodyHeight;
+    doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, addressBoxHeight).stroke();
     doc.rect(360, 54, 165, 22).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('ADRESSE DE FACTURATION', 368, 61, { width: 149, align: 'center' });
-    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressLines.length ? addressLines.join('\n') : 'Informations client à compléter', 374, 87, { width: 136, align: 'center', lineGap: 2 });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressText, 374, 87, { width: 136, align: 'center', lineGap: 2 });
 
     doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
     doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
@@ -1196,16 +1200,20 @@ async function buildInvoicePdfBuffer(invoice) {
     let currentY = tableY + 18;
     const rows = lineItems.length ? lineItems : [{ reference: '-', description: 'Aucune ligne pour le moment', quantity: 0, unitPrice: 0, total: 0 }];
     rows.forEach(function (item) {
-      const rowHeight = 22;
       const values = [String(item.reference || '-'), String(item.description || '-'), String(item.quantity || 0), formatInvoiceMoney(item.unitPrice || 0), formatInvoiceMoney(item.total || 0)];
+      const textHeights = values.map(function (value, index) {
+        doc.font('Helvetica').fontSize(8.5);
+        return doc.heightOfString(value, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left', lineGap: 1 });
+      });
+      const rowHeight = Math.max(22, Math.ceil(Math.max.apply(Math, textHeights)) + 10);
       values.forEach(function (value, index) {
         doc.rect(colX[index], currentY, colW[index], rowHeight).stroke('#c6d6e7');
-        doc.font(index >= 2 ? 'Helvetica' : 'Helvetica').fontSize(8.5).fillColor('#10213b').text(value, colX[index] + 4, currentY + 6, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
+        doc.font('Helvetica').fontSize(8.5).fillColor('#10213b').text(value, colX[index] + 4, currentY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left', lineGap: 1 });
       });
       currentY += rowHeight;
     });
 
-    const bottomY = 560;
+    const bottomY = Math.max(560, currentY + 56);
     doc.rect(54, bottomY, 330, 150).stroke('#435774');
     doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
@@ -1217,8 +1225,9 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(invoice.total), 404, bottomY + 34, { width: 121, align: 'center' });
     doc.font('Helvetica').fontSize(7.8).text(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
 
-    doc.moveTo(54, 744).lineTo(525, 744).stroke('#c2d4e8');
-    doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, 752, { width: 471, align: 'center' });
+    const footerY = Math.min(744, bottomY + 184);
+    doc.moveTo(54, footerY).lineTo(525, footerY).stroke('#c2d4e8');
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, footerY + 8, { width: 471, align: 'center' });
     doc.end();
   });
 }
@@ -1983,10 +1992,14 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
     doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, 98).stroke();
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
+    doc.font('Helvetica').fontSize(9);
+    const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
+    const addressBoxHeight = 22 + addressBodyHeight;
+    doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, addressBoxHeight).stroke();
     doc.rect(360, 54, 165, 22).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('ADRESSE DE FACTURATION', 368, 61, { width: 149, align: 'center' });
-    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressLines.length ? addressLines.join('\n') : 'Informations client à compléter', 374, 87, { width: 136, align: 'center', lineGap: 2 });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressText, 374, 87, { width: 136, align: 'center', lineGap: 2 });
 
     doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
     doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
@@ -2011,16 +2024,20 @@ async function buildInvoicePdfBuffer(invoice) {
     let currentY = tableY + 18;
     const rows = lineItems.length ? lineItems : [{ reference: '-', description: 'Aucune ligne pour le moment', quantity: 0, unitPrice: 0, total: 0 }];
     rows.forEach(function (item) {
-      const rowHeight = 22;
       const values = [String(item.reference || '-'), String(item.description || '-'), String(item.quantity || 0), formatInvoiceMoney(item.unitPrice || 0), formatInvoiceMoney(item.total || 0)];
+      const textHeights = values.map(function (value, index) {
+        doc.font('Helvetica').fontSize(8.5);
+        return doc.heightOfString(value, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left', lineGap: 1 });
+      });
+      const rowHeight = Math.max(22, Math.ceil(Math.max.apply(Math, textHeights)) + 10);
       values.forEach(function (value, index) {
         doc.rect(colX[index], currentY, colW[index], rowHeight).stroke('#c6d6e7');
-        doc.font(index >= 2 ? 'Helvetica' : 'Helvetica').fontSize(8.5).fillColor('#10213b').text(value, colX[index] + 4, currentY + 6, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
+        doc.font('Helvetica').fontSize(8.5).fillColor('#10213b').text(value, colX[index] + 4, currentY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left', lineGap: 1 });
       });
       currentY += rowHeight;
     });
 
-    const bottomY = 560;
+    const bottomY = Math.max(560, currentY + 56);
     doc.rect(54, bottomY, 330, 150).stroke('#435774');
     doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
@@ -2032,8 +2049,9 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(invoice.total), 404, bottomY + 34, { width: 121, align: 'center' });
     doc.font('Helvetica').fontSize(7.8).text(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
 
-    doc.moveTo(54, 744).lineTo(525, 744).stroke('#c2d4e8');
-    doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, 752, { width: 471, align: 'center' });
+    const footerY = Math.min(744, bottomY + 184);
+    doc.moveTo(54, footerY).lineTo(525, footerY).stroke('#c2d4e8');
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, footerY + 8, { width: 471, align: 'center' });
     doc.end();
   });
 }
@@ -3032,6 +3050,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
+
 
 
 
