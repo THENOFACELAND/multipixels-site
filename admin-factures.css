@@ -259,6 +259,18 @@
   gap: 10px;
 }
 
+.admin-invoice-actions .btn-outline {
+  color: #f4f7ff;
+  border-color: rgba(123, 156, 212, 0.3);
+  background: rgba(48, 89, 170, 0.18);
+}
+
+.admin-invoice-actions .btn-outline:hover {
+  color: #ffffff;
+  border-color: rgba(148, 179, 232, 0.45);
+  background: rgba(48, 89, 170, 0.32);
+}
+
 .admin-invoice-preview-toolbar {
   display: flex;
   align-items: end;
@@ -692,4 +704,5 @@
 .admin-invoice-line-field-price { grid-area: price; }
 .admin-invoice-line-field-description { grid-area: description; }
 .admin-invoice-line-remove { grid-area: remove; align-self: stretch; }
+
 

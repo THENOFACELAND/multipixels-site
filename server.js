@@ -72,7 +72,7 @@ const RESEND_FROM_EMAIL = (process.env.RESEND_FROM_EMAIL || DEFAULT_RESEND_FROM_
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
 const BREVO_API_KEY = (process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY || '').trim();
 const ADMIN_DOCUMENTS_PATH = path.join(ROOT, "assets", "data", "admin-documents.json");
-const INVOICE_SEQUENCE_START = Math.max(1, Number(process.env.INVOICE_SEQUENCE_START || 33));
+const INVOICE_SEQUENCE_START = Math.max(1, Number(process.env.INVOICE_SEQUENCE_START || 34));
 
 // Stripe is intentionally prepared here so test and production can be separated cleanly.
 const STRIPE_MODE = (process.env.STRIPE_MODE || "test").trim();
@@ -3032,6 +3032,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 
