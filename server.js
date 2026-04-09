@@ -1134,7 +1134,7 @@ function buildInvoiceEmailHtml(invoice) {
     + '<div style="margin-top:6px;"><strong>Date :</strong> ' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</div>'
     + '<div style="margin-top:6px;"><strong>Total TTC :</strong> ' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div>'
     + '</div>'
-    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, répondez simplement à cet email ou contactez-nous au 06 27 14 08 40.</div>'
+    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas répondre directement à cet email et de nous contacter à <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
     + '</div>'
     + '</div>';
 }
@@ -1155,7 +1155,7 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.on('end', function () { resolve(Buffer.concat(chunks)); });
     doc.on('error', reject);
 
-    doc.rect(36, 36, 523, 770).fill('#f8fbff');
+    doc.rect(36, 36, 523, 770).fill('#ffffff');
     doc.fillColor('#10213b');
 
     if (fs.existsSync(logoPath)) {
@@ -1949,7 +1949,7 @@ function buildInvoiceEmailHtml(invoice) {
     + '<div style="margin-top:6px;"><strong>Date :</strong> ' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</div>'
     + '<div style="margin-top:6px;"><strong>Total TTC :</strong> ' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div>'
     + '</div>'
-    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, répondez simplement à cet email ou contactez-nous au 06 27 14 08 40.</div>'
+    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas répondre directement à cet email et de nous contacter à <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
     + '</div>'
     + '</div>';
 }
@@ -1970,7 +1970,7 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.on('end', function () { resolve(Buffer.concat(chunks)); });
     doc.on('error', reject);
 
-    doc.rect(36, 36, 523, 770).fill('#f8fbff');
+    doc.rect(36, 36, 523, 770).fill('#ffffff');
     doc.fillColor('#10213b');
 
     if (fs.existsSync(logoPath)) {
@@ -3032,6 +3032,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 
