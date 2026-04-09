@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "nodemailer": "^6.9.16",
+    "pdfkit": "^0.17.2",
     "stripe": "^18.1.1"
   },
   "engines": {
