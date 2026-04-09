@@ -504,13 +504,17 @@
     setStatus('Envoi de la facture en cours...', 'warning');
     try {
       const response = await auth.request('/api/admin/invoices/send', { method: 'POST', body: JSON.stringify(payload) });
-      idInput.value = response.invoice.id;
-      referenceInput.value = response.invoice.reference;
-      subjectLocked = true;
-      messageLocked = true;
-      renderPreview();
-      const nextMessage = response.nextReference ? ' Prochaine référence : ' + response.nextReference + '.' : '';
-      setStatus('Facture ' + response.invoice.reference + ' envoyée au client.' + nextMessage, 'success');
+      const sentReference = response && response.invoice ? response.invoice.reference : payload.reference;
+      const nextReference = response && response.nextReference ? response.nextReference : '';
+      resetForm();
+      if (nextReference) {
+        referenceInput.value = nextReference;
+        subjectInput.value = defaultSubject(nextReference);
+        messageInput.value = defaultMessage(nextReference);
+        renderPreview();
+      }
+      const nextMessage = nextReference ? ' Prochaine référence : ' + nextReference + '.' : '';
+      setStatus('Facture ' + sentReference + ' envoyée au client.' + nextMessage, 'success');
     } catch (error) {
       setStatus(error.message || 'Impossible d’envoyer la facture.', 'error');
     }
