@@ -8,7 +8,7 @@
       const response = await fetch('/api/catalogue-extra-products', { cache: 'no-store' });
       if (!response.ok) return baseProducts;
       const payload = await response.json();
-      const extra = payload && Array.isArray(payload.products) payload.products : [];
+      const extra = payload && Array.isArray(payload.products) ? payload.products : [];
       return baseProducts.concat(extra);
     } catch (_) {
       return baseProducts;
@@ -29,8 +29,8 @@
   function loadCart() {
     try {
       const raw = window.localStorage.getItem('multipixels_cart');
-      const parsed = raw JSON.parse(raw) : [];
-      return Array.isArray(parsed) parsed : [];
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch (_) {
       return [];
     }
@@ -55,7 +55,7 @@
         id: product.id,
         quantity: 1,
         name: product.name,
-        price: product.discountPrice > 0 product.discountPrice : product.price,
+        price: product.discountPrice > 0 ? product.discountPrice : product.price,
         image: product.image,
         imageAlt: product.imageAlt,
         category: product.category,
@@ -110,12 +110,12 @@
   }
 
   function buildColorDots(colors) {
-    const items = Array.isArray(colors) colors.filter(Boolean) : [];
+    const items = Array.isArray(colors) ? colors.filter(Boolean) : [];
     if (!items.length) return '';
     const visible = items.slice(0, 6).map(function (color) {
       return '<span class="product-color-dot" title="' + color + '" style="--dot:' + colorToCss(color) + '"></span>';
     }).join('');
-    const extra = items.length > 6 '<span class="product-color-more">+' + (items.length - 6) + '</span>' : '';
+    const extra = items.length > 6 ? '<span class="product-color-more">+' + (items.length - 6) + '</span>' : '';
     return '<div class="product-color-row">' + visible + extra + '</div>';
   }
 
@@ -123,17 +123,17 @@
     const isOutOfStock = product.stockStatus === 'out-of-stock';
     const hasDiscount = Number(product.discountPrice || 0) > 0 && Number(product.discountPrice) < Number(product.price || 0);
     const discountPercent = hasDiscount
-      (Number(product.discountPercent || 0) || Math.round(((Number(product.price || 0) - Number(product.discountPrice || 0)) / Number(product.price || 1)) * 100))
+      ? (Number(product.discountPercent || 0) || Math.round(((Number(product.price || 0) - Number(product.discountPrice || 0)) / Number(product.price || 1)) * 100))
       : 0;
     const colorRow = buildColorDots(product.colors);
-    const primaryPrice = hasDiscount formatEuroCompact(product.discountPrice) : formatEuroCompact(product.price);
-    const oldPrice = hasDiscount '<span class="product-price-old">' + formatEuroCompact(product.price) + '</span>' : '';
+    const primaryPrice = hasDiscount ? formatEuroCompact(product.discountPrice) : formatEuroCompact(product.price);
+    const oldPrice = hasDiscount ? '<span class="product-price-old">' + formatEuroCompact(product.price) + '</span>' : '';
     return [
-      '<article class="product-card product-card-retail reveal" data-category="' + product.category + '" data-segments="' + (Array.isArray(product.segmentGroups) product.segmentGroups.join(' ') : '') + '">',
+      '<article class="product-card product-card-retail reveal" data-category="' + product.category + '" data-segments="' + (Array.isArray(product.segmentGroups) ? product.segmentGroups.join(' ') : '') + '">',
       '<div class="product-card-image product-card-image-retail">',
-      (hasDiscount '<span class="product-discount-badge">-' + discountPercent + '%</span>' : ''),
+      (hasDiscount ? '<span class="product-discount-badge">-' + discountPercent + '%</span>' : ''),
       '<img src="' + product.image + '" alt="' + product.imageAlt + '" loading="lazy" />',
-      '<a class="product-image-cta" href="contact.htmlservice=devis&product=' + encodeURIComponent(product.name) + '">Personnalisez-le !</a>',
+      '<a class="product-image-cta" href="contact.html?service=devis&product=' + encodeURIComponent(product.name) + '">Personnalisez-le !</a>',
       '</div>',
       '<div class="product-card-body product-card-body-retail">',
       colorRow,
@@ -144,7 +144,7 @@
       '<div class="product-price-prefix">À partir de :</div>',
       '<div class="product-retail-footer">',
       '<div class="product-retail-prices"><span class="product-price">' + primaryPrice + '</span>' + oldPrice + '</div>',
-      '<button class="btn product-buy-btn" type="button" data-add-to-cart="' + product.id + '"' + (isOutOfStock ' disabled aria-disabled="true"' : '') + '>' + (isOutOfStock 'Indisponible' : 'Acheter') + '</button>',
+      '<button class="btn product-buy-btn" type="button" data-add-to-cart="' + product.id + '"' + (isOutOfStock ? ' disabled aria-disabled="true"' : '') + '>' + (isOutOfStock ? 'Indisponible' : 'Acheter') + '</button>',
       '</div>',
       '</div>',
       '</article>'
@@ -188,8 +188,8 @@
       const category = card.getAttribute('data-category') || '';
       const segments = (card.getAttribute('data-segments') || '').split(/\s+/).filter(Boolean);
       const show = mode === 'segment'
-        value === 'all' || segments.indexOf(value) !== -1
-        : value === 'all' || category === value;
+        ? (value === 'all' || segments.indexOf(value) !== -1)
+        : (value === 'all' || category === value);
       card.hidden = !show;
     });
   }
@@ -238,6 +238,11 @@
     }
   }
 })();
+
+
+
+
+
 
 
 

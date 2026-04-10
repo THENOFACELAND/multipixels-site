@@ -68,7 +68,7 @@
     const rating = Number(payload.rating || 0);
     const ratingCount = Number(payload.ratingCount || 0);
     const url = cleanText(payload.url || "");
-    const reviews = Array.isArray(payload.reviews) payload.reviews : [];
+    const reviews = Array.isArray(payload.reviews) ? payload.reviews : [];
     const cleaned = reviews
       .map(function (review) {
         return {
@@ -109,3 +109,4 @@
       /* static fallback already in markup */
     });
 })();
+
