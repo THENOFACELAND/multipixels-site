@@ -332,7 +332,7 @@
       '    <table class="invoice-lines-table">',
       '      <thead><tr><th>Référence</th><th>Description</th><th>Qt?</th><th>Prix unitaire</th><th>Prix total TTC</th></tr></thead>',
       '      <tbody>' + linesMarkup + '</tbody>',
-      '      <thead><tr><th>R?f?rence</th><th>Description</th><th>Qt?</th><th>Prix unitaire</th><th>Prix total TTC</th></tr></thead>',
+      '    </table>',
       '  </section>',
       '  <section class="invoice-bottom">',
       '    <div class="invoice-payment-box">',
@@ -517,6 +517,7 @@
 
   boot();
 })();
+
 
 
 
