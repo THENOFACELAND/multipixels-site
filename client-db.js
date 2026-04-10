@@ -19,7 +19,7 @@ function resolveDataDirectory() {
     process.env.MULTIPIXELS_DATA_DIR,
     process.env.DATA_DIR,
     process.env.RAILWAY_VOLUME_MOUNT_PATH,
-    process.platform === 'win32' '' : '/data'
+    process.platform === 'win32' ? '' : '/data'
   ].filter(Boolean);
 
   for (const candidate of candidates) {
@@ -49,7 +49,7 @@ function createReference(prefix) {
 }
 
 function createPasswordRecord(password, saltHex) {
-  const salt = saltHex Buffer.from(saltHex, 'hex') : crypto.randomBytes(16);
+  const salt = saltHex ? Buffer.from(saltHex, 'hex') : crypto.randomBytes(16);
   const hash = crypto.pbkdf2Sync(String(password || ''), salt, 120000, 32, 'sha256');
   return { salt: salt.toString('hex'), hash: hash.toString('hex') };
 }
@@ -64,7 +64,7 @@ function verifyPassword(password, user) {
 
 function parseJson(value, fallback) {
   try {
-    return value JSON.parse(value) : fallback;
+    return value ? JSON.parse(value) : fallback;
   } catch (_) {
     return fallback;
   }
@@ -73,7 +73,7 @@ function parseJson(value, fallback) {
 function getDisplayName(user) {
   const full = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
   if (user.accountType === 'professionnel' && user.company) {
-    return full full + ' - ' + user.company : user.company;
+    return full ? full + ' - ' + user.company : user.company;
   }
   return full || user.company || user.email;
 }
@@ -232,20 +232,20 @@ function buildClientDb() {
 
   const api = {
     cleanupSessions() {
-      db.prepare('DELETE FROM client_sessions WHERE expiresAt <= ').run(nowIso());
-      db.prepare('DELETE FROM client_password_resets WHERE expiresAt <= OR usedAt IS NOT NULL').run(nowIso());
+      db.prepare('DELETE FROM client_sessions WHERE expiresAt <= ?').run(nowIso());
+      db.prepare('DELETE FROM client_password_resets WHERE expiresAt <= ? OR usedAt IS NOT NULL').run(nowIso());
     },
     findUserByEmail(email) {
-      return mapUserRow(db.prepare('SELECT * FROM client_users WHERE lower(email) = lower()').get(String(email || '').trim()));
+      return mapUserRow(db.prepare('SELECT * FROM client_users WHERE lower(email) = lower(?)').get(String(email || '').trim()));
     },
     findUserById(id) {
-      return mapUserRow(db.prepare('SELECT * FROM client_users WHERE id = ').get(id));
+      return mapUserRow(db.prepare('SELECT * FROM client_users WHERE id = ?').get(id));
     },
     createUser(payload) {
       const passwordRecord = createPasswordRecord(payload.password);
       const user = {
         id: createId('client'),
-        accountType: payload.accountType === 'professionnel' 'professionnel' : 'particulier',
+        accountType: payload.accountType === 'professionnel' ? 'professionnel' : 'particulier',
         firstName: payload.firstName,
         lastName: payload.lastName,
         company: payload.company || '',
@@ -272,7 +272,7 @@ function buildClientDb() {
     },
     touchLastLogin(userId) {
       const timestamp = nowIso();
-      db.prepare('UPDATE client_users SET lastLoginAt = WHERE id = ').run(timestamp, userId);
+      db.prepare('UPDATE client_users SET lastLoginAt = WHERE id = ?').run(timestamp, userId);
       return api.findUserById(userId);
     },
     createSession(userId) {
@@ -354,7 +354,7 @@ function buildClientDb() {
         payload.addressLine2 || '',
         payload.postalCode || '',
         payload.city || '',
-        payload.accountType === 'professionnel' 'professionnel' : 'particulier',
+        payload.accountType === 'professionnel' ? 'professionnel' : 'particulier',
         userId
       );
       return api.findUserById(userId);
@@ -432,7 +432,7 @@ function seedDatabase(db) {
     }
   }
 
-  const users = legacy && Array.isArray(legacy.users) && legacy.users.length legacy.users : [
+  const users = legacy && Array.isArray(legacy.users) && legacy.users.length ? legacy.users : [
     {
       id: 'client_particulier_demo',
       accountType: 'particulier',
@@ -530,6 +530,7 @@ module.exports = {
   verifyPassword,
   createPasswordRecord
 };
+
 
 
 
