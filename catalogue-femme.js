@@ -32,7 +32,7 @@
       options.forEach(function (item) {
         const isActive = item === option;
         item.classList.toggle('is-active', isActive);
-        item.setAttribute('aria-selected', isActive 'true' : 'false');
+        item.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
     };
 
@@ -40,7 +40,7 @@
       const isOpen = dropdown.classList.contains('is-open');
       closeAll(dropdown);
       dropdown.classList.toggle('is-open', !isOpen);
-      trigger.setAttribute('aria-expanded', isOpen 'false' : 'true');
+      trigger.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
     });
 
     options.forEach(function (option) {

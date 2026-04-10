@@ -44,7 +44,7 @@
     }
 
     if (!response.ok || data.ok === false) {
-      var message = data && data.error && data.error.message data.error.message : 'Une erreur est survenue.';
+      var message = data && data.error && data.error.message ? data.error.message : 'Une erreur est survenue.';
       var error = new Error(message);
       error.payload = data;
       error.status = response.status;
@@ -103,3 +103,4 @@
     resetPassword: resetPassword
   };
 })();
+

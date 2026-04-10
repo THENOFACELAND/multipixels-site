@@ -58,7 +58,7 @@
               <span class="section-label">Connexion</span>
               <h2>Accéder à mon compte</h2>
             </div>
-            <form id="client-login-form" class="client-form-grid">
+            <form id="client-login-form" class="client-form-grid" method="post">
               <label>
                 <span>Email</span>
                 <input type="email" name="email" autocomplete="email" required />
@@ -79,7 +79,7 @@
               <button type="button" class="client-account-switch is-active" data-account-switch="particulier">Particulier</button>
               <button type="button" class="client-account-switch" data-account-switch="professionnel">Professionnel</button>
             </div>
-            <form id="client-register-form" class="client-form-grid">
+            <form id="client-register-form" class="client-form-grid" method="post">
               <input type="hidden" id="client-account-type" value="particulier" />
               <div class="client-form-two">
                 <label>
@@ -125,6 +125,7 @@
   <script src="site.js"></script>
 </body>
 </html>
+
 
 
 

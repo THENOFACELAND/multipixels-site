@@ -18,8 +18,8 @@
   function loadCart() {
     try {
       const raw = window.localStorage.getItem("multipixels_cart");
-      const parsed = raw JSON.parse(raw) : [];
-      return Array.isArray(parsed) parsed : [];
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch (_) {
       return [];
     }
@@ -78,7 +78,7 @@
 
       const body = await response.json().catch(function () { return null; });
       if (!response.ok || !body || !body.ok) {
-        throw new Error(body && body.error && body.error.message body.error.message : "Checkout indisponible pour le moment.");
+        throw new Error(body && body.error && body.error.message ? body.error.message : "Checkout indisponible pour le moment.");
       }
 
       if (body.url) {
@@ -88,7 +88,7 @@
 
       setMessage(body.message || "Session checkout préparée.", false, true);
     } catch (error) {
-      setMessage(error && error.message error.message : "Checkout indisponible pour le moment.", true, false);
+      setMessage(error && error.message ? error.message : "Checkout indisponible pour le moment.", true, false);
     }
   }
 
@@ -133,7 +133,7 @@
         const id = button.getAttribute("data-quantity-id");
         const step = Number(button.getAttribute("data-quantity-step") || 0);
         const input = list.querySelector('[data-quantity-input="' + id + '"]');
-        const current = input Number(input.value || 1) : 1;
+        const current = input ? Number(input.value || 1) : 1;
         updateQuantity(id, current + step);
       });
     });
