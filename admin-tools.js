@@ -8,7 +8,7 @@ function normalizeText(value) {
 }
 
 function normalizeLine(value, maxLen) {
-  return normalizeText(value).replace(/\r?\n/g, ' ').slice(0, maxLen || 200);
+  return normalizeText(value).replace(/\r\n/g, ' ').slice(0, maxLen || 200);
 }
 
 function slugify(value) {
@@ -44,7 +44,7 @@ function ensureJsonFile(filePath, fallback) {
 
 function parseJsonSafe(value, fallback) {
   try {
-    return value ? JSON.parse(value) : fallback;
+    return value JSON.parse(value) : fallback;
   } catch (_) {
     return fallback;
   }
@@ -79,7 +79,7 @@ function createAdminTools(options) {
 
   function fromBase64Url(value) {
     const input = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
-    const padding = input.length % 4 === 0 ? '' : '='.repeat(4 - (input.length % 4));
+    const padding = input.length % 4 === 0 '' : '='.repeat(4 - (input.length % 4));
     return Buffer.from(input + padding, 'base64').toString('utf8');
   }
 
@@ -150,7 +150,7 @@ function createAdminTools(options) {
     try {
       const raw = fs.readFileSync(productsPath, 'utf8').replace(/^\uFEFF/, '');
       const parsed = JSON.parse(raw);
-      return { products: Array.isArray(parsed.products) ? parsed.products : [] };
+      return { products: Array.isArray(parsed.products) parsed.products : [] };
     } catch (_) {
       return { products: [] };
     }
@@ -300,20 +300,20 @@ function createAdminTools(options) {
     if (raw === 'accessoire') return 'accessoires';
     if (raw === 'vetement-de-travail' || raw === 'workwear') return 'vetement-travail';
     if (Object.prototype.hasOwnProperty.call(PRODUCT_CATEGORY_CONFIG, raw)) return raw;
-    return Object.prototype.hasOwnProperty.call(PRODUCT_CATEGORY_CONFIG, previousCategory || '') ? previousCategory : 'homme';
+    return Object.prototype.hasOwnProperty.call(PRODUCT_CATEGORY_CONFIG, previousCategory || '') previousCategory : 'homme';
   }
 
   function normalizeSizes(value, previous) {
-    const source = Array.isArray(value) ? value : splitList(value || (Array.isArray(previous) ? previous.join(',') : previous));
+    const source = Array.isArray(value) value : splitList(value || (Array.isArray(previous) previous.join(',') : previous));
     return source
       .map((item) => String(item || '').trim().toUpperCase())
       .filter((item, index, array) => PRODUCT_SIZE_OPTIONS.includes(item) && array.indexOf(item) === index);
   }
 
   function decodeImageDataUri(value) {
-    const match = String(value || '').match(/^data:(image\/(?:png|jpeg|webp));base64,(.+)$/);
+    const match = String(value || '').match(/^data:(image\/(:png|jpeg|webp));base64,(.+)$/);
     if (!match) return null;
-    const extension = match[1] === 'image/png' ? 'png' : match[1] === 'image/webp' ? 'webp' : 'jpg';
+    const extension = match[1] === 'image/png' 'png' : match[1] === 'image/webp' 'webp' : 'jpg';
     return {
       extension,
       buffer: Buffer.from(match[2], 'base64')
@@ -321,7 +321,7 @@ function createAdminTools(options) {
   }
 
   function saveUploadedImages(uploadedImages, productSlug) {
-    const images = Array.isArray(uploadedImages) ? uploadedImages : [];
+    const images = Array.isArray(uploadedImages) uploadedImages : [];
     if (!images.length) return [];
     const uploadsDir = path.join(root, 'assets', 'uploads', 'catalogue-admin');
     if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -339,20 +339,20 @@ function createAdminTools(options) {
     const category = normalizeCategory(payload.category, previous && previous.category);
     const slug = slugify(payload.slug || (previous && previous.slug) || baseName);
     const uploadedGallery = saveUploadedImages(payload.uploadedImages, slug);
-    const previousGallery = Array.isArray(previous && previous.gallery) ? previous.gallery.filter(Boolean) : [];
+    const previousGallery = Array.isArray(previous && previous.gallery) previous.gallery.filter(Boolean) : [];
     const legacyImage = normalizeLine(payload.image || (previous && previous.image), 260);
     const gallery = uploadedGallery.length
-      ? uploadedGallery
-      : (previousGallery.length ? previousGallery : (legacyImage ? [legacyImage] : []));
+      uploadedGallery
+      : (previousGallery.length previousGallery : (legacyImage [legacyImage] : []));
     const stockStatus = String(payload.stockStatus || (previous && previous.stockStatus) || 'in-stock').toLowerCase() === 'out-of-stock'
-      ? 'out-of-stock'
+      'out-of-stock'
       : 'in-stock';
     const sizes = normalizeSizes(payload.sizes, previous && previous.sizes);
-    const basePrice = Math.max(0, Number(payload.price != null && payload.price !== '' ? payload.price : (previous && previous.price) || 0));
-    const discountPrice = Math.max(0, Number(payload.discountPrice != null && payload.discountPrice !== '' ? payload.discountPrice : (previous && previous.discountPrice) || 0));
-    const discountPercent = basePrice > 0 && discountPrice > 0 && discountPrice < basePrice ? Math.round(((basePrice - discountPrice) / basePrice) * 100) : 0;
+    const basePrice = Math.max(0, Number(payload.price != null && payload.price !== '' payload.price : (previous && previous.price) || 0));
+    const discountPrice = Math.max(0, Number(payload.discountPrice != null && payload.discountPrice !== '' payload.discountPrice : (previous && previous.discountPrice) || 0));
+    const discountPercent = basePrice > 0 && discountPrice > 0 && discountPrice < basePrice Math.round(((basePrice - discountPrice) / basePrice) * 100) : 0;
     return {
-      id: previous ? previous.id : slugify(payload.id || ((payload.slug || baseName) + '-' + Date.now())),
+      id: previous previous.id : slugify(payload.id || ((payload.slug || baseName) + '-' + Date.now())),
       slug,
       name: baseName,
       category,
@@ -360,7 +360,7 @@ function createAdminTools(options) {
       segmentGroups: PRODUCT_CATEGORY_CONFIG[category].segments,
       audience: normalizeLine(payload.audience || (previous && previous.audience) || PRODUCT_CATEGORY_CONFIG[category].label, 140),
       price: basePrice,
-      discountPrice: discountPercent > 0 ? discountPrice : 0,
+      discountPrice: discountPercent > 0 discountPrice : 0,
       discountPercent,
       minimum: normalizeLine(payload.minimum || (previous && previous.minimum) || 'À partir de 1 pièce', 80),
       image: gallery[0] || '',
@@ -368,14 +368,14 @@ function createAdminTools(options) {
       imageAlt: normalizeLine(payload.imageAlt || (previous && previous.imageAlt) || baseName, 160),
       shortDescription: normalizeLine(payload.shortDescription || (previous && previous.shortDescription), 240),
       description: normalizeLine(payload.description || (previous && previous.description), 600),
-      techniques: splitList(payload.techniques || (previous && previous.techniques ? previous.techniques.join(',') : '')),
-      colors: splitList(payload.colors || (previous && previous.colors ? previous.colors.join(',') : '')),
+      techniques: splitList(payload.techniques || (previous && previous.techniques previous.techniques.join(',') : '')),
+      colors: splitList(payload.colors || (previous && previous.colors previous.colors.join(',') : '')),
       sizes,
       stockStatus,
-      stockLabel: stockStatus === 'out-of-stock' ? 'Hors stock' : 'En stock',
-      featured: String(payload.featured != null ? payload.featured : (previous && previous.featured)).toLowerCase() === 'true' || payload.featured === true,
+      stockLabel: stockStatus === 'out-of-stock' 'Hors stock' : 'En stock',
+      featured: String(payload.featured != null payload.featured : (previous && previous.featured)).toLowerCase() === 'true' || payload.featured === true,
       localSeo: normalizeLine(payload.localSeo || (previous && previous.localSeo), 200),
-      createdAt: previous ? previous.createdAt : new Date().toISOString(),
+      createdAt: previous previous.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       source: 'admin'
     };
@@ -414,10 +414,10 @@ function createAdminTools(options) {
       const raw = fs.readFileSync(documentsPath, 'utf8').replace(/^\uFEFF/, '');
       const parsed = JSON.parse(raw);
       return {
-        quotes: Array.isArray(parsed.quotes) ? parsed.quotes : [],
-        invoices: Array.isArray(parsed.invoices) ? parsed.invoices : [],
-        invoiceClients: Array.isArray(parsed.invoiceClients) ? parsed.invoiceClients : [],
-        invoiceReferences: Array.isArray(parsed.invoiceReferences) ? parsed.invoiceReferences : []
+        quotes: Array.isArray(parsed.quotes) parsed.quotes : [],
+        invoices: Array.isArray(parsed.invoices) parsed.invoices : [],
+        invoiceClients: Array.isArray(parsed.invoiceClients) parsed.invoiceClients : [],
+        invoiceReferences: Array.isArray(parsed.invoiceReferences) parsed.invoiceReferences : []
       };
     } catch (_) {
       return { quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] };
@@ -429,7 +429,7 @@ function createAdminTools(options) {
   }
 
   function normalizeDocumentItems(items, previousItems) {
-    const source = Array.isArray(items) && items.length ? items : (Array.isArray(previousItems) ? previousItems : []);
+    const source = Array.isArray(items) && items.length items : (Array.isArray(previousItems) previousItems : []);
     return source
       .map((item) => ({
         description: normalizeLine(item && item.description, 240),
@@ -452,10 +452,10 @@ function createAdminTools(options) {
   function normalizeDocumentPayload(type, payload, previous) {
     const items = normalizeDocumentItems(payload.items, previous && previous.items);
     const total = Number(items.reduce((sum, item) => sum + item.total, 0).toFixed(2));
-    const prefix = type === 'invoice' ? 'FAC' : 'DEV';
+    const prefix = type === 'invoice' 'FAC' : 'DEV';
     const sequence = String(Date.now()).slice(-6);
     return {
-      id: previous ? previous.id : createId(type),
+      id: previous previous.id : createId(type),
       reference: normalizeLine(payload.reference || (previous && previous.reference) || (prefix + '-' + sequence), 80),
       type,
       customerName: normalizeLine(payload.customerName || (previous && previous.customerName), 140),
@@ -469,20 +469,20 @@ function createAdminTools(options) {
       notes: normalizeLine(payload.notes || (previous && previous.notes), 1200),
       items,
       total,
-      createdAt: previous ? previous.createdAt : new Date().toISOString(),
+      createdAt: previous previous.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
   }
 
   function listDocuments(type) {
     const store = readDocumentsStore();
-    const key = type === 'invoice' ? 'invoices' : 'quotes';
+    const key = type === 'invoice' 'invoices' : 'quotes';
     return store[key].slice().sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
   }
 
   function createDocument(type, payload) {
     const store = readDocumentsStore();
-    const key = type === 'invoice' ? 'invoices' : 'quotes';
+    const key = type === 'invoice' 'invoices' : 'quotes';
     const document = normalizeDocumentPayload(type, payload);
     store[key].unshift(document);
     writeDocumentsStore(store);
@@ -491,7 +491,7 @@ function createAdminTools(options) {
 
   function updateDocument(type, documentId, payload) {
     const store = readDocumentsStore();
-    const key = type === 'invoice' ? 'invoices' : 'quotes';
+    const key = type === 'invoice' 'invoices' : 'quotes';
     const index = store[key].findIndex((entry) => entry.id === String(documentId));
     if (index === -1) return null;
     const updated = normalizeDocumentPayload(type, payload, store[key][index]);
@@ -502,7 +502,7 @@ function createAdminTools(options) {
 
   function deleteDocument(type, documentId) {
     const store = readDocumentsStore();
-    const key = type === 'invoice' ? 'invoices' : 'quotes';
+    const key = type === 'invoice' 'invoices' : 'quotes';
     const nextItems = store[key].filter((entry) => entry.id !== String(documentId));
     if (nextItems.length === store[key].length) return false;
     store[key] = nextItems;
@@ -585,13 +585,13 @@ function createAdminTools(options) {
   function updateOrder(orderId, payload) {
     const db = openDb();
     try {
-      const current = db.prepare('SELECT * FROM client_orders WHERE id = ?').get(String(orderId));
+      const current = db.prepare('SELECT * FROM client_orders WHERE id = ').get(String(orderId));
       if (!current) return null;
       const status = normalizeLine(payload.status || current.status, 40) || current.status;
       const statusLabel = normalizeLine(payload.statusLabel || current.statusLabel, 80) || current.statusLabel;
       const statusTone = normalizeLine(payload.statusTone || current.statusTone, 40) || current.statusTone;
       const clientNote = normalizeLine(payload.clientNote || current.clientNote, 400) || current.clientNote || '';
-      db.prepare('UPDATE client_orders SET status = ?, statusLabel = ?, statusTone = ?, clientNote = ?, updatedAt = ? WHERE id = ?').run(
+      db.prepare('UPDATE client_orders SET status = , statusLabel = , statusTone = , clientNote = , updatedAt = WHERE id = ').run(
         status,
         statusLabel,
         statusTone,
@@ -608,13 +608,13 @@ function createAdminTools(options) {
   function updateTicket(ticketId, payload) {
     const db = openDb();
     try {
-      const current = db.prepare('SELECT * FROM client_tickets WHERE id = ?').get(String(ticketId));
+      const current = db.prepare('SELECT * FROM client_tickets WHERE id = ').get(String(ticketId));
       if (!current) return null;
       const status = normalizeLine(payload.status || current.status, 40) || current.status;
       const statusLabel = normalizeLine(payload.statusLabel || current.statusLabel, 80) || current.statusLabel;
       const statusTone = normalizeLine(payload.statusTone || current.statusTone, 40) || current.statusTone;
       const lastReply = normalizeLine(payload.lastReply || current.lastReply, 400) || current.lastReply || '';
-      db.prepare('UPDATE client_tickets SET status = ?, statusLabel = ?, statusTone = ?, lastReply = ?, updatedAt = ? WHERE id = ?').run(
+      db.prepare('UPDATE client_tickets SET status = , statusLabel = , statusTone = , lastReply = , updatedAt = WHERE id = ').run(
         status,
         statusLabel,
         statusTone,

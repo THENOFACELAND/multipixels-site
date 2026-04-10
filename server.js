@@ -1,4 +1,4 @@
-﻿const http = require("http");
+const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
@@ -551,7 +551,7 @@ async function handleCheckoutSessionApi(req, res) {
       total: totalAmount,
       items: normalizedItems.map((item) => ({ name: item.name, quantity: item.quantity, technique: '', color: '' })),
       deliveryMode: 'Checkout Stripe',
-      clientNote: 'Session Stripe lancee depuis votre espace client.'
+      clientNote: 'Session Stripe lanc?e depuis votre espace client.'
     }) : null;
 
     const session = await stripe.checkout.sessions.create({
@@ -748,16 +748,16 @@ function buildSeedStore() {
             estimatedShipDate: '2026-04-04T00:00:00.000Z',
             total: 129.9,
             deliveryMode: 'Expedition partout en France',
-            clientNote: 'Validation BAT recue, lancement atelier confirme.',
+            clientNote: 'Validation BAT re?ue, lancement atelier confirm?.',
             items: [
               { name: 'Sweat capuche femme', quantity: 8, technique: 'DTF', color: 'Rose poudre' },
               { name: 'Tote bag cadeau', quantity: 8, technique: 'Flocage', color: 'Naturel' }
             ],
             timeline: [
-              { label: 'Commande enregistree', date: '21 mars 2026', done: true },
-              { label: 'Visuels verifies', date: '22 mars 2026', done: true },
+              { label: 'Commande enregistr?e', date: '21 mars 2026', done: true },
+              { label: 'Visuels v?rifi?s', date: '22 mars 2026', done: true },
               { label: 'Production atelier', date: '29 mars 2026', done: true },
-              { label: 'Expedition', date: '04 avril 2026', done: false }
+              { label: 'Exp?dition', date: '04 avril 2026', done: false }
             ]
           }
         ],
@@ -831,7 +831,7 @@ function buildSeedStore() {
               { name: 'Softshell travail', quantity: 18, technique: 'Broderie', color: 'Noir' }
             ],
             timeline: [
-              { label: 'Demande recue', date: '29 mars 2026', done: true },
+              { label: 'Demande re?ue', date: '29 mars 2026', done: true },
               { label: 'Devis emis', date: '30 mars 2026', done: true },
               { label: 'Validation client', date: 'A confirmer', done: false },
               { label: 'Production', date: 'A planifier', done: false }
@@ -849,8 +849,8 @@ function buildSeedStore() {
             statusTone: 'in-progress',
             createdAt: '2026-03-30T09:00:00.000Z',
             updatedAt: '2026-03-30T09:00:00.000Z',
-            messagePreview: 'Pouvez-vous envoyer la facture au format PDF pour notre comptabilite ?',
-            lastReply: 'Ticket recu, un retour est prevu sous 24h.'
+            messagePreview: 'Pouvez-vous envoyer la facture au format PDF pour notre comptabilité ?',
+            lastReply: 'Ticket reçu, un retour est prévu sous 24h.'
           }
         ]
       }
@@ -1344,8 +1344,8 @@ async function handleAdminSendInvoiceApi(req, res) {
       }]
     });
   } catch (error) {
-    const detail = error && error.message ? String(error.message) : 'V?rifiez la configuration email.';
-    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d?envoyer la facture pour le moment. ' + detail } });
+    const detail = error && error.message ? String(error.message) : 'Vérifiez la configuration email.';
+    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d’envoyer la facture pour le moment. ' + detail } });
     return;
   }
 
@@ -1599,7 +1599,7 @@ function requireAuthenticatedClient(req, res) {
   const session = (store.sessions || []).find((item) => item.token === token);
   if (!session) {
     writeClientStore(store);
-    sendJson(res, 401, { ok: false, error: { code: 'INVALID_SESSION', message: 'Session invalide ou expiree.' } });
+    sendJson(res, 401, { ok: false, error: { code: 'INVALID_SESSION', message: 'Session invalide ou expirée.' } });
     return null;
   }
 
@@ -1644,7 +1644,7 @@ async function handleClientRegisterApi(req, res) {
   const exists = (store.users || []).some((user) => String(user.email || '').toLowerCase() === email);
   if (exists) {
     writeClientStore(store);
-    sendJson(res, 409, { ok: false, error: { code: 'EMAIL_EXISTS', message: 'Un compte existe deja avec cette adresse email.' } });
+    sendJson(res, 409, { ok: false, error: { code: 'EMAIL_EXISTS', message: 'Un compte existe d?j? avec cette adresse email.' } });
     return;
   }
 
@@ -1753,7 +1753,7 @@ async function handleClientCreateTicketApi(req, res) {
   const message = normalizeWhitespace(String(body.message || '').slice(0, 3000));
 
   if (!subject || !message) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_TICKET', message: 'Merci de preciser un sujet et votre demande SAV.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_TICKET', message: 'Merci de pr?ciser un sujet et votre demande SAV.' } });
     return;
   }
 
@@ -1768,7 +1768,7 @@ async function handleClientCreateTicketApi(req, res) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     messagePreview: message.slice(0, 180),
-    lastReply: 'Ticket recu, notre equipe reviendra vers vous sous 24 a 48h.'
+    lastReply: 'Ticket re?u, notre ?quipe reviendra vers vous sous 24 ? 48h.'
   };
 
   auth.user.tickets = Array.isArray(auth.user.tickets) ? auth.user.tickets : [];
@@ -2619,7 +2619,7 @@ async function handleClientRegisterApi(req, res) {
   }
 
   if (clientDb.findUserByEmail(email)) {
-    sendJson(res, 409, { ok: false, error: { code: 'EMAIL_EXISTS', message: 'Un compte existe deja avec cette adresse email.' } });
+    sendJson(res, 409, { ok: false, error: { code: 'EMAIL_EXISTS', message: 'Un compte existe d?j? avec cette adresse email.' } });
     return;
   }
 
@@ -2691,7 +2691,7 @@ async function handleClientCreateTicketApi(req, res) {
   const orderReference = sanitizeLine(body.orderReference, 80);
   const message = normalizeWhitespace(String(body.message || '').slice(0, 3000));
   if (!subject || !message) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_TICKET', message: 'Merci de preciser un sujet et votre demande SAV.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_TICKET', message: 'Merci de pr?ciser un sujet et votre demande SAV.' } });
     return;
   }
 
@@ -2747,7 +2747,7 @@ async function handleClientRequestPasswordResetApi(req, res) {
   const email = sanitizeLine(body.email, 180).toLowerCase();
   const user = clientDb.findUserByEmail(email);
   if (!user) {
-    sendJson(res, 200, { ok: true, message: 'Si un compte existe, un email de reinitialisation sera envoye.' });
+    sendJson(res, 200, { ok: true, message: 'Si un compte existe, un email de r?initialisation sera envoy?.' });
     return;
   }
 
@@ -2756,13 +2756,13 @@ async function handleClientRequestPasswordResetApi(req, res) {
   try {
     await sendClientEmail({
       to: user.email,
-      subject: 'Reinitialisation de votre mot de passe MULTIPIXELS',
-      text: 'Bonjour,\n\nVoici votre lien de reinitialisation : ' + resetUrl + '\n\nCe lien expire dans 30 minutes.',
-      html: '<p>Bonjour,</p><p>Voici votre lien de reinitialisation :</p><p><a href="' + resetUrl + '">' + resetUrl + '</a></p><p>Ce lien expire dans 30 minutes.</p>'
+      subject: 'Réinitialisation de votre mot de passe MULTIPIXELS',
+      text: 'Bonjour,\n\nVoici votre lien de r?initialisation : ' + resetUrl + '\n\nCe lien expire dans 30 minutes.',
+      html: '<p>Bonjour,</p><p>Voici votre lien de r?initialisation :</p><p><a href="' + resetUrl + '">' + resetUrl + '</a></p><p>Ce lien expire dans 30 minutes.</p>'
     });
-    sendJson(res, 200, { ok: true, message: 'Si un compte existe, un email de reinitialisation sera envoye.' });
+    sendJson(res, 200, { ok: true, message: 'Si un compte existe, un email de r?initialisation sera envoy?.' });
   } catch (_) {
-    sendJson(res, 200, { ok: true, message: 'Lien de reinitialisation genere.', resetUrl });
+    sendJson(res, 200, { ok: true, message: 'Lien de r?initialisation g?n?r?.', resetUrl });
   }
 }
 
@@ -2784,7 +2784,7 @@ async function handleClientResetPasswordApi(req, res) {
 
   const user = clientDb.resetPassword(token, password);
   if (!user) {
-    sendJson(res, 400, { ok: false, error: { code: 'RESET_TOKEN_INVALID', message: 'Le lien de reinitialisation est invalide ou expire.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'RESET_TOKEN_INVALID', message: 'Le lien de r?initialisation est invalide ou expire.' } });
     return;
   }
 
@@ -3525,6 +3525,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 

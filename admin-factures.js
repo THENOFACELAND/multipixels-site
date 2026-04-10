@@ -318,7 +318,7 @@
       '  </div>',
       '  <div class="invoice-address-box">',
       '    <h3>Adresse de facturation</h3>',
-      '    <div class="body">' + (addressLines.length ? addressLines.map(escapeHtml).join('<br />') : 'Informations client à compléter') + '</div>',
+      '    <div class="body">' + (addressLines.length ? addressLines.map(escapeHtml).join('<br />') : 'Informations client ? compl?ter') + '</div>',
       '  </div>',
       '</section>',
       '  <section class="invoice-meta-box">',
@@ -330,9 +330,9 @@
       '  </section>',
       '  <section class="invoice-lines">',
       '    <table class="invoice-lines-table">',
-      '      <thead><tr><th>Référence</th><th>Description</th><th>Qte</th><th>Prix unitaire</th><th>Prix total TTC</th></tr></thead>',
+      '      <thead><tr><th>Référence</th><th>Description</th><th>Qt?</th><th>Prix unitaire</th><th>Prix total TTC</th></tr></thead>',
       '      <tbody>' + linesMarkup + '</tbody>',
-      '    </table>',
+      '      <thead><tr><th>R?f?rence</th><th>Description</th><th>Qt?</th><th>Prix unitaire</th><th>Prix total TTC</th></tr></thead>',
       '  </section>',
       '  <section class="invoice-bottom">',
       '    <div class="invoice-payment-box">',
@@ -346,8 +346,8 @@
       '      <h3>Total TTC</h3>',
       '      <div class="body">',
       '        <div class="invoice-total-amount">' + escapeHtml(formatMoney(state.total)) + '</div>',
-      '        <div class="invoice-total-note">' + escapeHtml(state.vatRate > 0 ? ('TVA ' + state.vatRate + ' % appliquée') : state.vatMention) + '</div>',
-      '        <div class="invoice-total-note">' + (state.isPaid ? 'Facture marquée comme payée' : 'En attente de règlement') + '</div>',
+      '        <div class="invoice-total-note">' + escapeHtml(state.vatRate > 0 ? ('TVA ' + state.vatRate + ' % appliqu?e') : state.vatMention) + '</div>',
+      '        <div class="invoice-total-note">' + (state.isPaid ? 'Facture marqu?e comme pay?e' : 'En attente de r?glement') + '</div>',
       '      </div>',
       '    </div>',
       '  </section>',
@@ -464,11 +464,7 @@
           {
             'Content-Type': 'application/json'
           },
-          token
-            ? {
-                Authorization: 'Bearer ' + token
-              }
-            : {}
+          token ? { Authorization: 'Bearer ' + token } : {}
         ),
         body: JSON.stringify(payload)
       });
@@ -501,7 +497,6 @@
     if (!payload.email) return setStatus('L’email client est obligatoire pour l’envoi.', 'error');
     if (!payload.items.length) return setStatus('Ajoutez au moins une ligne à la facture.', 'error');
 
-    setStatus('Envoi de la facture en cours...', 'warning');
     try {
       const response = await auth.request('/api/admin/invoices/send', { method: 'POST', body: JSON.stringify(payload) });
       const sentReference = response && response.invoice ? response.invoice.reference : payload.reference;
@@ -513,7 +508,7 @@
         messageInput.value = defaultMessage(nextReference);
         renderPreview();
       }
-      const nextMessage = nextReference ? ' Prochaine référence : ' + nextReference + '.' : '';
+      const nextMessage = nextReference ? ' Prochaine r?f?rence : ' + nextReference + '.' : '';
       setStatus('Facture ' + sentReference + ' envoyée au client.' + nextMessage, 'success');
     } catch (error) {
       setStatus(error.message || 'Impossible d’envoyer la facture.', 'error');
@@ -522,6 +517,7 @@
 
   boot();
 })();
+
 
 
 

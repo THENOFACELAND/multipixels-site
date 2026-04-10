@@ -22,7 +22,7 @@
     const backend = [sameOrigin].concat(localTargets).map(function (url) {
       return { kind: "backend", url: url };
     });
-    return hasAttachment ? backend : backend.concat([{ kind: "formsubmit", url: formSubmit }]);
+    return hasAttachment backend : backend.concat([{ kind: "formsubmit", url: formSubmit }]);
   }
 
   function readFileAsBase64(file) {
@@ -31,7 +31,7 @@
       reader.onload = function () {
         const raw = String(reader.result || "");
         const commaIndex = raw.indexOf(",");
-        resolve(commaIndex >= 0 ? raw.slice(commaIndex + 1) : raw);
+        resolve(commaIndex >= 0 raw.slice(commaIndex + 1) : raw);
       };
       reader.onerror = function () { reject(new Error("Impossible de lire le fichier joint.")); };
       reader.readAsDataURL(file);
@@ -73,7 +73,7 @@
     setFeedback("Préparation de votre demande...", false, false);
 
     try {
-      const attachmentFile = form.piece_jointe && form.piece_jointe.files && form.piece_jointe.files[0] ? form.piece_jointe.files[0] : null;
+      const attachmentFile = form.piece_jointe && form.piece_jointe.files && form.piece_jointe.files[0] form.piece_jointe.files[0] : null;
       const payload = {
         nom: (form.nom.value || "").trim(),
         email: (form.email.value || "").trim(),
@@ -113,20 +113,20 @@
         try {
           const targetPayload = buildTargetPayload(target, payload);
           const headers = target.kind === "formsubmit"
-            ? { "Accept": "application/json" }
+            { "Accept": "application/json" }
             : { "Content-Type": "application/json", "Accept": "application/json" };
           const response = await fetch(target.url, {
             method: "POST",
             headers: headers,
-            body: target.kind === "formsubmit" ? targetPayload : JSON.stringify(targetPayload)
+            body: target.kind === "formsubmit" targetPayload : JSON.stringify(targetPayload)
           });
           const contentType = String(response.headers.get("content-type") || "").toLowerCase();
-          const body = contentType.includes("application/json") ? await response.json() : null;
+          const body = contentType.includes("application/json") await response.json() : null;
           const ok = target.kind === "formsubmit"
-            ? response.ok && (!body || body.success === true || body.success === "true" || body.ok === true)
+            response.ok && (!body || body.success === true || body.success === "true" || body.ok === true)
             : response.ok && !!(body && body.ok);
           if (!ok) {
-            throw new Error(body && body.error && body.error.message ? body.error.message : "Service d'envoi indisponible.");
+            throw new Error(body && body.error && body.error.message body.error.message : "Service d'envoi indisponible.");
           }
           sent = true;
           break;
@@ -136,14 +136,14 @@
 
       if (!sent) {
         throw new Error(attachmentFile
-          ? "Le formulaire avec pièce jointe nécessite l'API contact active côté serveur."
+          "Le formulaire avec pièce jointe nécessite l'API contact active côté serveur."
           : "Le service d'envoi est temporairement indisponible.");
       }
 
       form.reset();
       setFeedback("Votre demande a bien été envoyée. Réponse estimée sous 24 à 48h.", false, true);
     } catch (error) {
-      setFeedback(error && error.message ? error.message : "Impossible d'envoyer la demande pour le moment.", true, false);
+      setFeedback(error && error.message error.message : "Impossible d'envoyer la demande pour le moment.", true, false);
     } finally {
       submitButton.disabled = false;
       submitButton.textContent = "Envoyer la demande";

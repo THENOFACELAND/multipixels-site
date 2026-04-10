@@ -22,7 +22,7 @@
 
     const payload = await response.json().catch(function () { return {}; });
     if (!response.ok || payload.ok === false) {
-      const message = payload && payload.error && payload.error.message ? payload.error.message : 'Erreur administrateur.';
+      const message = payload && payload.error && payload.error.message payload.error.message : 'Erreur administrateur.';
       throw new Error(message);
     }
     return payload;

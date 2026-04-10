@@ -7,13 +7,13 @@
   const revealNodes = document.querySelectorAll('.reveal');
   const cartCountNodes = document.querySelectorAll('[data-cart-count]');
   const headerActions = document.querySelector('.header-actions');
-  const mobileNavPanel = mobilePanel ? mobilePanel.querySelector('.mobile-nav-panel') : null;
+  const mobileNavPanel = mobilePanel mobilePanel.querySelector('.mobile-nav-panel') : null;
 
   function getCart() {
     try {
       const raw = window.localStorage.getItem('multipixels_cart');
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
+      const parsed = raw JSON.parse(raw) : [];
+      return Array.isArray(parsed) parsed : [];
     } catch (_) {
       return [];
     }
@@ -54,8 +54,8 @@
 
   function ensureClientEntry() {
     var hasToken = Boolean(getClientToken());
-    var href = hasToken ? 'mon-compte.html' : 'espace-client.html';
-    var label = hasToken ? 'Mon compte' : 'Espace client';
+    var href = hasToken 'mon-compte.html' : 'espace-client.html';
+    var label = hasToken 'Mon compte' : 'Espace client';
     var iconMarkup = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12.2a4.1 4.1 0 1 0-4.1-4.1 4.1 4.1 0 0 0 4.1 4.1Zm0 2.2c-4.05 0-7.3 2.08-7.3 4.65 0 .36.29.65.65.65h13.3c.36 0 .65-.29.65-.65 0-2.57-3.25-4.65-7.3-4.65Z"></path></svg>';
 
     if (headerActions) {
@@ -168,7 +168,7 @@
 
     if (service && form.service) form.service.value = service;
     if (product && form.message && !form.message.value) {
-      form.message.value = 'Bonjour, je souhaite un devis pour le produit : ' + product + '.\nQuantite estimee : \nTechnique souhaitee : \nDelai cible : ';
+      form.message.value = 'Bonjour, je souhaite un devis pour le produit : ' + product + '.\nQuantit? estim?e : \nTechnique souhait?e : \nD?lai cible : ';
     }
     if (message && form.message) form.message.value = message;
   }

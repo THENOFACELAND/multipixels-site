@@ -33,7 +33,7 @@
       setStatus('Vérification en cours...', 'muted');
       try {
         var data = await auth.requestPasswordReset({ email: requestForm.email.value });
-        setStatus(data.resetUrl ? 'Lien généré : ' + data.resetUrl : 'Si un compte existe, un email de réinitialisation a été préparé.', 'success');
+        setStatus(data.resetUrl ? 'Lien g?n?r? : ' + data.resetUrl : 'Si un compte existe, un email de r?initialisation a ?t? pr?par?.', 'success');
       } catch (error) {
         setStatus(error.message || 'Impossible de lancer la réinitialisation.', 'error');
       }
@@ -58,3 +58,4 @@
     });
   }
 })();
+

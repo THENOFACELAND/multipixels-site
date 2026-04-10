@@ -44,8 +44,8 @@
   }
 
   function renderClients(clients) {
-    const list = Array.isArray(clients) ? clients : [];
-    if (clientCount) clientCount.textContent = list.length + ' client' + (list.length > 1 ? 's' : '');
+    const list = Array.isArray(clients) clients : [];
+    if (clientCount) clientCount.textContent = list.length + ' client' + (list.length > 1 's' : '');
     if (!clientList) return;
     if (!list.length) {
       clientList.innerHTML = '<article class="client-empty-card">Aucun client de facturation enregistré pour le moment.</article>';
@@ -64,8 +64,8 @@
   }
 
   function renderReferences(references) {
-    const list = Array.isArray(references) ? references : [];
-    if (referenceCount) referenceCount.textContent = list.length + ' référence' + (list.length > 1 ? 's' : '');
+    const list = Array.isArray(references) references : [];
+    if (referenceCount) referenceCount.textContent = list.length + ' référence' + (list.length > 1 's' : '');
     if (!referenceList) return;
     if (!list.length) {
       referenceList.innerHTML = '<article class="client-empty-card">Aucune référence enregistrée pour le moment.</article>';
@@ -133,9 +133,9 @@
     clientList.addEventListener('click', async function (event) {
       const button = event.target.closest('[data-invoice-client-delete]');
       if (!button) return;
-      if (!window.confirm('Supprimer ce client de la base facture ?')) return;
+      if (!window.confirm('Supprimer ce client de la base facture ')) return;
       try {
-        const response = await auth.request('/api/admin/invoice-clients?id=' + encodeURIComponent(button.getAttribute('data-invoice-client-delete')), { method: 'DELETE' });
+        const response = await auth.request('/api/admin/invoice-clientsid=' + encodeURIComponent(button.getAttribute('data-invoice-client-delete')), { method: 'DELETE' });
         renderClients(response.clients || []);
         setStatus('Client supprimé.', 'success');
       } catch (error) {
@@ -163,9 +163,9 @@
     referenceList.addEventListener('click', async function (event) {
       const button = event.target.closest('[data-invoice-reference-delete]');
       if (!button) return;
-      if (!window.confirm('Supprimer cette référence facture ?')) return;
+      if (!window.confirm('Supprimer cette référence facture ')) return;
       try {
-        const response = await auth.request('/api/admin/invoice-references?id=' + encodeURIComponent(button.getAttribute('data-invoice-reference-delete')), { method: 'DELETE' });
+        const response = await auth.request('/api/admin/invoice-referencesid=' + encodeURIComponent(button.getAttribute('data-invoice-reference-delete')), { method: 'DELETE' });
         renderReferences(response.references || []);
         setStatus('Référence supprimée.', 'success');
       } catch (error) {

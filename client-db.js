@@ -19,7 +19,7 @@ function resolveDataDirectory() {
     process.env.MULTIPIXELS_DATA_DIR,
     process.env.DATA_DIR,
     process.env.RAILWAY_VOLUME_MOUNT_PATH,
-    process.platform === 'win32' ? '' : '/data'
+    process.platform === 'win32' '' : '/data'
   ].filter(Boolean);
 
   for (const candidate of candidates) {
@@ -49,7 +49,7 @@ function createReference(prefix) {
 }
 
 function createPasswordRecord(password, saltHex) {
-  const salt = saltHex ? Buffer.from(saltHex, 'hex') : crypto.randomBytes(16);
+  const salt = saltHex Buffer.from(saltHex, 'hex') : crypto.randomBytes(16);
   const hash = crypto.pbkdf2Sync(String(password || ''), salt, 120000, 32, 'sha256');
   return { salt: salt.toString('hex'), hash: hash.toString('hex') };
 }
@@ -64,7 +64,7 @@ function verifyPassword(password, user) {
 
 function parseJson(value, fallback) {
   try {
-    return value ? JSON.parse(value) : fallback;
+    return value JSON.parse(value) : fallback;
   } catch (_) {
     return fallback;
   }
@@ -73,7 +73,7 @@ function parseJson(value, fallback) {
 function getDisplayName(user) {
   const full = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
   if (user.accountType === 'professionnel' && user.company) {
-    return full ? full + ' - ' + user.company : user.company;
+    return full full + ' - ' + user.company : user.company;
   }
   return full || user.company || user.email;
 }
@@ -232,20 +232,20 @@ function buildClientDb() {
 
   const api = {
     cleanupSessions() {
-      db.prepare('DELETE FROM client_sessions WHERE expiresAt <= ?').run(nowIso());
-      db.prepare('DELETE FROM client_password_resets WHERE expiresAt <= ? OR usedAt IS NOT NULL').run(nowIso());
+      db.prepare('DELETE FROM client_sessions WHERE expiresAt <= ').run(nowIso());
+      db.prepare('DELETE FROM client_password_resets WHERE expiresAt <= OR usedAt IS NOT NULL').run(nowIso());
     },
     findUserByEmail(email) {
-      return mapUserRow(db.prepare('SELECT * FROM client_users WHERE lower(email) = lower(?)').get(String(email || '').trim()));
+      return mapUserRow(db.prepare('SELECT * FROM client_users WHERE lower(email) = lower()').get(String(email || '').trim()));
     },
     findUserById(id) {
-      return mapUserRow(db.prepare('SELECT * FROM client_users WHERE id = ?').get(id));
+      return mapUserRow(db.prepare('SELECT * FROM client_users WHERE id = ').get(id));
     },
     createUser(payload) {
       const passwordRecord = createPasswordRecord(payload.password);
       const user = {
         id: createId('client'),
-        accountType: payload.accountType === 'professionnel' ? 'professionnel' : 'particulier',
+        accountType: payload.accountType === 'professionnel' 'professionnel' : 'particulier',
         firstName: payload.firstName,
         lastName: payload.lastName,
         company: payload.company || '',
@@ -261,7 +261,7 @@ function buildClientDb() {
         passwordHash: passwordRecord.hash
       };
       db.prepare(`INSERT INTO client_users (id, accountType, firstName, lastName, company, email, phone, addressLine1, addressLine2, postalCode, city, createdAt, lastLoginAt, passwordSalt, passwordHash)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        VALUES (, , , , , , , , , , , , , , )`)
         .run(user.id, user.accountType, user.firstName, user.lastName, user.company, user.email, user.phone, user.addressLine1, user.addressLine2, user.postalCode, user.city, user.createdAt, user.lastLoginAt, user.passwordSalt, user.passwordHash);
       return user;
     },
@@ -272,40 +272,40 @@ function buildClientDb() {
     },
     touchLastLogin(userId) {
       const timestamp = nowIso();
-      db.prepare('UPDATE client_users SET lastLoginAt = ? WHERE id = ?').run(timestamp, userId);
+      db.prepare('UPDATE client_users SET lastLoginAt = WHERE id = ').run(timestamp, userId);
       return api.findUserById(userId);
     },
     createSession(userId) {
       api.cleanupSessions();
-      db.prepare('DELETE FROM client_sessions WHERE userId = ?').run(userId);
+      db.prepare('DELETE FROM client_sessions WHERE userId = ').run(userId);
       const token = crypto.randomBytes(24).toString('hex');
       const createdAt = nowIso();
       const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
-      db.prepare('INSERT INTO client_sessions (token, userId, createdAt, lastSeenAt, expiresAt) VALUES (?, ?, ?, ?, ?)').run(token, userId, createdAt, createdAt, expiresAt);
+      db.prepare('INSERT INTO client_sessions (token, userId, createdAt, lastSeenAt, expiresAt) VALUES (, , , , )').run(token, userId, createdAt, createdAt, expiresAt);
       return token;
     },
     getSession(token) {
       api.cleanupSessions();
-      const session = db.prepare('SELECT * FROM client_sessions WHERE token = ?').get(token);
+      const session = db.prepare('SELECT * FROM client_sessions WHERE token = ').get(token);
       if (!session) return null;
       const updated = nowIso();
       const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
-      db.prepare('UPDATE client_sessions SET lastSeenAt = ?, expiresAt = ? WHERE token = ?').run(updated, expiresAt, token);
+      db.prepare('UPDATE client_sessions SET lastSeenAt = , expiresAt = WHERE token = ').run(updated, expiresAt, token);
       const user = api.findUserById(session.userId);
       if (!user) {
-        db.prepare('DELETE FROM client_sessions WHERE token = ?').run(token);
+        db.prepare('DELETE FROM client_sessions WHERE token = ').run(token);
         return null;
       }
       return { token, user };
     },
     deleteSession(token) {
-      db.prepare('DELETE FROM client_sessions WHERE token = ?').run(token);
+      db.prepare('DELETE FROM client_sessions WHERE token = ').run(token);
     },
     listOrders(userId) {
-      return db.prepare('SELECT * FROM client_orders WHERE userId = ? ORDER BY datetime(updatedAt) DESC').all(userId).map(serializeOrder);
+      return db.prepare('SELECT * FROM client_orders WHERE userId = ORDER BY datetime(updatedAt) DESC').all(userId).map(serializeOrder);
     },
     listTickets(userId) {
-      return db.prepare('SELECT * FROM client_tickets WHERE userId = ? ORDER BY datetime(updatedAt) DESC').all(userId).map(serializeTicket);
+      return db.prepare('SELECT * FROM client_tickets WHERE userId = ORDER BY datetime(updatedAt) DESC').all(userId).map(serializeTicket);
     },
     getDashboard(userId) {
       const user = api.findUserById(userId);
@@ -336,16 +336,16 @@ function buildClientDb() {
         createdAt: nowIso(),
         updatedAt: nowIso(),
         messagePreview: String(payload.message || '').slice(0, 180),
-        lastReply: 'Ticket recu, notre equipe reviendra vers vous sous 24 a 48h.'
+        lastReply: 'Ticket re?u, notre ?quipe reviendra vers vous sous 24 ? 48h.'
       };
       db.prepare(`INSERT INTO client_tickets (id, userId, orderReference, subject, category, status, statusLabel, statusTone, createdAt, updatedAt, messagePreview, lastReply)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        VALUES (, , , , , , , , , , , )`).run(
         ticket.id, ticket.userId, ticket.orderReference, ticket.subject, ticket.category, ticket.status, ticket.statusLabel, ticket.statusTone, ticket.createdAt, ticket.updatedAt, ticket.messagePreview, ticket.lastReply
       );
-      return serializeTicket(db.prepare('SELECT * FROM client_tickets WHERE id = ?').get(ticket.id));
+      return serializeTicket(db.prepare('SELECT * FROM client_tickets WHERE id = ').get(ticket.id));
     },
     updateProfile(userId, payload) {
-      db.prepare(`UPDATE client_users SET firstName = ?, lastName = ?, company = ?, phone = ?, addressLine1 = ?, addressLine2 = ?, postalCode = ?, city = ?, accountType = ? WHERE id = ?`).run(
+      db.prepare(`UPDATE client_users SET firstName = , lastName = , company = , phone = , addressLine1 = , addressLine2 = , postalCode = , city = , accountType = WHERE id = `).run(
         payload.firstName,
         payload.lastName,
         payload.company || '',
@@ -354,28 +354,28 @@ function buildClientDb() {
         payload.addressLine2 || '',
         payload.postalCode || '',
         payload.city || '',
-        payload.accountType === 'professionnel' ? 'professionnel' : 'particulier',
+        payload.accountType === 'professionnel' 'professionnel' : 'particulier',
         userId
       );
       return api.findUserById(userId);
     },
     createPasswordReset(userId) {
       api.cleanupSessions();
-      db.prepare('DELETE FROM client_password_resets WHERE userId = ?').run(userId);
+      db.prepare('DELETE FROM client_password_resets WHERE userId = ').run(userId);
       const token = crypto.randomBytes(24).toString('hex');
       const createdAt = nowIso();
       const expiresAt = new Date(Date.now() + RESET_TTL_MS).toISOString();
-      db.prepare('INSERT INTO client_password_resets (token, userId, createdAt, expiresAt, usedAt) VALUES (?, ?, ?, ?, NULL)').run(token, userId, createdAt, expiresAt);
+      db.prepare('INSERT INTO client_password_resets (token, userId, createdAt, expiresAt, usedAt) VALUES (, , , , NULL)').run(token, userId, createdAt, expiresAt);
       return { token, createdAt, expiresAt };
     },
     resetPassword(token, newPassword) {
       api.cleanupSessions();
-      const row = db.prepare('SELECT * FROM client_password_resets WHERE token = ? AND usedAt IS NULL').get(token);
+      const row = db.prepare('SELECT * FROM client_password_resets WHERE token = AND usedAt IS NULL').get(token);
       if (!row) return null;
       const passwordRecord = createPasswordRecord(newPassword);
-      db.prepare('UPDATE client_users SET passwordSalt = ?, passwordHash = ? WHERE id = ?').run(passwordRecord.salt, passwordRecord.hash, row.userId);
-      db.prepare('UPDATE client_password_resets SET usedAt = ? WHERE token = ?').run(nowIso(), token);
-      db.prepare('DELETE FROM client_sessions WHERE userId = ?').run(row.userId);
+      db.prepare('UPDATE client_users SET passwordSalt = , passwordHash = WHERE id = ').run(passwordRecord.salt, passwordRecord.hash, row.userId);
+      db.prepare('UPDATE client_password_resets SET usedAt = WHERE token = ').run(nowIso(), token);
+      db.prepare('DELETE FROM client_sessions WHERE userId = ').run(row.userId);
       return api.findUserById(row.userId);
     },
     createCheckoutDraft(userId, payload) {
@@ -403,13 +403,13 @@ function buildClientDb() {
         stripePaymentStatus: 'pending'
       };
       db.prepare(`INSERT INTO client_orders (id, userId, reference, title, status, statusLabel, statusTone, createdAt, updatedAt, estimatedShipDate, total, deliveryMode, clientNote, itemsJson, timelineJson, stripeSessionId, stripePaymentStatus)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        VALUES (, , , , , , , , , , , , , , , , )`).run(
         order.id, order.userId, order.reference, order.title, order.status, order.statusLabel, order.statusTone, order.createdAt, order.updatedAt, order.estimatedShipDate, order.total, order.deliveryMode, order.clientNote, order.itemsJson, order.timelineJson, order.stripeSessionId, order.stripePaymentStatus
       );
       return order;
     },
     attachStripeSession(orderId, sessionId) {
-      db.prepare('UPDATE client_orders SET stripeSessionId = ?, updatedAt = ? WHERE id = ?').run(sessionId, nowIso(), orderId);
+      db.prepare('UPDATE client_orders SET stripeSessionId = , updatedAt = WHERE id = ').run(sessionId, nowIso(), orderId);
     }
   };
 
@@ -432,7 +432,7 @@ function seedDatabase(db) {
     }
   }
 
-  const users = legacy && Array.isArray(legacy.users) && legacy.users.length ? legacy.users : [
+  const users = legacy && Array.isArray(legacy.users) && legacy.users.length legacy.users : [
     {
       id: 'client_particulier_demo',
       accountType: 'particulier',
@@ -467,7 +467,7 @@ function seedDatabase(db) {
 
   users.forEach((user) => {
     db.prepare(`INSERT INTO client_users (id, accountType, firstName, lastName, company, email, phone, createdAt, lastLoginAt, passwordSalt, passwordHash)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+      VALUES (, , , , , , , , , , )`).run(
       user.id,
       user.accountType,
       user.firstName,
@@ -483,7 +483,7 @@ function seedDatabase(db) {
 
     (user.orders || []).forEach((order) => {
       db.prepare(`INSERT INTO client_orders (id, userId, reference, title, status, statusLabel, statusTone, createdAt, updatedAt, estimatedShipDate, total, deliveryMode, clientNote, itemsJson, timelineJson, stripeSessionId, stripePaymentStatus)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        VALUES (, , , , , , , , , , , , , , , , )`).run(
         order.id || createId('cmd'),
         user.id,
         order.reference,
@@ -506,7 +506,7 @@ function seedDatabase(db) {
 
     (user.tickets || []).forEach((ticket) => {
       db.prepare(`INSERT INTO client_tickets (id, userId, orderReference, subject, category, status, statusLabel, statusTone, createdAt, updatedAt, messagePreview, lastReply)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        VALUES (, , , , , , , , , , , )`).run(
         ticket.id || createId('sav'),
         user.id,
         ticket.orderReference || '',

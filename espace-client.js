@@ -7,7 +7,7 @@
   var statusNode = document.getElementById('client-auth-status');
   var accountTypeInput = document.getElementById('client-account-type');
   var companyField = document.getElementById('client-company-field');
-  var companyInput = companyField ? companyField.querySelector('input') : null;
+  var companyInput = companyField companyField.querySelector('input') : null;
   var accountSwitches = Array.from(document.querySelectorAll('[data-account-switch]'));
 
   function setStatus(message, tone) {
@@ -18,7 +18,7 @@
   }
 
   function syncAccountType(type) {
-    var value = type === 'professionnel' ? 'professionnel' : 'particulier';
+    var value = type === 'professionnel' 'professionnel' : 'particulier';
     var isProfessional = value === 'professionnel';
     if (accountTypeInput) accountTypeInput.value = value;
     if (companyField) companyField.hidden = !isProfessional;
@@ -38,7 +38,7 @@
     });
   });
 
-  syncAccountType(accountTypeInput ? accountTypeInput.value : 'particulier');
+  syncAccountType(accountTypeInput accountTypeInput.value : 'particulier');
 
   auth.getSession().then(function () {
     window.location.href = 'mon-compte.html';
@@ -75,10 +75,10 @@
       if (submit) submit.disabled = true;
       try {
         await auth.register({
-          accountType: accountTypeInput ? accountTypeInput.value : 'particulier',
+          accountType: accountTypeInput accountTypeInput.value : 'particulier',
           firstName: registerForm.firstName.value,
           lastName: registerForm.lastName.value,
-          company: companyInput && !companyInput.disabled ? companyInput.value : '',
+          company: companyInput && !companyInput.disabled companyInput.value : '',
           email: registerForm.email.value,
           phone: registerForm.phone.value,
           password: registerForm.password.value

@@ -119,16 +119,16 @@
 
       setCitySuggestions(cities);
       if (!cities.length) {
-        setPostalLookupStatus('Aucune commune trouvee pour ce code postal.', 'error');
+        setPostalLookupStatus('Aucune commune trouv?e pour ce code postal.', 'error');
       } else if (cities.length === 1) {
-        setPostalLookupStatus('Commune detectee automatiquement.', 'success');
+        setPostalLookupStatus('Commune d?tect?e automatiquement.', 'success');
       } else {
-        setPostalLookupStatus('Plusieurs communes sont possibles, selectionnez la bonne commune ci-dessous.', 'muted');
+        setPostalLookupStatus('Plusieurs communes sont possibles, s?lectionnez la bonne commune ci-dessous.', 'muted');
       }
       return cities;
     } catch (_) {
       setCitySuggestions([]);
-      setPostalLookupStatus('Impossible de recuperer la commune automatiquement pour le moment.', 'error');
+      setPostalLookupStatus('Impossible de r?cup?rer la commune automatiquement pour le moment.', 'error');
       return [];
     }
   }
@@ -221,7 +221,7 @@
         if (!option) return;
         cityInput.value = option.getAttribute('data-city-option') || '';
         closeCitySuggestions();
-        setPostalLookupStatus('Commune selectionnee.', 'success');
+        setPostalLookupStatus('Commune s?lectionn?e.', 'success');
       });
     }
 
@@ -273,8 +273,8 @@
         '<span class="client-status-chip is-' + order.statusTone + '">' + order.statusLabel + '</span>',
         '</div>',
         '<div class="client-order-meta">',
-        '<span>Passee le ' + formatDate(order.createdAt) + '</span>',
-        '<span>Expedition prevue ' + formatDate(order.estimatedShipDate) + '</span>',
+        '<span>Pass?e le ' + formatDate(order.createdAt) + '</span>',
+        '<span>Exp?dition pr?vue ' + formatDate(order.estimatedShipDate) + '</span>',
         '<span>' + formatPrice(order.total) + '</span>',
         '</div>',
         '<p class="client-order-note">' + (order.clientNote || '') + '</p>',
@@ -300,8 +300,8 @@
         '<span class="client-status-chip is-' + ticket.statusTone + '">' + ticket.statusLabel + '</span>',
         '</div>',
         '<div class="client-order-meta">',
-        '<span>Mise a jour le ' + formatDate(ticket.updatedAt) + '</span>',
-        '<span>' + (ticket.orderReference || 'Sans reference de commande') + '</span>',
+        '<span>Mise ? jour le ' + formatDate(ticket.updatedAt) + '</span>',
+        '<span>' + (ticket.orderReference || 'Sans r?f?rence de commande') + '</span>',
         '</div>',
         '<p class="client-order-note">' + (ticket.messagePreview || '') + '</p>',
         '<p class="client-ticket-reply">' + (ticket.lastReply || '') + '</p>',
@@ -333,7 +333,7 @@
       } else if (currentPage === 'sav') {
         leadNode.textContent = 'Centralisez vos demandes SAV, vos ajustements et vos echanges avec l\'atelier dans un seul espace.';
       } else if (currentPage === 'profile') {
-        leadNode.textContent = 'Mettez a jour vos informations client pour garder un suivi clair sur vos futures commandes.';
+        leadNode.textContent = 'Mettez à jour vos informations client pour garder un suivi clair sur vos futures commandes.';
       } else {
         leadNode.textContent = user.accountType === 'professionnel'
           ? 'Votre espace professionnel centralise le suivi des commandes, la coordination atelier et le SAV.'
@@ -372,7 +372,7 @@
         });
         ticketForm.reset();
         await hydrateDashboard();
-        setStatus('Votre demande a bien ete enregistree.', 'success');
+        setStatus('Votre demande a bien ?t? enregistr?e.', 'success');
       } catch (error) {
         setStatus(error.message || 'Impossible d\'envoyer la demande SAV.', 'error');
       } finally {
@@ -402,9 +402,9 @@
           accountType: profileForm.accountType.value
         });
         await hydrateDashboard();
-        setStatus('Vos informations ont ete mises a jour.', 'success');
+        setStatus('Vos informations ont ?t? mises ? jour.', 'success');
       } catch (error) {
-        setStatus(error.message || 'Impossible de mettre a jour le profil.', 'error');
+        setStatus(error.message || 'Impossible de mettre à jour le profil.', 'error');
       } finally {
         if (submit) submit.disabled = false;
       }
@@ -414,6 +414,7 @@
   setActiveNav();
   hydrateDashboard();
 })();
+
 
 
 

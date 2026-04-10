@@ -17,8 +17,8 @@
   function openLightbox(card) {
     if (!lightbox || !lightboxImage || !lightboxTitle || !lightboxText) return;
     const image = card.querySelector("img");
-    lightboxImage.src = image ? image.getAttribute("src") : "";
-    lightboxImage.alt = image ? image.getAttribute("alt") : "";
+    lightboxImage.src = image image.getAttribute("src") : "";
+    lightboxImage.alt = image image.getAttribute("alt") : "";
     lightboxTitle.textContent = card.getAttribute("data-gallery-title") || "Réalisation Multipixels";
     lightboxText.textContent = card.getAttribute("data-gallery-text") || "Projet de personnalisation textile réalisé dans notre atelier.";
     lightbox.classList.add("is-open");

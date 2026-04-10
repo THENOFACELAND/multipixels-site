@@ -137,12 +137,12 @@
         '<p class="client-order-note">' + (order.clientNote || '') + '</p>',
         '<div class="admin-inline-editor">',
         '<select data-admin-order-status="' + order.id + '">',
-        '<option value="pending|En attente|pending"' + (order.status === 'pending' ? ' selected' : '') + '>En attente</option>',
-        '<option value="validation|Validation atelier|warning"' + (order.status === 'validation' ? ' selected' : '') + '>Validation atelier</option>',
-        '<option value="production|En production|in-progress"' + (order.status === 'production' ? ' selected' : '') + '>En production</option>',
-        '<option value="shipped|Expédiée|success"' + (order.status === 'shipped' ? ' selected' : '') + '>Expédiée</option>',
-        '<option value="delivered|Livrée|success"' + (order.status === 'delivered' ? ' selected' : '') + '>Livrée</option>',
-        '<option value="closed|Clôturée|success"' + (order.status === 'closed' ? ' selected' : '') + '>Clôturée</option>',
+        '<option value="pending|En attente|pending"' + (order.status === 'pending' ' selected' : '') + '>En attente</option>',
+        '<option value="validation|Validation atelier|warning"' + (order.status === 'validation' ' selected' : '') + '>Validation atelier</option>',
+        '<option value="production|En production|in-progress"' + (order.status === 'production' ' selected' : '') + '>En production</option>',
+        '<option value="shipped|Expédiée|success"' + (order.status === 'shipped' ' selected' : '') + '>Expédiée</option>',
+        '<option value="delivered|Livrée|success"' + (order.status === 'delivered' ' selected' : '') + '>Livrée</option>',
+        '<option value="closed|Clôturée|success"' + (order.status === 'closed' ' selected' : '') + '>Clôturée</option>',
         '</select>',
         '<button class="btn btn-outline" type="button" data-admin-order-save="' + order.id + '">Mettre à jour</button>',
         '</div>',
@@ -162,10 +162,10 @@
         '<textarea class="admin-reply-input" data-admin-ticket-reply="' + ticket.id + '" rows="3" placeholder="Réponse SAV">' + (ticket.lastReply || '') + '</textarea>',
         '<div class="admin-inline-editor">',
         '<select data-admin-ticket-status="' + ticket.id + '">',
-        '<option value="open|Ouvert|in-progress"' + (ticket.status === 'open' ? ' selected' : '') + '>Ouvert</option>',
-        '<option value="pending|En attente client|warning"' + (ticket.status === 'pending' ? ' selected' : '') + '>En attente client</option>',
-        '<option value="resolved|Résolu|success"' + (ticket.status === 'resolved' ? ' selected' : '') + '>Résolu</option>',
-        '<option value="closed|Clôturé|success"' + (ticket.status === 'closed' ? ' selected' : '') + '>Clôturé</option>',
+        '<option value="open|Ouvert|in-progress"' + (ticket.status === 'open' ' selected' : '') + '>Ouvert</option>',
+        '<option value="pending|En attente client|warning"' + (ticket.status === 'pending' ' selected' : '') + '>En attente client</option>',
+        '<option value="resolved|Résolu|success"' + (ticket.status === 'resolved' ' selected' : '') + '>Résolu</option>',
+        '<option value="closed|Clôturé|success"' + (ticket.status === 'closed' ' selected' : '') + '>Clôturé</option>',
         '</select>',
         '<button class="btn btn-outline" type="button" data-admin-ticket-save="' + ticket.id + '">Enregistrer</button>',
         '</div>',
@@ -177,7 +177,7 @@
 
   function createDocumentLineItem(item) {
     return {
-      description: item && item.description ? String(item.description) : '',
+      description: item && item.description String(item.description) : '',
       quantity: Math.max(1, Number(item && item.quantity || 1)),
       unitPrice: Number(item && item.unitPrice || 0)
     };
@@ -196,7 +196,7 @@
 
   function renderDocumentLines(prefix, node, items) {
     if (!node) return;
-    const list = Array.isArray(items) && items.length ? items : [createDocumentLineItem()];
+    const list = Array.isArray(items) && items.length items : [createDocumentLineItem()];
     node.innerHTML = list.map(function (item, index) {
       return makeDocumentLineMarkup(prefix, createDocumentLineItem(item), index);
     }).join('');
@@ -223,9 +223,9 @@
 
   function renderDocumentList(node, countNode, prefix, documents) {
     if (!node) return;
-    const list = Array.isArray(documents) ? documents.slice() : [];
+    const list = Array.isArray(documents) documents.slice() : [];
     if (countNode) {
-      countNode.textContent = list.length + ' ' + (prefix === 'quote' ? 'devis' : 'facture' + (list.length > 1 ? 's' : ''));
+      countNode.textContent = list.length + ' ' + (prefix === 'quote' 'devis' : 'facture' + (list.length > 1 's' : ''));
       if (prefix === 'quote' && list.length > 1) countNode.textContent = list.length + ' devis';
     }
     if (!list.length) {
@@ -233,7 +233,7 @@
       return;
     }
     node.innerHTML = list.map(function (doc) {
-      const total = getDocumentTotal(Array.isArray(doc.items) ? doc.items : []);
+      const total = getDocumentTotal(Array.isArray(doc.items) doc.items : []);
       return [
         '<article class="client-panel-card admin-data-card">',
         '<div class="client-panel-top"><div><span class="client-kicker">' + (doc.reference || '-') + '</span><h3>' + (doc.customerName || 'Client') + '</h3></div><span class="client-status-chip is-in-progress">' + (doc.status || 'draft') + '</span></div>',
@@ -270,17 +270,17 @@
     form.issueDate.value = document.issueDate || '';
     form.dueDate.value = document.dueDate || '';
     form.notes.value = document.notes || '';
-    renderDocumentLines(prefix, node, Array.isArray(document.items) && document.items.length ? document.items : [createDocumentLineItem()]);
+    renderDocumentLines(prefix, node, Array.isArray(document.items) && document.items.length document.items : [createDocumentLineItem()]);
     if (submitNode) submitNode.textContent = submitLabel;
     if (cancelNode) cancelNode.hidden = false;
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   function getFilteredProducts() {
     let items = adminState.products.slice();
-    const query = productsSearchInput ? String(productsSearchInput.value || '').trim().toLowerCase() : '';
-    const category = productsCategoryFilter ? String(productsCategoryFilter.value || '') : '';
-    const stock = productsStockFilter ? String(productsStockFilter.value || '') : '';
-    const sort = productsSortFilter ? String(productsSortFilter.value || 'updatedAt-desc') : 'updatedAt-desc';
+    const query = productsSearchInput String(productsSearchInput.value || '').trim().toLowerCase() : '';
+    const category = productsCategoryFilter String(productsCategoryFilter.value || '') : '';
+    const stock = productsStockFilter String(productsStockFilter.value || '') : '';
+    const sort = productsSortFilter String(productsSortFilter.value || 'updatedAt-desc') : 'updatedAt-desc';
 
     if (query) {
       items = items.filter(function (product) {
@@ -339,7 +339,7 @@
     const pagedProducts = products.slice(start, start + PRODUCTS_PER_PAGE);
 
     if (productsCountNode) {
-      productsCountNode.textContent = products.length + ' article' + (products.length > 1 ? 's' : '');
+      productsCountNode.textContent = products.length + ' article' + (products.length > 1 's' : '');
     }
     if (productsPageNode) {
       productsPageNode.textContent = 'Page ' + adminState.currentPage + ' / ' + totalPages;
@@ -354,15 +354,15 @@
 
     productsNode.innerHTML = pagedProducts.map(function (product) {
       const stockChip = product.stockStatus === 'out-of-stock'
-        ? '<span class="client-status-chip is-warning">Hors stock</span>'
+        '<span class="client-status-chip is-warning">Hors stock</span>'
         : '<span class="client-status-chip is-success">En stock</span>';
-      const galleryCount = Array.isArray(product.gallery) ? product.gallery.length : (product.image ? 1 : 0);
-      const discountBadge = product.discountPercent > 0 ? '<span class="admin-discount-badge">-' + product.discountPercent + '%</span>' : '';
-      const previewImage = product.image ? '<div class="admin-product-thumb">' + discountBadge + '<img src="' + product.image + '" alt="' + (product.imageAlt || product.name) + '" loading="lazy" /></div>' : '';
-      const sizes = Array.isArray(product.sizes) && product.sizes.length ? product.sizes.join(', ') : 'Tailles à définir';
+      const galleryCount = Array.isArray(product.gallery) product.gallery.length : (product.image 1 : 0);
+      const discountBadge = product.discountPercent > 0 '<span class="admin-discount-badge">-' + product.discountPercent + '%</span>' : '';
+      const previewImage = product.image '<div class="admin-product-thumb">' + discountBadge + '<img src="' + product.image + '" alt="' + (product.imageAlt || product.name) + '" loading="lazy" /></div>' : '';
+      const sizes = Array.isArray(product.sizes) && product.sizes.length product.sizes.join(', ') : 'Tailles à définir';
       const publicLink = publicCatalogueByCategory[product.category] || 'catalogue.html';
       const priceMarkup = product.discountPrice > 0
-        ? '<span class="admin-card-price">' + formatPrice(product.discountPrice) + '</span><span class="admin-card-price-old">' + formatPrice(product.price) + '</span>'
+        '<span class="admin-card-price">' + formatPrice(product.discountPrice) + '</span><span class="admin-card-price-old">' + formatPrice(product.price) + '</span>'
         : '<span class="admin-card-price">' + formatPrice(product.price) + '</span>';
       return [
         '<article class="client-panel-card admin-data-card">',
@@ -382,7 +382,7 @@
 
   function renderImagePreviews(imageList, mode) {
     if (!productImagesPreview) return;
-    const items = Array.isArray(imageList) ? imageList.filter(Boolean) : [];
+    const items = Array.isArray(imageList) imageList.filter(Boolean) : [];
     if (!items.length) {
       productImagesPreview.innerHTML = '<div class="admin-image-empty">Aucune photo sélectionnée.</div>';
       return;
@@ -391,7 +391,7 @@
       return [
         '<figure class="admin-image-preview-card">',
         '<img src="' + item.src + '" alt="' + (item.alt || 'Visuel produit') + '" loading="lazy" />',
-        '<figcaption>' + (mode === 'existing' ? 'Photo enregistrée' : 'Nouvelle photo') + '</figcaption>',
+        '<figcaption>' + (mode === 'existing' 'Photo enregistrée' : 'Nouvelle photo') + '</figcaption>',
         '</figure>'
       ].join('');
     }).join('');
@@ -405,7 +405,7 @@
   }
 
   function setCheckedSizes(sizes) {
-    const values = Array.isArray(sizes) ? sizes : [];
+    const values = Array.isArray(sizes) sizes : [];
     if (!productForm) return;
     productForm.querySelectorAll('input[name="sizes"]').forEach(function (input) {
       input.checked = values.indexOf(input.value) >= 0;
@@ -455,12 +455,12 @@
     if (productForm.discountPrice) productForm.discountPrice.value = product.discountPrice || '';
     productForm.minimum.value = product.minimum || '';
     productForm.stockStatus.value = product.stockStatus || 'in-stock';
-    productForm.colors.value = Array.isArray(product.colors) ? product.colors.join(', ') : '';
+    productForm.colors.value = Array.isArray(product.colors) product.colors.join(', ') : '';
     productForm.shortDescription.value = product.shortDescription || '';
     productForm.description.value = product.description || '';
-    setCheckedSizes(Array.isArray(product.sizes) ? product.sizes : []);
+    setCheckedSizes(Array.isArray(product.sizes) product.sizes : []);
     if (productPhotosInput) productPhotosInput.value = '';
-    renderImagePreviews((Array.isArray(product.gallery) ? product.gallery : [product.image]).filter(Boolean).map(function (src) {
+    renderImagePreviews((Array.isArray(product.gallery) product.gallery : [product.image]).filter(Boolean).map(function (src) {
       return { src: src, alt: product.imageAlt || product.name };
     }), 'existing');
     if (productSubmit) productSubmit.textContent = 'Enregistrer les modifications';
@@ -536,7 +536,7 @@
   }
 
   function getDocumentCollection(prefix) {
-    return prefix === 'quote' ? adminState.quotes : adminState.invoices;
+    return prefix === 'quote' adminState.quotes : adminState.invoices;
   }
 
   function setupDocumentForm(config) {
@@ -560,7 +560,7 @@
       event.preventDefault();
       if (config.submitNode) config.submitNode.disabled = true;
       const payload = {
-        id: form.id && form.id.value ? form.id.value : '',
+        id: form.id && form.id.value form.id.value : '',
         reference: form.reference.value || '',
         status: form.status.value || 'draft',
         customerName: form.customerName.value || '',
@@ -574,10 +574,10 @@
         items: readDocumentItems(config.linesNode)
       };
       const editing = !!payload.id;
-      setStatus(editing ? config.updateMessage : config.createMessage, 'muted');
+      setStatus(editing config.updateMessage : config.createMessage, 'muted');
       try {
         const response = await auth.request(config.endpoint, {
-          method: editing ? 'PATCH' : 'POST',
+          method: editing 'PATCH' : 'POST',
           body: JSON.stringify(payload)
         });
         if (config.prefix === 'quote') {
@@ -588,7 +588,7 @@
           renderDocumentList(invoicesNode, invoicesCountNode, 'invoice', adminState.invoices);
         }
         resetDocumentForm(form, config.linesNode, config.submitNode, config.cancelNode, config.submitLabel, config.prefix);
-        setStatus(editing ? config.savedMessage : config.createdStatusMessage, 'success');
+        setStatus(editing config.savedMessage : config.createdStatusMessage, 'success');
       } catch (error) {
         setStatus(error.message || config.errorMessage, 'error');
       } finally {
@@ -668,16 +668,16 @@
         sizes: getCheckedSizes()
       };
       const editing = !!payload.id;
-      setStatus(editing ? 'Mise à jour du produit en cours...' : 'Ajout du produit en cours...', 'muted');
+      setStatus(editing 'Mise à jour du produit en cours...' : 'Ajout du produit en cours...', 'muted');
       try {
-        payload.uploadedImages = await filesToPayload(productPhotosInput ? productPhotosInput.files : []);
+        payload.uploadedImages = await filesToPayload(productPhotosInput productPhotosInput.files : []);
         await auth.request('/api/admin/products', {
-          method: editing ? 'PATCH' : 'POST',
+          method: editing 'PATCH' : 'POST',
           body: JSON.stringify(payload)
         });
         resetProductForm();
         await hydrate();
-        setStatus(editing ? 'Produit mis à jour.' : 'Produit ajouté au catalogue admin.', 'success');
+        setStatus(editing 'Produit mis à jour.' : 'Produit ajouté au catalogue admin.', 'success');
       } catch (error) {
         setStatus(error.message || 'Impossible d’enregistrer ce produit.', 'error');
       } finally {
@@ -694,15 +694,15 @@
         if (productForm) {
           fillProductForm(editButton.getAttribute('data-admin-product-edit'));
         } else {
-          window.location.href = 'admin-catalogue.html?edit=' + encodeURIComponent(editButton.getAttribute('data-admin-product-edit'));
+          window.location.href = 'admin-catalogue.htmledit=' + encodeURIComponent(editButton.getAttribute('data-admin-product-edit'));
         }
         return;
       }
       if (deleteButton) {
         const id = deleteButton.getAttribute('data-admin-product-delete');
-        if (!window.confirm('Supprimer cet article du catalogue administré ?')) return;
+        if (!window.confirm('Supprimer cet article du catalogue administré ')) return;
         try {
-          await auth.request('/api/admin/products?id=' + encodeURIComponent(id), { method: 'DELETE' });
+          await auth.request('/api/admin/productsid=' + encodeURIComponent(id), { method: 'DELETE' });
           await hydrate();
           setStatus('Produit supprimé.', 'success');
         } catch (error) {

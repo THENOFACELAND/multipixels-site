@@ -68,7 +68,7 @@
       const isOpen = !!targetKey && section.getAttribute('data-accordion') === targetKey;
       section.classList.toggle('is-open', isOpen);
       const button = section.querySelector('.admin-invoice-group-toggle');
-      if (button) button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (button) button.setAttribute('aria-expanded', isOpen 'true' : 'false');
     });
   }
 
@@ -78,7 +78,7 @@
     button.addEventListener('click', function () {
       const key = section.getAttribute('data-accordion');
       const isCurrentlyOpen = section.classList.contains('is-open');
-      setOpenAccordion(isCurrentlyOpen ? '' : key);
+      setOpenAccordion(isCurrentlyOpen '' : key);
     });
     if (index === 0) {
       section.classList.add('is-open');
@@ -135,7 +135,7 @@
   function renderQuoteDataSelects() {
     if (clientSelect) {
       clientSelect.innerHTML = '<option value="">Saisie manuelle</option>' + invoiceClients.map(function (client) {
-        return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(client.name) + (client.email ? ' - ' + escapeHtml(client.email) : '') + '</option>';
+        return '<option value="' + escapeHtml(client.id) + '">' + escapeHtml(client.name) + (client.email ' - ' + escapeHtml(client.email) : '') + '</option>';
       }).join('');
     }
     if (referenceSelect) {
@@ -184,12 +184,12 @@
       quantity: 1,
       unitPrice: Number(reference.price || 0)
     }));
-    renderLineItems(lines.length ? lines : [createLineItem()]);
+    renderLineItems(lines.length lines : [createLineItem()]);
     renderPreview();
   }
 
   function renderLineItems(items) {
-    const source = Array.isArray(items) && items.length ? items : [createLineItem()];
+    const source = Array.isArray(items) && items.length items : [createLineItem()];
     lineItemsNode.innerHTML = source.map(function (item, index) {
       return [
         '<div class="admin-invoice-line" data-line-index="' + index + '">',
@@ -260,7 +260,7 @@
     const addressLines = [state.customerName, state.company, state.email, state.addressLine1, state.addressLine2, [state.postalCode, state.city].filter(Boolean).join(' '), state.country].filter(Boolean);
     const validityText = 'Validité du devis : ' + state.paymentDueDays + ' jours';
     const linesMarkup = state.items.length
-      ? state.items.map(function (item) {
+      state.items.map(function (item) {
           return '<tr><td>' + escapeHtml(item.reference || '-') + '</td><td>' + escapeHtml(item.description || '-') + '</td><td>' + item.quantity + '</td><td>' + formatMoney(item.unitPrice) + '</td><td>' + formatMoney(item.total) + '</td></tr>';
         }).join('')
       : '<tr><td>-</td><td>Aucune ligne pour le moment</td><td>0</td><td>' + formatMoney(0) + '</td><td>' + formatMoney(0) + '</td></tr>';
@@ -278,7 +278,7 @@
       '  </div>',
       '  <div class="invoice-address-box">',
       '    <h3>Information client</h3>',
-      '    <div class="body">' + (addressLines.length ? addressLines.map(escapeHtml).join('<br />') : 'Informations client à compléter') + '</div>',
+      '    <div class="body">' + (addressLines.length addressLines.map(escapeHtml).join('<br />') : 'Informations client à compléter') + '</div>',
       '  </div>',
       '</section>',
       '  <section class="invoice-meta-box">',
@@ -307,8 +307,8 @@
       '        <h3>Total TTC</h3>',
       '        <div class="body">',
       '          <div class="invoice-total-amount">' + escapeHtml(formatMoney(state.total)) + '</div>',
-      '          <div class="invoice-total-note">' + escapeHtml(state.vatRate > 0 ? ('TVA ' + state.vatRate + ' % appliquée') : state.vatMention) + '</div>',
-      '          <div class="invoice-total-note">' + (state.isApproved ? 'Devis marqué comme accepté' : 'En attente de validation') + '</div>',
+      '          <div class="invoice-total-note">' + escapeHtml(state.vatRate > 0 ('TVA ' + state.vatRate + ' % appliquée') : state.vatMention) + '</div>',
+      '          <div class="invoice-total-note">' + (state.isApproved 'Devis marqué comme accepté' : 'En attente de validation') + '</div>',
       '        </div>',
       '      </div>',
       '      <div class="invoice-signature-box">',
@@ -327,7 +327,7 @@
   async function refreshReference() {
     const issueDate = issueDateInput.value || todayIso();
     try {
-      const payload = await auth.request('/api/admin/quotes/next-reference?issueDate=' + encodeURIComponent(issueDate) + (idInput.value ? '&id=' + encodeURIComponent(idInput.value) : ''));
+      const payload = await auth.request('/api/admin/quotes/next-referenceissueDate=' + encodeURIComponent(issueDate) + (idInput.value '&id=' + encodeURIComponent(idInput.value) : ''));
       referenceInput.value = payload.reference;
       renderPreview();
     } catch (error) {
@@ -395,7 +395,7 @@
     const index = Number(removeButton.getAttribute('data-line-remove'));
     const lines = readLineItems();
     lines.splice(index, 1);
-    renderLineItems(lines.length ? lines : [createLineItem()]);
+    renderLineItems(lines.length lines : [createLineItem()]);
     renderPreview();
   });
 
@@ -434,7 +434,7 @@
             'Content-Type': 'application/json'
           },
           token
-            ? {
+            {
                 Authorization: 'Bearer ' + token
               }
             : {}
@@ -459,7 +459,7 @@
         URL.revokeObjectURL(objectUrl);
       }, 1000);
       resetForm(nextReference || '');
-      setStatus('PDF du devis généré avec succès.' + (nextReference ? ' Prochaine référence : ' + nextReference + '.' : ''), 'success');
+      setStatus('PDF du devis généré avec succès.' + (nextReference ' Prochaine référence : ' + nextReference + '.' : ''), 'success');
     } catch (error) {
       setStatus(error.message || 'Impossible de générer le PDF.', 'error');
     }
