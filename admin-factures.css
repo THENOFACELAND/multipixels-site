@@ -356,7 +356,8 @@
 .invoice-address-box,
 .invoice-meta-box,
 .invoice-payment-box,
-.invoice-total-box {
+.invoice-total-box,
+.invoice-signature-box {
   border: 0.3mm solid #394b66;
   background: rgba(255, 255, 255, 0.82);
 }
@@ -364,7 +365,8 @@
 .invoice-address-box h3,
 .invoice-meta-box h3,
 .invoice-payment-box h3,
-.invoice-total-box h3 {
+.invoice-total-box h3,
+.invoice-signature-box h3 {
   margin: 0;
   padding: 1.9mm 3mm;
   background: #bfdbe9;
@@ -436,16 +438,18 @@
 
 .invoice-bottom {
   display: grid;
-  grid-template-columns: 126mm 50mm;
+  grid-template-columns: 114mm 62mm;
   justify-content: space-between;
-  gap: 4mm;
-  margin-top: 55mm;
+  gap: 5mm;
+  margin-top: 45mm;
   align-items: start;
 }
 
 .invoice-payment-box .body {
-  min-height: 90mm;
+  min-height: 70mm;
   text-align: center;
+  font-size: 2.95mm;
+  line-height: 1.4;
 }
 
 .invoice-payment-box .body strong {
@@ -453,11 +457,17 @@
 }
 
 .invoice-payment-bank {
-  margin-top: 4mm;
+  margin-top: 3.2mm;
   text-align: left;
   white-space: pre-line;
-  font-size: 2.85mm;
-  line-height: 1.42;
+  font-size: 2.6mm;
+  line-height: 1.34;
+}
+
+.invoice-side-stack {
+  display: grid;
+  gap: 4mm;
+  align-content: start;
 }
 
 .invoice-total-box .body {
@@ -474,6 +484,27 @@
   margin-top: 1.5mm;
   font-size: 2.62mm;
   line-height: 1.26;
+}
+
+.invoice-signature-box h3 {
+  text-transform: none;
+  font-size: 2.9mm;
+}
+
+.invoice-signature-box .body {
+  min-height: 48mm;
+  padding: 4mm 4.4mm;
+  display: grid;
+  align-content: space-between;
+  gap: 8mm;
+  font-size: 2.85mm;
+  line-height: 1.35;
+}
+
+.invoice-signature-date {
+  margin-top: 14mm;
+  font-size: 3.2mm;
+  color: #10213b;
 }
 
 .invoice-sheet-footer {
@@ -534,7 +565,8 @@
   }
 
   .invoice-sheet-top,
-  .invoice-bottom {
+  .invoice-bottom,
+  .invoice-side-stack {
     grid-template-columns: 1fr;
     gap: 22px;
   }
@@ -709,6 +741,7 @@
 .admin-invoice-line-field-price { grid-area: price; }
 .admin-invoice-line-field-description { grid-area: description; }
 .admin-invoice-line-remove { grid-area: remove; align-self: stretch; }
+
 
 
 

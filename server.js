@@ -1459,7 +1459,7 @@ async function buildQuotePdfBuffer(quote) {
     const addressBoxHeight = 22 + addressBodyHeight;
     doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, addressBoxHeight).stroke();
     doc.rect(360, 54, 165, 22).fillAndStroke('#bfdbe9', '#435774');
-    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('ADRESSE DE FACTURATION', 368, 61, { width: 149, align: 'center' });
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('INFORMATION CLIENT', 368, 61, { width: 149, align: 'center' });
     doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressText, 374, 87, { width: 136, align: 'center', lineGap: 2 });
 
     doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
@@ -1498,19 +1498,32 @@ async function buildQuotePdfBuffer(quote) {
       currentY += rowHeight;
     });
 
-    const bottomY = Math.max(560, currentY + 56);
-    doc.rect(54, bottomY, 330, 150).stroke('#435774');
-    doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
-    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+    const bottomY = Math.max(560, currentY + 52);
+    const paymentBoxX = 54;
+    const paymentBoxWidth = 300;
+    const sideBoxX = 364;
+    const sideBoxWidth = 161;
+    const totalBoxHeight = 76;
+    const signatureBoxY = bottomY + totalBoxHeight + 10;
+    const signatureBoxHeight = 92;
 
-    doc.rect(404, bottomY, 121, 76).stroke('#435774');
-    doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', 404, bottomY + 6, { width: 121, align: 'center' });
-    doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(quote.total), 404, bottomY + 34, { width: 121, align: 'center' });
-    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquée') : quote.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
+    doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 126).stroke('#435774');
+    doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', paymentBoxX, bottomY + 6, { width: paymentBoxWidth, align: 'center' });
+    doc.font('Helvetica').fontSize(8.1).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
 
-    const footerY = Math.min(744, bottomY + 184);
+    doc.rect(sideBoxX, bottomY, sideBoxWidth, totalBoxHeight).stroke('#435774');
+    doc.rect(sideBoxX, bottomY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', sideBoxX, bottomY + 6, { width: sideBoxWidth, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(quote.total), sideBoxX, bottomY + 34, { width: sideBoxWidth, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquée') : quote.vatMention, sideBoxX + 10, bottomY + 58, { width: sideBoxWidth - 20, align: 'center' });
+
+    doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, signatureBoxHeight).stroke('#435774');
+    doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.font('Helvetica-Bold').fontSize(8.3).fillColor('#10213b').text('Mention « Bon pour accord » + Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
+    doc.font('Helvetica').fontSize(10).text('Date ___ / ___ / ______', sideBoxX + 12, signatureBoxY + signatureBoxHeight - 24, { width: sideBoxWidth - 24 });
+
+    const footerY = Math.min(768, signatureBoxY + signatureBoxHeight + 18);
     doc.moveTo(54, footerY).lineTo(525, footerY).stroke('#c2d4e8');
     doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, footerY + 8, { width: 471, align: 'center' });
     doc.end();
@@ -2447,7 +2460,7 @@ async function buildQuotePdfBuffer(quote) {
     const addressBoxHeight = 22 + addressBodyHeight;
     doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, addressBoxHeight).stroke();
     doc.rect(360, 54, 165, 22).fillAndStroke('#bfdbe9', '#435774');
-    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('ADRESSE DE FACTURATION', 368, 61, { width: 149, align: 'center' });
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('INFORMATION CLIENT', 368, 61, { width: 149, align: 'center' });
     doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressText, 374, 87, { width: 136, align: 'center', lineGap: 2 });
 
     doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
@@ -2486,19 +2499,32 @@ async function buildQuotePdfBuffer(quote) {
       currentY += rowHeight;
     });
 
-    const bottomY = Math.max(560, currentY + 56);
-    doc.rect(54, bottomY, 330, 150).stroke('#435774');
-    doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
-    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+    const bottomY = Math.max(560, currentY + 52);
+    const paymentBoxX = 54;
+    const paymentBoxWidth = 300;
+    const sideBoxX = 364;
+    const sideBoxWidth = 161;
+    const totalBoxHeight = 76;
+    const signatureBoxY = bottomY + totalBoxHeight + 10;
+    const signatureBoxHeight = 92;
 
-    doc.rect(404, bottomY, 121, 76).stroke('#435774');
-    doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', 404, bottomY + 6, { width: 121, align: 'center' });
-    doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(quote.total), 404, bottomY + 34, { width: 121, align: 'center' });
-    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquée') : quote.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
+    doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 126).stroke('#435774');
+    doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', paymentBoxX, bottomY + 6, { width: paymentBoxWidth, align: 'center' });
+    doc.font('Helvetica').fontSize(8.1).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
 
-    const footerY = Math.min(744, bottomY + 184);
+    doc.rect(sideBoxX, bottomY, sideBoxWidth, totalBoxHeight).stroke('#435774');
+    doc.rect(sideBoxX, bottomY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', sideBoxX, bottomY + 6, { width: sideBoxWidth, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(quote.total), sideBoxX, bottomY + 34, { width: sideBoxWidth, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquée') : quote.vatMention, sideBoxX + 10, bottomY + 58, { width: sideBoxWidth - 20, align: 'center' });
+
+    doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, signatureBoxHeight).stroke('#435774');
+    doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.font('Helvetica-Bold').fontSize(8.3).fillColor('#10213b').text('Mention « Bon pour accord » + Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
+    doc.font('Helvetica').fontSize(10).text('Date ___ / ___ / ______', sideBoxX + 12, signatureBoxY + signatureBoxHeight - 24, { width: sideBoxWidth - 24 });
+
+    const footerY = Math.min(768, signatureBoxY + signatureBoxHeight + 18);
     doc.moveTo(54, footerY).lineTo(525, footerY).stroke('#c2d4e8');
     doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, footerY + 8, { width: 471, align: 'center' });
     doc.end();
@@ -3499,6 +3525,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 

@@ -1,4 +1,4 @@
-(function setupAdminQuotesPage() {
+ï»¿(function setupAdminQuotesPage() {
   const auth = window.MultipixelsAdminAuth;
   if (!auth) return;
 
@@ -39,13 +39,13 @@
     '190 Chemin Blanc',
     '62180 Rang du Fliers',
     '06 27 14 08 40 | contact@multipixels.fr',
-    'N° SIRET : 80 49 81 835 0000 23',
+    'NÂ° SIRET : 80 49 81 835 0000 23',
     'Code APE: 18.12Z'
   ];
   const PAYMENT_LINES = [
-    'Méthodes de paiement acceptées :',
+    'MÃ©thodes de paiement acceptÃ©es :',
     '',
-    'Chèque, Virement, Espèce, CB',
+    'ChÃ¨que, Virement, EspÃ¨ce, CB',
     '',
     'VIREMENT BANCAIRE',
     'Banque : CA Nord de France',
@@ -53,7 +53,7 @@
     'BIC : AGRIFRPP867',
     'Titulaire du compte : BAUDELOT Guillaume',
     '',
-    'En cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée'
+    'En cas de retard de paiement, une indemnitÃ© forfaitaire de 40â‚¬ pourra Ãªtre appliquÃ©e'
   ];
 
   let invoiceClients = [];
@@ -139,7 +139,7 @@
       }).join('');
     }
     if (referenceSelect) {
-      referenceSelect.innerHTML = '<option value="">Choisir une référence</option>' + invoiceReferences.map(function (item) {
+      referenceSelect.innerHTML = '<option value="">Choisir une rÃ©fÃ©rence</option>' + invoiceReferences.map(function (item) {
         return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.reference) + ' - ' + escapeHtml(item.designation) + ' (' + formatMoney(item.price) + ')</option>';
       }).join('');
     }
@@ -193,8 +193,8 @@
     lineItemsNode.innerHTML = source.map(function (item, index) {
       return [
         '<div class="admin-invoice-line" data-line-index="' + index + '">',
-        '<label class="admin-invoice-line-field admin-invoice-line-field-reference"><span>Référence</span><input type="text" data-line-field="reference" value="' + escapeHtml(item.reference) + '" /></label>',
-        '<label class="admin-invoice-line-field admin-invoice-line-field-quantity"><span>Qté</span><input type="number" min="1" step="1" data-line-field="quantity" value="' + item.quantity + '" /></label>',
+        '<label class="admin-invoice-line-field admin-invoice-line-field-reference"><span>RÃ©fÃ©rence</span><input type="text" data-line-field="reference" value="' + escapeHtml(item.reference) + '" /></label>',
+        '<label class="admin-invoice-line-field admin-invoice-line-field-quantity"><span>QtÃ©</span><input type="number" min="1" step="1" data-line-field="quantity" value="' + item.quantity + '" /></label>',
         '<label class="admin-invoice-line-field admin-invoice-line-field-price"><span>Prix unitaire</span><input type="number" min="0" step="0.01" data-line-field="unitPrice" value="' + item.unitPrice + '" /></label>',
         '<button class="btn btn-outline admin-invoice-line-remove" type="button" data-line-remove="' + index + '">Supprimer</button>',
         '<label class="admin-invoice-line-field admin-invoice-line-field-description"><span>Description</span><input type="text" data-line-field="description" value="' + escapeHtml(item.description) + '" /></label>',
@@ -258,7 +258,7 @@
   function renderPreview() {
     const state = collectState();
     const addressLines = [state.customerName, state.company, state.email, state.addressLine1, state.addressLine2, [state.postalCode, state.city].filter(Boolean).join(' '), state.country].filter(Boolean);
-    const validityText = 'Validité du devis : ' + state.paymentDueDays + ' jours';
+    const validityText = 'ValiditÃ© du devis : ' + state.paymentDueDays + ' jours';
     const linesMarkup = state.items.length
       ? state.items.map(function (item) {
           return '<tr><td>' + escapeHtml(item.reference || '-') + '</td><td>' + escapeHtml(item.description || '-') + '</td><td>' + item.quantity + '</td><td>' + formatMoney(item.unitPrice) + '</td><td>' + formatMoney(item.total) + '</td></tr>';
@@ -277,20 +277,20 @@
       '    <div class="invoice-seller">' + SELLER_LINES.map(escapeHtml).join('<br />') + '</div>',
       '  </div>',
       '  <div class="invoice-address-box">',
-      '    <h3>Adresse de facturation</h3>',
-      '    <div class="body">' + (addressLines.length ? addressLines.map(escapeHtml).join('<br />') : 'Informations client à compléter') + '</div>',
+      '    <h3>Information client</h3>',
+      '    <div class="body">' + (addressLines.length ? addressLines.map(escapeHtml).join('<br />') : 'Informations client Ã  complÃ©ter') + '</div>',
       '  </div>',
       '</section>',
       '  <section class="invoice-meta-box">',
       '    <table class="invoice-meta-table">',
-      '      <tr><th colspan="2">DEVIS N° ' + escapeHtml(state.reference || '-') + '</th></tr>',
+      '      <tr><th colspan="2">DEVIS NÂ° ' + escapeHtml(state.reference || '-') + '</th></tr>',
       '      <tr><td>Date du devis</td><td><strong>' + escapeHtml(formatDateFr(state.issueDate)) + '</strong></td></tr>',
       '      <tr><td colspan="2">' + escapeHtml(validityText) + '</td></tr>',
       '    </table>',
       '  </section>',
       '  <section class="invoice-lines">',
       '    <table class="invoice-lines-table">',
-      '      <thead><tr><th>Référence</th><th>Description</th><th>Qte</th><th>Prix unitaire</th><th>Total TTC</th></tr></thead>',
+      '      <thead><tr><th>RÃ©fÃ©rence</th><th>Description</th><th>QtÃ©</th><th>Prix unitaire</th><th>Total TTC</th></tr></thead>',
       '      <tbody>' + linesMarkup + '</tbody>',
       '    </table>',
       '  </section>',
@@ -302,12 +302,21 @@
       '        <div class="invoice-payment-bank">' + escapeHtml(PAYMENT_LINES.slice(4).join('\n')) + '</div>',
       '      </div>',
       '    </div>',
-      '    <div class="invoice-total-box">',
-      '      <h3>Total TTC</h3>',
-      '      <div class="body">',
-      '        <div class="invoice-total-amount">' + escapeHtml(formatMoney(state.total)) + '</div>',
-      '        <div class="invoice-total-note">' + escapeHtml(state.vatRate > 0 ? ('TVA ' + state.vatRate + ' % appliquée') : state.vatMention) + '</div>',
-      '        <div class="invoice-total-note">' + (state.isApproved ? 'Devis marqué comme accepté' : 'En attente de validation') + '</div>',
+      '    <div class="invoice-side-stack">',
+      '      <div class="invoice-total-box">',
+      '        <h3>Total TTC</h3>',
+      '        <div class="body">',
+      '          <div class="invoice-total-amount">' + escapeHtml(formatMoney(state.total)) + '</div>',
+      '          <div class="invoice-total-note">' + escapeHtml(state.vatRate > 0 ? ('TVA ' + state.vatRate + ' % appliquÃ©e') : state.vatMention) + '</div>',
+      '          <div class="invoice-total-note">' + (state.isApproved ? 'Devis marquÃ© comme acceptÃ©' : 'En attente de validation') + '</div>',
+      '        </div>',
+      '      </div>',
+      '      <div class="invoice-signature-box">',
+      '        <h3>Mention Â« Bon pour accord Â» + Signature</h3>',
+      '        <div class="body">',
+      '          <div></div>',
+      '          <div class="invoice-signature-date">Date ___ / ___ / ______</div>',
+      '        </div>',
       '      </div>',
       '    </div>',
       '  </section>',
@@ -322,7 +331,7 @@
       referenceInput.value = payload.reference;
       renderPreview();
     } catch (error) {
-      setStatus(error.message || 'Impossible de calculer le numéro de devis.', 'error');
+      setStatus(error.message || 'Impossible de calculer le numÃ©ro de devis.', 'error');
     }
   }
 
@@ -415,7 +424,7 @@
     if (!payload.customerName) return setStatus('Le nom du client est obligatoire.', 'error');
     if (!payload.items.length) return setStatus('Ajoutez au moins une ligne au devis.', 'error');
 
-    setStatus('Génération du PDF en cours...', 'warning');
+    setStatus('GÃ©nÃ©ration du PDF en cours...', 'warning');
     try {
       const token = localStorage.getItem(auth.tokenKey || 'multipixels_admin_token');
       const response = await fetch('/api/admin/quotes/pdf', {
@@ -434,7 +443,7 @@
       });
       if (!response.ok) {
         const data = await response.json().catch(function () { return null; });
-        throw new Error((data && data.error && data.error.message) || 'Impossible de générer le PDF.');
+        throw new Error((data && data.error && data.error.message) || 'Impossible de gÃ©nÃ©rer le PDF.');
       }
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
@@ -450,11 +459,12 @@
         URL.revokeObjectURL(objectUrl);
       }, 1000);
       resetForm(nextReference || '');
-      setStatus('PDF du devis généré avec succès.' + (nextReference ? ' Prochaine référence : ' + nextReference + '.' : ''), 'success');
+      setStatus('PDF du devis gÃ©nÃ©rÃ© avec succÃ¨s.' + (nextReference ? ' Prochaine rÃ©fÃ©rence : ' + nextReference + '.' : ''), 'success');
     } catch (error) {
-      setStatus(error.message || 'Impossible de générer le PDF.', 'error');
+      setStatus(error.message || 'Impossible de gÃ©nÃ©rer le PDF.', 'error');
     }
   });
 
   boot();
 })();
+
