@@ -73,6 +73,7 @@ const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
 const BREVO_API_KEY = (process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY || '').trim();
 const ADMIN_DOCUMENTS_PATH = path.join(ROOT, "assets", "data", "admin-documents.json");
 const INVOICE_SEQUENCE_START = Math.max(36, Number(process.env.INVOICE_SEQUENCE_START || 36) || 36);
+const QUOTE_SEQUENCE_START = Math.max(187, Number(process.env.QUOTE_SEQUENCE_START || 187) || 187);
 
 // Stripe is intentionally prepared here so test and production can be separated cleanly.
 const STRIPE_MODE = (process.env.STRIPE_MODE || "test").trim();
@@ -918,7 +919,7 @@ function ensureAdminDocumentsStore() {
   const dir = path.dirname(ADMIN_DOCUMENTS_PATH);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   if (!fs.existsSync(ADMIN_DOCUMENTS_PATH)) {
-    fs.writeFileSync(ADMIN_DOCUMENTS_PATH, JSON.stringify({ quotes: [], invoices: [] }, null, 2), 'utf8');
+    fs.writeFileSync(ADMIN_DOCUMENTS_PATH, JSON.stringify({ quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] }, null, 2), 'utf8');
   }
 }
 
@@ -929,10 +930,12 @@ function readAdminDocumentsStore() {
     const parsed = JSON.parse(raw);
     return {
       quotes: Array.isArray(parsed.quotes) ? parsed.quotes : [],
-      invoices: Array.isArray(parsed.invoices) ? parsed.invoices : []
+      invoices: Array.isArray(parsed.invoices) ? parsed.invoices : [],
+      invoiceClients: Array.isArray(parsed.invoiceClients) ? parsed.invoiceClients : [],
+      invoiceReferences: Array.isArray(parsed.invoiceReferences) ? parsed.invoiceReferences : []
     };
   } catch (_) {
-    return { quotes: [], invoices: [] };
+    return { quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] };
   }
 }
 
@@ -1353,6 +1356,223 @@ async function handleAdminSendInvoiceApi(req, res) {
     nextReference: getNextInvoiceReference(invoice.issueDate)
   });
 }
+function getNextQuoteReference(issueDate, excludeId) {
+  const store = readAdminDocumentsStore();
+  const dayCode = formatInvoiceDayCode(issueDate);
+  let maxSequence = QUOTE_SEQUENCE_START - 1;
+  (store.quotes || []).forEach((quote) => {
+    if (!quote || !quote.downloadedAt) return;
+    if (excludeId && String(quote.id) === String(excludeId)) return;
+    const match = String(quote.reference || '').match(/^(\d+)-(\d{6})$/);
+    if (!match || match[2] !== dayCode) return;
+    const sequence = Number(match[1] || 0);
+    if (sequence > maxSequence) maxSequence = sequence;
+  });
+  return String(maxSequence + 1) + '-' + dayCode;
+}
+
+function buildQuoteRecord(existingQuote, payload, forcedReference) {
+  const items = normalizeInvoiceItems(payload.items);
+  const issueDate = cleanInvoiceField(payload.issueDate, 20) || new Date().toISOString().slice(0, 10);
+  const paymentDueDays = Math.max(0, Number(payload.paymentDueDays || 0));
+  const vatRate = Math.max(0, Number(payload.vatRate || 0));
+  const total = Number(items.reduce((sum, item) => sum + item.total, 0).toFixed(2));
+  const now = new Date().toISOString();
+  return {
+    id: existingQuote ? existingQuote.id : createAdminDocumentId('quote'),
+    type: 'quote',
+    reference: forcedReference,
+    customerName: cleanInvoiceField(payload.customerName || (existingQuote && existingQuote.customerName), 140),
+    company: cleanInvoiceField(payload.company || (existingQuote && existingQuote.company), 140),
+    email: cleanInvoiceField(payload.email || (existingQuote && existingQuote.email), 180),
+    phone: cleanInvoiceField(payload.phone || (existingQuote && existingQuote.phone), 60),
+    addressLine1: cleanInvoiceField(payload.addressLine1 || (existingQuote && existingQuote.addressLine1), 180),
+    addressLine2: cleanInvoiceField(payload.addressLine2 || (existingQuote && existingQuote.addressLine2), 180),
+    postalCode: cleanInvoiceField(payload.postalCode || (existingQuote && existingQuote.postalCode), 20),
+    city: cleanInvoiceField(payload.city || (existingQuote && existingQuote.city), 120),
+    country: cleanInvoiceField(payload.country || (existingQuote && existingQuote.country) || 'France', 120),
+    issueDate,
+    paymentDueDays,
+    vatRate: Number(vatRate.toFixed(2)),
+    vatMention: cleanInvoiceField(payload.vatMention || (existingQuote && existingQuote.vatMention) || 'TVA non applicable, art. 293B du CGI', 180),
+    isApproved: !!payload.isApproved,
+    notes: cleanInvoiceField(payload.notes || (existingQuote && existingQuote.notes), 1200),
+    items,
+    total,
+    status: payload.isApproved ? 'approved' : 'draft',
+    downloadedAt: existingQuote && existingQuote.downloadedAt ? existingQuote.downloadedAt : now,
+    lastDownloadedAt: now,
+    createdAt: existingQuote ? existingQuote.createdAt : now,
+    updatedAt: now
+  };
+}
+
+function saveQuoteRecord(quote) {
+  const store = readAdminDocumentsStore();
+  const index = (store.quotes || []).findIndex((entry) => String(entry.id) === String(quote.id));
+  if (index >= 0) {
+    store.quotes[index] = quote;
+  } else {
+    store.quotes.unshift(quote);
+  }
+  writeAdminDocumentsStore(store);
+  return quote;
+}
+
+function buildQuoteAttachmentName(quote) {
+  const safeReference = String(quote && quote.reference || 'devis').replace(/[^a-zA-Z0-9_-]+/g, '-');
+  return 'devis-' + safeReference + '.pdf';
+}
+
+async function buildQuotePdfBuffer(quote) {
+  if (!PDFDocument) {
+    throw new Error('Le module PDF n\'est pas disponible sur le serveur.');
+  }
+
+  return await new Promise(function (resolve, reject) {
+    const doc = new PDFDocument({ size: 'A4', margin: 36 });
+    const chunks = [];
+    const lineItems = Array.isArray(quote.items) ? quote.items : [];
+    const logoPath = path.join(ROOT, 'assets', 'Background', 'favicon.png');
+    const addressLines = [quote.customerName, quote.company, quote.email, quote.addressLine1, quote.addressLine2, [quote.postalCode, quote.city].filter(Boolean).join(' '), quote.country].filter(Boolean);
+
+    doc.on('data', function (chunk) { chunks.push(chunk); });
+    doc.on('end', function () { resolve(Buffer.concat(chunks)); });
+    doc.on('error', reject);
+
+    doc.rect(36, 36, 523, 770).fill('#ffffff');
+    doc.fillColor('#10213b');
+
+    if (fs.existsSync(logoPath)) {
+      try {
+        doc.image(logoPath, 54, 54, { fit: [72, 72], align: 'center', valign: 'center' });
+      } catch (_) {}
+    }
+
+    doc.font('Helvetica-Bold').fontSize(22).fillColor('#0f2350').text('MULTIPIXELS.FR', 54, 136);
+    doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
+
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
+    doc.font('Helvetica').fontSize(9);
+    const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
+    const addressBoxHeight = 22 + addressBodyHeight;
+    doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, addressBoxHeight).stroke();
+    doc.rect(360, 54, 165, 22).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('ADRESSE DE FACTURATION', 368, 61, { width: 149, align: 'center' });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressText, 374, 87, { width: 136, align: 'center', lineGap: 2 });
+
+    doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
+    doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('DEVIS N° ' + quote.reference, 62, 276);
+    doc.font('Helvetica').fontSize(9);
+    doc.rect(54, 288, 471, 18).stroke('#8ca6ba');
+    doc.text('Date du devis', 62, 294);
+    doc.font('Helvetica-Bold').text(formatInvoiceDateFr(quote.issueDate), 420, 294, { width: 90, align: 'right' });
+    doc.font('Helvetica');
+    doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
+    doc.text('Validité du devis : ' + quote.paymentDueDays + ' jours', 62, 312);
+
+    const tableY = 340;
+    const colX = [54, 130, 304, 348, 438];
+    const colW = [76, 174, 44, 90, 87];
+    const headers = ['Référence', 'Description', 'Qté', 'Prix unitaire', 'Total TTC'];
+    headers.forEach(function (header, index) {
+      doc.rect(colX[index], tableY, colW[index], 18).fillAndStroke('#d7e8f3', '#8ca6ba');
+      doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(8.5).text(header, colX[index] + 4, tableY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
+    });
+
+    let currentY = tableY + 18;
+    const rows = lineItems.length ? lineItems : [{ reference: '-', description: 'Aucune ligne pour le moment', quantity: 0, unitPrice: 0, total: 0 }];
+    rows.forEach(function (item) {
+      const values = [String(item.reference || '-'), String(item.description || '-'), String(item.quantity || 0), formatInvoiceMoney(item.unitPrice || 0), formatInvoiceMoney(item.total || 0)];
+      const textHeights = values.map(function (value, index) {
+        doc.font('Helvetica').fontSize(8.5);
+        return doc.heightOfString(value, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left', lineGap: 1 });
+      });
+      const rowHeight = Math.max(22, Math.ceil(Math.max.apply(Math, textHeights)) + 10);
+      values.forEach(function (value, index) {
+        doc.rect(colX[index], currentY, colW[index], rowHeight).stroke('#c6d6e7');
+        doc.font('Helvetica').fontSize(8.5).fillColor('#10213b').text(value, colX[index] + 4, currentY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left', lineGap: 1 });
+      });
+      currentY += rowHeight;
+    });
+
+    const bottomY = Math.max(560, currentY + 56);
+    doc.rect(54, bottomY, 330, 150).stroke('#435774');
+    doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
+    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+
+    doc.rect(404, bottomY, 121, 76).stroke('#435774');
+    doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', 404, bottomY + 6, { width: 121, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(quote.total), 404, bottomY + 34, { width: 121, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquée') : quote.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
+
+    const footerY = Math.min(744, bottomY + 184);
+    doc.moveTo(54, footerY).lineTo(525, footerY).stroke('#c2d4e8');
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, footerY + 8, { width: 471, align: 'center' });
+    doc.end();
+  });
+}
+
+function handleAdminQuoteNextReferenceApi(req, res, requestUrl) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+
+  const issueDate = cleanInvoiceField(requestUrl.searchParams.get('issueDate'), 20) || new Date().toISOString().slice(0, 10);
+  const documentId = cleanInvoiceField(requestUrl.searchParams.get('id'), 120);
+  sendJson(res, 200, { ok: true, reference: getNextQuoteReference(issueDate, documentId) });
+}
+
+async function handleAdminQuotePdfApi(req, res) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+
+  let body;
+  try {
+    body = await parseJsonBody(req, 1024 * 1024);
+  } catch (_) {
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    return;
+  }
+
+  const items = normalizeInvoiceItems(body.items);
+  const customerName = cleanInvoiceField(body.customerName, 140);
+  if (!customerName || !items.length) {
+    sendJson(res, 400, { ok: false, error: { code: 'ADMIN_QUOTE_INVALID', message: 'Nom client et au moins une ligne sont obligatoires.' } });
+    return;
+  }
+
+  const store = readAdminDocumentsStore();
+  const existingQuote = (store.quotes || []).find((entry) => String(entry.id) === String(cleanInvoiceField(body.id, 120))) || null;
+  const officialReference = existingQuote && existingQuote.downloadedAt ? existingQuote.reference : getNextQuoteReference(body.issueDate, existingQuote && existingQuote.id);
+  const quote = buildQuoteRecord(existingQuote, Object.assign({}, body, { items: items, customerName: customerName }), officialReference);
+
+  let pdfBuffer;
+  try {
+    pdfBuffer = await buildQuotePdfBuffer(quote);
+  } catch (error) {
+    const detail = error && error.message ? String(error.message) : 'Génération PDF impossible.';
+    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_QUOTE_PDF_FAILED', message: 'Impossible de générer le PDF du devis. ' + detail } });
+    return;
+  }
+
+  saveQuoteRecord(quote);
+  const filename = buildQuoteAttachmentName(quote);
+  const nextReference = getNextQuoteReference(quote.issueDate);
+  res.writeHead(200, {
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': 'attachment; filename="' + filename + '"',
+    'Content-Length': pdfBuffer.length,
+    'Cache-Control': 'no-store',
+    'X-Quote-Filename': filename,
+    'X-Quote-Reference': quote.reference,
+    'X-Next-Quote-Reference': nextReference
+  });
+  res.end(pdfBuffer);
+}
 function requireAuthenticatedClient(req, res) {
   const store = readClientStore();
   cleanupClientSessions(store);
@@ -1732,7 +1952,7 @@ function ensureAdminDocumentsStore() {
   const dir = path.dirname(ADMIN_DOCUMENTS_PATH);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   if (!fs.existsSync(ADMIN_DOCUMENTS_PATH)) {
-    fs.writeFileSync(ADMIN_DOCUMENTS_PATH, JSON.stringify({ quotes: [], invoices: [] }, null, 2), 'utf8');
+    fs.writeFileSync(ADMIN_DOCUMENTS_PATH, JSON.stringify({ quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] }, null, 2), 'utf8');
   }
 }
 
@@ -1743,10 +1963,12 @@ function readAdminDocumentsStore() {
     const parsed = JSON.parse(raw);
     return {
       quotes: Array.isArray(parsed.quotes) ? parsed.quotes : [],
-      invoices: Array.isArray(parsed.invoices) ? parsed.invoices : []
+      invoices: Array.isArray(parsed.invoices) ? parsed.invoices : [],
+      invoiceClients: Array.isArray(parsed.invoiceClients) ? parsed.invoiceClients : [],
+      invoiceReferences: Array.isArray(parsed.invoiceReferences) ? parsed.invoiceReferences : []
     };
   } catch (_) {
-    return { quotes: [], invoices: [] };
+    return { quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] };
   }
 }
 
@@ -2121,6 +2343,223 @@ async function handleAdminSendInvoiceApi(req, res) {
     invoice,
     nextReference: getNextInvoiceReference(invoice.issueDate)
   });
+}
+function getNextQuoteReference(issueDate, excludeId) {
+  const store = readAdminDocumentsStore();
+  const dayCode = formatInvoiceDayCode(issueDate);
+  let maxSequence = QUOTE_SEQUENCE_START - 1;
+  (store.quotes || []).forEach((quote) => {
+    if (!quote || !quote.downloadedAt) return;
+    if (excludeId && String(quote.id) === String(excludeId)) return;
+    const match = String(quote.reference || '').match(/^(\d+)-(\d{6})$/);
+    if (!match || match[2] !== dayCode) return;
+    const sequence = Number(match[1] || 0);
+    if (sequence > maxSequence) maxSequence = sequence;
+  });
+  return String(maxSequence + 1) + '-' + dayCode;
+}
+
+function buildQuoteRecord(existingQuote, payload, forcedReference) {
+  const items = normalizeInvoiceItems(payload.items);
+  const issueDate = cleanInvoiceField(payload.issueDate, 20) || new Date().toISOString().slice(0, 10);
+  const paymentDueDays = Math.max(0, Number(payload.paymentDueDays || 0));
+  const vatRate = Math.max(0, Number(payload.vatRate || 0));
+  const total = Number(items.reduce((sum, item) => sum + item.total, 0).toFixed(2));
+  const now = new Date().toISOString();
+  return {
+    id: existingQuote ? existingQuote.id : createAdminDocumentId('quote'),
+    type: 'quote',
+    reference: forcedReference,
+    customerName: cleanInvoiceField(payload.customerName || (existingQuote && existingQuote.customerName), 140),
+    company: cleanInvoiceField(payload.company || (existingQuote && existingQuote.company), 140),
+    email: cleanInvoiceField(payload.email || (existingQuote && existingQuote.email), 180),
+    phone: cleanInvoiceField(payload.phone || (existingQuote && existingQuote.phone), 60),
+    addressLine1: cleanInvoiceField(payload.addressLine1 || (existingQuote && existingQuote.addressLine1), 180),
+    addressLine2: cleanInvoiceField(payload.addressLine2 || (existingQuote && existingQuote.addressLine2), 180),
+    postalCode: cleanInvoiceField(payload.postalCode || (existingQuote && existingQuote.postalCode), 20),
+    city: cleanInvoiceField(payload.city || (existingQuote && existingQuote.city), 120),
+    country: cleanInvoiceField(payload.country || (existingQuote && existingQuote.country) || 'France', 120),
+    issueDate,
+    paymentDueDays,
+    vatRate: Number(vatRate.toFixed(2)),
+    vatMention: cleanInvoiceField(payload.vatMention || (existingQuote && existingQuote.vatMention) || 'TVA non applicable, art. 293B du CGI', 180),
+    isApproved: !!payload.isApproved,
+    notes: cleanInvoiceField(payload.notes || (existingQuote && existingQuote.notes), 1200),
+    items,
+    total,
+    status: payload.isApproved ? 'approved' : 'draft',
+    downloadedAt: existingQuote && existingQuote.downloadedAt ? existingQuote.downloadedAt : now,
+    lastDownloadedAt: now,
+    createdAt: existingQuote ? existingQuote.createdAt : now,
+    updatedAt: now
+  };
+}
+
+function saveQuoteRecord(quote) {
+  const store = readAdminDocumentsStore();
+  const index = (store.quotes || []).findIndex((entry) => String(entry.id) === String(quote.id));
+  if (index >= 0) {
+    store.quotes[index] = quote;
+  } else {
+    store.quotes.unshift(quote);
+  }
+  writeAdminDocumentsStore(store);
+  return quote;
+}
+
+function buildQuoteAttachmentName(quote) {
+  const safeReference = String(quote && quote.reference || 'devis').replace(/[^a-zA-Z0-9_-]+/g, '-');
+  return 'devis-' + safeReference + '.pdf';
+}
+
+async function buildQuotePdfBuffer(quote) {
+  if (!PDFDocument) {
+    throw new Error('Le module PDF n\'est pas disponible sur le serveur.');
+  }
+
+  return await new Promise(function (resolve, reject) {
+    const doc = new PDFDocument({ size: 'A4', margin: 36 });
+    const chunks = [];
+    const lineItems = Array.isArray(quote.items) ? quote.items : [];
+    const logoPath = path.join(ROOT, 'assets', 'Background', 'favicon.png');
+    const addressLines = [quote.customerName, quote.company, quote.email, quote.addressLine1, quote.addressLine2, [quote.postalCode, quote.city].filter(Boolean).join(' '), quote.country].filter(Boolean);
+
+    doc.on('data', function (chunk) { chunks.push(chunk); });
+    doc.on('end', function () { resolve(Buffer.concat(chunks)); });
+    doc.on('error', reject);
+
+    doc.rect(36, 36, 523, 770).fill('#ffffff');
+    doc.fillColor('#10213b');
+
+    if (fs.existsSync(logoPath)) {
+      try {
+        doc.image(logoPath, 54, 54, { fit: [72, 72], align: 'center', valign: 'center' });
+      } catch (_) {}
+    }
+
+    doc.font('Helvetica-Bold').fontSize(22).fillColor('#0f2350').text('MULTIPIXELS.FR', 54, 136);
+    doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
+
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
+    doc.font('Helvetica').fontSize(9);
+    const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
+    const addressBoxHeight = 22 + addressBodyHeight;
+    doc.lineWidth(1).strokeColor('#435774').rect(360, 54, 165, addressBoxHeight).stroke();
+    doc.rect(360, 54, 165, 22).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('ADRESSE DE FACTURATION', 368, 61, { width: 149, align: 'center' });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text(addressText, 374, 87, { width: 136, align: 'center', lineGap: 2 });
+
+    doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
+    doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('DEVIS N° ' + quote.reference, 62, 276);
+    doc.font('Helvetica').fontSize(9);
+    doc.rect(54, 288, 471, 18).stroke('#8ca6ba');
+    doc.text('Date du devis', 62, 294);
+    doc.font('Helvetica-Bold').text(formatInvoiceDateFr(quote.issueDate), 420, 294, { width: 90, align: 'right' });
+    doc.font('Helvetica');
+    doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
+    doc.text('Validité du devis : ' + quote.paymentDueDays + ' jours', 62, 312);
+
+    const tableY = 340;
+    const colX = [54, 130, 304, 348, 438];
+    const colW = [76, 174, 44, 90, 87];
+    const headers = ['Référence', 'Description', 'Qté', 'Prix unitaire', 'Total TTC'];
+    headers.forEach(function (header, index) {
+      doc.rect(colX[index], tableY, colW[index], 18).fillAndStroke('#d7e8f3', '#8ca6ba');
+      doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(8.5).text(header, colX[index] + 4, tableY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
+    });
+
+    let currentY = tableY + 18;
+    const rows = lineItems.length ? lineItems : [{ reference: '-', description: 'Aucune ligne pour le moment', quantity: 0, unitPrice: 0, total: 0 }];
+    rows.forEach(function (item) {
+      const values = [String(item.reference || '-'), String(item.description || '-'), String(item.quantity || 0), formatInvoiceMoney(item.unitPrice || 0), formatInvoiceMoney(item.total || 0)];
+      const textHeights = values.map(function (value, index) {
+        doc.font('Helvetica').fontSize(8.5);
+        return doc.heightOfString(value, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left', lineGap: 1 });
+      });
+      const rowHeight = Math.max(22, Math.ceil(Math.max.apply(Math, textHeights)) + 10);
+      values.forEach(function (value, index) {
+        doc.rect(colX[index], currentY, colW[index], rowHeight).stroke('#c6d6e7');
+        doc.font('Helvetica').fontSize(8.5).fillColor('#10213b').text(value, colX[index] + 4, currentY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left', lineGap: 1 });
+      });
+      currentY += rowHeight;
+    });
+
+    const bottomY = Math.max(560, currentY + 56);
+    doc.rect(54, bottomY, 330, 150).stroke('#435774');
+    doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
+    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+
+    doc.rect(404, bottomY, 121, 76).stroke('#435774');
+    doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', 404, bottomY + 6, { width: 121, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(quote.total), 404, bottomY + 34, { width: 121, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquée') : quote.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
+
+    const footerY = Math.min(744, bottomY + 184);
+    doc.moveTo(54, footerY).lineTo(525, footerY).stroke('#c2d4e8');
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#3867b3').text('www.multipixels.fr', 54, footerY + 8, { width: 471, align: 'center' });
+    doc.end();
+  });
+}
+
+function handleAdminQuoteNextReferenceApi(req, res, requestUrl) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+
+  const issueDate = cleanInvoiceField(requestUrl.searchParams.get('issueDate'), 20) || new Date().toISOString().slice(0, 10);
+  const documentId = cleanInvoiceField(requestUrl.searchParams.get('id'), 120);
+  sendJson(res, 200, { ok: true, reference: getNextQuoteReference(issueDate, documentId) });
+}
+
+async function handleAdminQuotePdfApi(req, res) {
+  const session = requireAuthenticatedAdmin(req, res);
+  if (!session) return;
+
+  let body;
+  try {
+    body = await parseJsonBody(req, 1024 * 1024);
+  } catch (_) {
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    return;
+  }
+
+  const items = normalizeInvoiceItems(body.items);
+  const customerName = cleanInvoiceField(body.customerName, 140);
+  if (!customerName || !items.length) {
+    sendJson(res, 400, { ok: false, error: { code: 'ADMIN_QUOTE_INVALID', message: 'Nom client et au moins une ligne sont obligatoires.' } });
+    return;
+  }
+
+  const store = readAdminDocumentsStore();
+  const existingQuote = (store.quotes || []).find((entry) => String(entry.id) === String(cleanInvoiceField(body.id, 120))) || null;
+  const officialReference = existingQuote && existingQuote.downloadedAt ? existingQuote.reference : getNextQuoteReference(body.issueDate, existingQuote && existingQuote.id);
+  const quote = buildQuoteRecord(existingQuote, Object.assign({}, body, { items: items, customerName: customerName }), officialReference);
+
+  let pdfBuffer;
+  try {
+    pdfBuffer = await buildQuotePdfBuffer(quote);
+  } catch (error) {
+    const detail = error && error.message ? String(error.message) : 'Génération PDF impossible.';
+    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_QUOTE_PDF_FAILED', message: 'Impossible de générer le PDF du devis. ' + detail } });
+    return;
+  }
+
+  saveQuoteRecord(quote);
+  const filename = buildQuoteAttachmentName(quote);
+  const nextReference = getNextQuoteReference(quote.issueDate);
+  res.writeHead(200, {
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': 'attachment; filename="' + filename + '"',
+    'Content-Length': pdfBuffer.length,
+    'Cache-Control': 'no-store',
+    'X-Quote-Filename': filename,
+    'X-Quote-Reference': quote.reference,
+    'X-Next-Quote-Reference': nextReference
+  });
+  res.end(pdfBuffer);
 }
 function requireAuthenticatedClient(req, res) {
   const auth = getClientAuth(req);
@@ -2901,6 +3340,16 @@ const server = http.createServer(async (req, res) => {
   }
 
 
+  if (req.method === 'GET' && requestUrl.pathname === '/api/admin/quotes/next-reference') {
+    handleAdminQuoteNextReferenceApi(req, res, requestUrl);
+    return;
+  }
+
+  if (req.method === 'POST' && requestUrl.pathname === '/api/admin/quotes/pdf') {
+    await handleAdminQuotePdfApi(req, res);
+    return;
+  }
+
   if (req.method === 'GET' && requestUrl.pathname === '/api/admin/quotes') {
     handleAdminQuotesApi(req, res);
     return;
@@ -3050,6 +3499,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
+
 
 
 
