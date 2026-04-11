@@ -983,17 +983,51 @@ function addDaysToIsoDate(issueDate, days) {
 }
 
 function normalizeInvoiceItems(items) {
-  return (Array.isArray(items) ? items : []).map((item) => {
+  const cleaned = (Array.isArray(items) ? items : []).map((item) => {
     const quantity = Math.max(1, Number(item && item.quantity || 1));
-    const unitPrice = Math.max(0, Number(item && item.unitPrice || 0));
+    const unitPrice = Number(item && item.unitPrice || 0);
+    const reference = cleanInvoiceField(item && item.reference, 80);
+    const description = cleanInvoiceField(item && item.description, 240);
+    const key = (reference + ' ' + description).toUpperCase();
+    const discountRate = (key.includes('REM10') || key.includes('-10%') || key.includes('REMISE 10'))
+      ? 0.10
+      : ((key.includes('REM5') || key.includes('-5%') || key.includes('REMISE 5')) ? 0.05 : 0);
+
     return {
-      reference: cleanInvoiceField(item && item.reference, 80),
-      description: cleanInvoiceField(item && item.description, 240),
-      quantity,
-      unitPrice: Number(unitPrice.toFixed(2)),
-      total: Number((quantity * unitPrice).toFixed(2))
+      reference,
+      description,
+      quantity: Number.isFinite(quantity) ? quantity : 1,
+      unitPrice: Number.isFinite(unitPrice) ? unitPrice : 0,
+      discountRate
     };
   }).filter((item) => item.reference || item.description);
+
+  const baseSubtotal = Number(cleaned.reduce((sum, item) => {
+    if (item.discountRate > 0) return sum;
+    return sum + (item.quantity * item.unitPrice);
+  }, 0).toFixed(2));
+
+  return cleaned.map((item) => {
+    if (item.discountRate > 0) {
+      const discountAmount = Number((-baseSubtotal * item.discountRate).toFixed(2));
+      return {
+        reference: item.reference,
+        description: item.description,
+        quantity: 1,
+        unitPrice: discountAmount,
+        total: discountAmount
+      };
+    }
+
+    const unitPrice = Number(item.unitPrice.toFixed(2));
+    return {
+      reference: item.reference,
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice,
+      total: Number((item.quantity * unitPrice).toFixed(2))
+    };
+  });
 }
 
 function buildInvoiceRecord(existingInvoice, payload, forcedReference) {
@@ -2029,17 +2063,51 @@ function addDaysToIsoDate(issueDate, days) {
 }
 
 function normalizeInvoiceItems(items) {
-  return (Array.isArray(items) ? items : []).map((item) => {
+  const cleaned = (Array.isArray(items) ? items : []).map((item) => {
     const quantity = Math.max(1, Number(item && item.quantity || 1));
-    const unitPrice = Math.max(0, Number(item && item.unitPrice || 0));
+    const unitPrice = Number(item && item.unitPrice || 0);
+    const reference = cleanInvoiceField(item && item.reference, 80);
+    const description = cleanInvoiceField(item && item.description, 240);
+    const key = (reference + ' ' + description).toUpperCase();
+    const discountRate = (key.includes('REM10') || key.includes('-10%') || key.includes('REMISE 10'))
+      ? 0.10
+      : ((key.includes('REM5') || key.includes('-5%') || key.includes('REMISE 5')) ? 0.05 : 0);
+
     return {
-      reference: cleanInvoiceField(item && item.reference, 80),
-      description: cleanInvoiceField(item && item.description, 240),
-      quantity,
-      unitPrice: Number(unitPrice.toFixed(2)),
-      total: Number((quantity * unitPrice).toFixed(2))
+      reference,
+      description,
+      quantity: Number.isFinite(quantity) ? quantity : 1,
+      unitPrice: Number.isFinite(unitPrice) ? unitPrice : 0,
+      discountRate
     };
   }).filter((item) => item.reference || item.description);
+
+  const baseSubtotal = Number(cleaned.reduce((sum, item) => {
+    if (item.discountRate > 0) return sum;
+    return sum + (item.quantity * item.unitPrice);
+  }, 0).toFixed(2));
+
+  return cleaned.map((item) => {
+    if (item.discountRate > 0) {
+      const discountAmount = Number((-baseSubtotal * item.discountRate).toFixed(2));
+      return {
+        reference: item.reference,
+        description: item.description,
+        quantity: 1,
+        unitPrice: discountAmount,
+        total: discountAmount
+      };
+    }
+
+    const unitPrice = Number(item.unitPrice.toFixed(2));
+    return {
+      reference: item.reference,
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice,
+      total: Number((item.quantity * unitPrice).toFixed(2))
+    };
+  });
 }
 
 function buildInvoiceRecord(existingInvoice, payload, forcedReference) {
@@ -3525,6 +3593,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 

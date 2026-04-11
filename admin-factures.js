@@ -1,4 +1,4 @@
-ï»¿(function setupAdminInvoicesPage() {
+(function setupAdminInvoicesPage() {
   const auth = window.MultipixelsAdminAuth;
   if (!auth) return;
 
@@ -41,13 +41,13 @@
     '190 Chemin Blanc',
     '62180 Rang du Fliers',
     '06 27 14 08 40 | contact@multipixels.fr',
-    'NÂ° SIRET : 80 49 81 835 0000 23',
+    'N° SIRET : 80 49 81 835 0000 23',
     'Code APE: 18.12Z'
   ];
   const PAYMENT_LINES = [
-    'MÃ©thodes de paiement acceptÃ©es :',
+    'Méthodes de paiement acceptées :',
     '',
-    'ChÃ¨que, Virement, EspÃ¨ce, CB',
+    'Chèque, Virement, Espèce, CB',
     '',
     'VIREMENT BANCAIRE',
     'Banque : CA Nord de France',
@@ -55,7 +55,7 @@
     'BIC : AGRIFRPP867',
     'Titulaire du compte : BAUDELOT Guillaume',
     '',
-    'En cas de retard de paiement, une indemnitÃ© forfaitaire de 40â‚¬ pourra Ãªtre appliquÃ©e'
+    'En cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée'
   ];
 
   let subjectLocked = false;
@@ -135,7 +135,7 @@
   }
 
   function defaultSubject(reference) {
-    return 'Votre facture - Multipixels.fr, nÂ° ' + reference;
+    return 'Votre facture - Multipixels.fr, n° ' + reference;
   }
 
   function defaultMessage(reference) {
@@ -143,11 +143,11 @@
       'Bonjour,',
       '',
       'Merci pour votre confiance.',
-      'Veuillez trouver ci-dessous votre facture nÂ° ' + reference + ' relative Ã  votre commande chez Multipixels.',
+      'Veuillez trouver ci-dessous votre facture n° ' + reference + ' relative à votre commande chez Multipixels.',
       '',
-      'Pour toute question concernant votre commande ou votre facture, nous restons Ã  votre disposition.',
+      'Pour toute question concernant votre commande ou votre facture, nous restons à votre disposition.',
       '',
-      'Merci encore pour votre confiance et Ã  trÃ¨s bientÃ´t.',
+      'Merci encore pour votre confiance et à très bientôt.',
       '',
       'Cordialement,',
       '',
@@ -160,12 +160,66 @@
   }
 
   function createLineItem(item) {
+    const quantityRaw = Number(item && item.quantity || 1);
+    const unitPriceRaw = Number(item && item.unitPrice || 0);
     return {
       reference: String(item && item.reference || ''),
       description: String(item && item.description || ''),
-      quantity: Math.max(1, Number(item && item.quantity || 1)),
-      unitPrice: Number(item && item.unitPrice || 0)
+      quantity: Number.isFinite(quantityRaw) ? Math.max(1, quantityRaw) : 1,
+      unitPrice: Number.isFinite(unitPriceRaw) ? unitPriceRaw : 0
     };
+  }
+
+  function getDiscountRate(item) {
+    const key = String((item && item.reference) || '') + ' ' + String((item && item.description) || '');
+    const normalized = key.toUpperCase();
+    if (normalized.includes('REM10') || normalized.includes('-10%') || normalized.includes('REMISE 10')) return 0.10;
+    if (normalized.includes('REM5') || normalized.includes('-5%') || normalized.includes('REMISE 5')) return 0.05;
+    return 0;
+  }
+
+  function computeInvoiceItems(rawItems) {
+    const source = Array.isArray(rawItems) ? rawItems : [];
+    const prepared = source.map(function (item) {
+      const quantity = Math.max(1, Number(item && item.quantity || 1));
+      const unitPrice = Number(item && item.unitPrice || 0);
+      return {
+        reference: String(item && item.reference || '').trim(),
+        description: String(item && item.description || '').trim(),
+        quantity: Number.isFinite(quantity) ? quantity : 1,
+        unitPrice: Number.isFinite(unitPrice) ? unitPrice : 0,
+        discountRate: getDiscountRate(item)
+      };
+    }).filter(function (item) {
+      return item.reference || item.description;
+    });
+
+    const baseSubtotal = Number(prepared.reduce(function (sum, item) {
+      if (item.discountRate > 0) return sum;
+      return sum + (item.quantity * item.unitPrice);
+    }, 0).toFixed(2));
+
+    return prepared.map(function (item) {
+      if (item.discountRate > 0) {
+        const discountAmount = Number((-baseSubtotal * item.discountRate).toFixed(2));
+        return {
+          reference: item.reference,
+          description: item.description,
+          quantity: 1,
+          unitPrice: discountAmount,
+          total: discountAmount
+        };
+      }
+      const unitPrice = Number(item.unitPrice.toFixed(2));
+      const total = Number((item.quantity * unitPrice).toFixed(2));
+      return {
+        reference: item.reference,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: unitPrice,
+        total: total
+      };
+    });
   }
 
   function renderInvoiceDataSelects() {
@@ -175,7 +229,7 @@
       }).join('');
     }
     if (referenceSelect) {
-      referenceSelect.innerHTML = '<option value="">Choisir une rÃ©fÃ©rence</option>' + invoiceReferences.map(function (item) {
+      referenceSelect.innerHTML = '<option value="">Choisir une référence</option>' + invoiceReferences.map(function (item) {
         return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.reference) + ' - ' + escapeHtml(item.designation) + ' (' + formatMoney(item.price) + ')</option>';
       }).join('');
     }
@@ -229,8 +283,8 @@
     lineItemsNode.innerHTML = source.map(function (item, index) {
       return [
         '<div class="admin-invoice-line" data-line-index="' + index + '">',
-        '<label class="admin-invoice-line-field admin-invoice-line-field-reference"><span>RÃ©fÃ©rence</span><input type="text" data-line-field="reference" value="' + escapeHtml(item.reference) + '" /></label>',
-        '<label class="admin-invoice-line-field admin-invoice-line-field-quantity"><span>QtÃ©</span><input type="number" min="1" step="1" data-line-field="quantity" value="' + item.quantity + '" /></label>',
+        '<label class="admin-invoice-line-field admin-invoice-line-field-reference"><span>Référence</span><input type="text" data-line-field="reference" value="' + escapeHtml(item.reference) + '" /></label>',
+        '<label class="admin-invoice-line-field admin-invoice-line-field-quantity"><span>Qté</span><input type="number" min="1" step="1" data-line-field="quantity" value="' + item.quantity + '" /></label>',
         '<label class="admin-invoice-line-field admin-invoice-line-field-price"><span>Prix unitaire</span><input type="number" min="0" step="0.01" data-line-field="unitPrice" value="' + item.unitPrice + '" /></label>',
         '<button class="btn btn-outline admin-invoice-line-remove" type="button" data-line-remove="' + index + '">Supprimer</button>',
         '<label class="admin-invoice-line-field admin-invoice-line-field-description"><span>Description</span><input type="text" data-line-field="description" value="' + escapeHtml(item.description) + '" /></label>',
@@ -255,16 +309,7 @@
   function collectState() {
     const issueDate = issueDateInput.value || todayIso();
     const paymentDueDays = Math.max(0, Number(paymentDaysInput.value || 0));
-    const items = readLineItems().map(function (item) {
-      const total = Number((item.quantity * item.unitPrice).toFixed(2));
-      return {
-        reference: item.reference.trim(),
-        description: item.description.trim(),
-        quantity: item.quantity,
-        unitPrice: Number(item.unitPrice.toFixed(2)),
-        total: total
-      };
-    });
+    const items = computeInvoiceItems(readLineItems());
     const total = Number(items.reduce(function (sum, item) { return sum + item.total; }, 0).toFixed(2));
     const vatRate = Math.max(0, Number(vatRateInput.value || 0));
     const dueDate = addDays(issueDate, paymentDueDays);
@@ -298,7 +343,7 @@
   function renderPreview() {
     const state = collectState();
     const addressLines = [state.customerName, state.company, state.email, state.addressLine1, state.addressLine2, [state.postalCode, state.city].filter(Boolean).join(' '), state.country].filter(Boolean);
-    const paymentText = 'Paiement Ã  ' + state.paymentDueDays + ' jours des rÃ©ception de la facture';
+    const paymentText = 'Paiement à ' + state.paymentDueDays + ' jours des réception de la facture';
     const linesMarkup = state.items.length
       ? state.items.map(function (item) {
           return '<tr><td>' + escapeHtml(item.reference || '-') + '</td><td>' + escapeHtml(item.description || '-') + '</td><td>' + item.quantity + '</td><td>' + formatMoney(item.unitPrice) + '</td><td>' + formatMoney(item.total) + '</td></tr>';
@@ -323,14 +368,14 @@
       '</section>',
       '  <section class="invoice-meta-box">',
       '    <table class="invoice-meta-table">',
-      '      <tr><th colspan="2">FACTURE NÂ° ' + escapeHtml(state.reference || '-') + '</th></tr>',
+      '      <tr><th colspan="2">FACTURE N° ' + escapeHtml(state.reference || '-') + '</th></tr>',
       '      <tr><td>Date de facturation</td><td><strong>' + escapeHtml(formatDateFr(state.issueDate)) + '</strong></td></tr>',
       '      <tr><td colspan="2">' + escapeHtml(paymentText) + '</td></tr>',
       '    </table>',
       '  </section>',
       '  <section class="invoice-lines">',
       '    <table class="invoice-lines-table">',
-      '      <thead><tr><th>RÃ©fÃ©rence</th><th>Description</th><th>Qt?</th><th>Prix unitaire</th><th>Prix total TTC</th></tr></thead>',
+      '      <thead><tr><th>Référence</th><th>Description</th><th>Qt?</th><th>Prix unitaire</th><th>Prix total TTC</th></tr></thead>',
       '      <tbody>' + linesMarkup + '</tbody>',
       '    </table>',
       '  </section>',
@@ -364,7 +409,7 @@
       if (!messageLocked || !messageInput.value) messageInput.value = defaultMessage(payload.reference);
       renderPreview();
     } catch (error) {
-      setStatus(error.message || 'Impossible de calculer le numÃ©ro de facture.', 'error');
+      setStatus(error.message || 'Impossible de calculer le numéro de facture.', 'error');
     }
   }
 
@@ -494,8 +539,8 @@
     event.preventDefault();
     const payload = collectState();
     if (!payload.customerName) return setStatus('Le nom du client est obligatoire.', 'error');
-    if (!payload.email) return setStatus('Lâ€™email client est obligatoire pour lâ€™envoi.', 'error');
-    if (!payload.items.length) return setStatus('Ajoutez au moins une ligne Ã  la facture.', 'error');
+    if (!payload.email) return setStatus('L’email client est obligatoire pour l’envoi.', 'error');
+    if (!payload.items.length) return setStatus('Ajoutez au moins une ligne à la facture.', 'error');
 
     try {
       const response = await auth.request('/api/admin/invoices/send', { method: 'POST', body: JSON.stringify(payload) });
@@ -509,14 +554,15 @@
         renderPreview();
       }
       const nextMessage = nextReference ? ' Prochaine r?f?rence : ' + nextReference + '.' : '';
-      setStatus('Facture ' + sentReference + ' envoyÃ©e au client.' + nextMessage, 'success');
+      setStatus('Facture ' + sentReference + ' envoyée au client.' + nextMessage, 'success');
     } catch (error) {
-      setStatus(error.message || 'Impossible dâ€™envoyer la facture.', 'error');
+      setStatus(error.message || 'Impossible d’envoyer la facture.', 'error');
     }
   });
 
   boot();
 })();
+
 
 
 
