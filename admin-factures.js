@@ -343,7 +343,7 @@
   function renderPreview() {
     const state = collectState();
     const addressLines = [state.customerName, state.company, state.email, state.addressLine1, state.addressLine2, [state.postalCode, state.city].filter(Boolean).join(' '), state.country].filter(Boolean);
-    const paymentText = 'Paiement à ' + state.paymentDueDays + ' jours des réception de la facture';
+    const paymentText = 'Paiement à ' + state.paymentDueDays + ' jours dès réception de la facture';
     const linesMarkup = state.items.length
       ? state.items.map(function (item) {
           return '<tr><td>' + escapeHtml(item.reference || '-') + '</td><td>' + escapeHtml(item.description || '-') + '</td><td>' + item.quantity + '</td><td>' + formatMoney(item.unitPrice) + '</td><td>' + formatMoney(item.total) + '</td></tr>';
@@ -363,7 +363,7 @@
       '  </div>',
       '  <div class="invoice-address-box">',
       '    <h3>Adresse de facturation</h3>',
-      '    <div class="body">' + (addressLines.length ? addressLines.map(escapeHtml).join('<br />') : 'Informations client ? compl?ter') + '</div>',
+      '    <div class="body">' + (addressLines.length ? addressLines.map(escapeHtml).join('<br />') : 'Informations client à compléter') + '</div>',
       '  </div>',
       '</section>',
       '  <section class="invoice-meta-box">',
@@ -375,7 +375,7 @@
       '  </section>',
       '  <section class="invoice-lines">',
       '    <table class="invoice-lines-table">',
-      '      <thead><tr><th>Référence</th><th>Description</th><th>Qt?</th><th>Prix unitaire</th><th>Prix total TTC</th></tr></thead>',
+      '      <thead><tr><th>Référence</th><th>Description</th><th>Qté</th><th>Prix unitaire</th><th>Prix total TTC</th></tr></thead>',
       '      <tbody>' + linesMarkup + '</tbody>',
       '    </table>',
       '  </section>',
@@ -391,8 +391,8 @@
       '      <h3>Total TTC</h3>',
       '      <div class="body">',
       '        <div class="invoice-total-amount">' + escapeHtml(formatMoney(state.total)) + '</div>',
-      '        <div class="invoice-total-note">' + escapeHtml(state.vatRate > 0 ? ('TVA ' + state.vatRate + ' % appliqu?e') : state.vatMention) + '</div>',
-      '        <div class="invoice-total-note">' + (state.isPaid ? 'Facture marqu?e comme pay?e' : 'En attente de r?glement') + '</div>',
+      '        <div class="invoice-total-note">' + escapeHtml(state.vatRate > 0 ? ('TVA ' + state.vatRate + ' % appliquée') : state.vatMention) + '</div>',
+      '        <div class="invoice-total-note">' + (state.isPaid ? 'Facture marquée comme payée' : 'En attente de règlement') + '</div>',
       '      </div>',
       '    </div>',
       '  </section>',
@@ -498,9 +498,9 @@
   downloadButton.addEventListener('click', async function () {
     const payload = collectState();
     if (!payload.customerName) return setStatus('Le nom du client est obligatoire.', 'error');
-    if (!payload.items.length) return setStatus('Ajoutez au moins une ligne ? la facture.', 'error');
+    if (!payload.items.length) return setStatus('Ajoutez au moins une ligne à la facture.', 'error');
 
-    setStatus('G?n?ration du PDF en cours...', 'warning');
+    setStatus('Génération du PDF en cours...', 'warning');
     try {
       const token = localStorage.getItem(auth.tokenKey || 'multipixels_admin_token');
       const response = await fetch('/api/admin/invoices/pdf', {
@@ -515,7 +515,7 @@
       });
       if (!response.ok) {
         const data = await response.json().catch(function () { return null; });
-        throw new Error((data && data.error && data.error.message) || 'Impossible de g?n?rer le PDF.');
+        throw new Error((data && data.error && data.error.message) || 'Impossible de générer le PDF.');
       }
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
@@ -529,9 +529,9 @@
       window.setTimeout(function () {
         URL.revokeObjectURL(objectUrl);
       }, 1000);
-      setStatus('PDF g?n?r? avec succ?s.', 'success');
+      setStatus('PDF généré avec succès.', 'success');
     } catch (error) {
-      setStatus(error.message || 'Impossible de g?n?rer le PDF.', 'error');
+      setStatus(error.message || 'Impossible de générer le PDF.', 'error');
     }
   });
 
@@ -553,7 +553,7 @@
         messageInput.value = defaultMessage(nextReference);
         renderPreview();
       }
-      const nextMessage = nextReference ? ' Prochaine r?f?rence : ' + nextReference + '.' : '';
+      const nextMessage = nextReference ? ' Prochaine référence : ' + nextReference + '.' : '';
       setStatus('Facture ' + sentReference + ' envoyée au client.' + nextMessage, 'success');
     } catch (error) {
       setStatus(error.message || 'Impossible d’envoyer la facture.', 'error');
@@ -562,6 +562,8 @@
 
   boot();
 })();
+
+
 
 
 

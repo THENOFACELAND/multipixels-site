@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -23,18 +23,18 @@
           </div>
           <div class="client-dashboard-actions">
             <a class="btn btn-outline" href="/index.html">Retour au site</a>
-            <button class="btn" id="admin-logout" type="button">Se dÃ©connecter</button>
+            <button class="btn" id="admin-logout" type="button">Se déconnecter</button>
           </div>
         </div>
 
         <nav class="admin-page-nav reveal" aria-label="Navigation administrateur">
-          <a href="admin-dashboard.html" data-admin-nav="overview">Vue dâ€™ensemble</a>
+          <a href="admin-dashboard.html" data-admin-nav="overview">Vue d’ensemble</a>
           <a href="admin-clients.html" data-admin-nav="clients">Clients</a>
           <a href="admin-commandes.html" data-admin-nav="commandes">Commandes</a>
           <a href="admin-devis.html" class="is-active" data-admin-nav="quotes" aria-current="page">Devis</a>
           <a href="admin-factures.html" data-admin-nav="invoices">Factures</a>
           <a href="admin-facture-clients.html" data-admin-nav="invoice-clients">Clients facture</a>
-          <a href="admin-facture-references.html" data-admin-nav="invoice-references">RÃ©fÃ©rences facture</a>
+          <a href="admin-facture-references.html" data-admin-nav="invoice-references">Références facture</a>
           <a href="admin-sav.html" data-admin-nav="sav">SAV</a>
           <a href="admin-articles.html" data-admin-nav="articles">Articles en ligne</a>
           <a href="admin-catalogue.html" data-admin-nav="catalogue">Catalogue</a>
@@ -66,7 +66,7 @@
                         <select id="quote-type"><option value="Devis">Devis</option></select>
                       </label>
                       <label>
-                        <span>NumÃ©ro</span>
+                        <span>Numéro</span>
                         <input id="quote-reference" type="text" readonly />
                       </label>
                     </div>
@@ -82,14 +82,14 @@
                     </div>
                     <div class="admin-invoice-grid admin-invoice-grid-2">
                       <label>
-                        <span>ValiditÃ© (jours)</span>
+                        <span>Validité (jours)</span>
                         <input id="quote-payment-days" type="number" min="0" step="1" value="15" />
                       </label>
                       <label class="admin-invoice-checkbox-row">
                         <span>Statut</span>
                         <span class="admin-invoice-checkbox">
                           <input id="quote-approved" type="checkbox" />
-                          <span>Marquer comme acceptÃ©</span>
+                          <span>Marquer comme accepté</span>
                         </span>
                       </label>
                     </div>
@@ -106,17 +106,17 @@
                     <span class="admin-invoice-group-icon" aria-hidden="true"></span>
                   </button>
                   <div class="admin-invoice-group-body" id="accordion-quote-client">
-                    <label class="admin-invoice-select-row"><span>SÃ©lectionner un client enregistrÃ©</span><select id="quote-client-select"><option value="">Saisie manuelle</option></select></label>
+                    <label class="admin-invoice-select-row"><span>Sélectionner un client enregistré</span><select id="quote-client-select"><option value="">Saisie manuelle</option></select></label>
                     <div class="admin-invoice-grid admin-invoice-grid-2">
-                      <label><span>Nom / sociÃ©tÃ©</span><input id="quote-customer-name" type="text" placeholder="Nom du client" /></label>
+                      <label><span>Nom / société</span><input id="quote-customer-name" type="text" placeholder="Nom du client" /></label>
                       <label><span>Email client</span><input id="quote-customer-email" type="email" placeholder="client@email.fr" /></label>
                     </div>
                     <div class="admin-invoice-grid admin-invoice-grid-2">
-                      <label><span>TÃ©lÃ©phone</span><input id="quote-customer-phone" type="text" placeholder="06 00 00 00 00" /></label>
-                      <label><span>ComplÃ©ment</span><input id="quote-customer-company" type="text" placeholder="SociÃ©tÃ©, service, rÃ©fÃ©rence..." /></label>
+                      <label><span>Téléphone</span><input id="quote-customer-phone" type="text" placeholder="06 00 00 00 00" /></label>
+                      <label><span>Complément</span><input id="quote-customer-company" type="text" placeholder="Société, service, référence..." /></label>
                     </div>
                     <label><span>Adresse</span><input id="quote-address-line1" type="text" placeholder="1 rue exemple" /></label>
-                    <label><span>ComplÃ©ment dâ€™adresse</span><input id="quote-address-line2" type="text" placeholder="BÃ¢timent, Ã©tage, atelier..." /></label>
+                    <label><span>Complément d’adresse</span><input id="quote-address-line2" type="text" placeholder="Bâtiment, étage, atelier..." /></label>
                     <div class="admin-invoice-grid admin-invoice-grid-3">
                       <label><span>Code postal</span><input id="quote-postal-code" type="text" placeholder="62180" /></label>
                       <label><span>Ville</span><input id="quote-city" type="text" placeholder="Rang-du-Fliers" /></label>
@@ -132,7 +132,7 @@
                   </button>
                   <div class="admin-invoice-group-body" id="accordion-quote-lines">
                     <div class="admin-invoice-group-head admin-invoice-reference-tools">
-                      <label class="admin-invoice-select-row"><span>SÃ©lectionner une rÃ©fÃ©rence enregistrÃ©e</span><select id="quote-reference-select"><option value="">Choisir une rÃ©fÃ©rence</option></select></label>
+                      <label class="admin-invoice-select-row"><span>Sélectionner une référence enregistrée</span><select id="quote-reference-select"><option value="">Choisir une référence</option></select></label>
                       <button class="btn btn-outline btn-sm" id="quote-add-line" type="button">Ajouter une ligne vide</button>
                     </div>
                     <div id="quote-lines" class="admin-invoice-lines"></div>
@@ -141,7 +141,7 @@
 
                 <div class="admin-invoice-actions">
                   <button class="btn btn-outline" id="quote-new" type="button">Nouveau devis</button>
-                  <button class="btn btn-outline" id="quote-download" type="button">TÃ©lÃ©charger le PDF</button>
+                  <button class="btn btn-outline" id="quote-download" type="button">Télécharger le PDF</button>
                 </div>
               </form>
             </div>
@@ -150,7 +150,7 @@
           <div class="admin-invoice-preview-area">
             <div class="admin-invoice-preview-toolbar">
               <div>
-                <span class="section-label">PrÃ©visualisation</span>
+                <span class="section-label">Prévisualisation</span>
                 
               </div>
               <p id="quote-preview-meta" class="admin-invoice-preview-meta"></p>
@@ -168,5 +168,6 @@
   <script src="admin-devis.js"></script>
 </body>
 </html>
+
 
 
