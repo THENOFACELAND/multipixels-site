@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --bg: #07111a;
   --bg-2: #0b1930;
   --navy: #0d1f3d;
@@ -598,8 +598,46 @@ p { margin: 0; }
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
- .hero-image {
+ 
+.hero-image {
   margin-top: 18px;
+}
+.hero-carousel {
+  position: relative;
+}
+.hero-carousel-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: heroCarouselFade 15s infinite;
+}
+.hero-carousel-slide:nth-child(1) {
+  opacity: 1;
+  animation-delay: 0s;
+}
+.hero-carousel-slide:nth-child(2) {
+  animation-delay: 5s;
+}
+.hero-carousel-slide:nth-child(3) {
+  animation-delay: 10s;
+}
+@keyframes heroCarouselFade {
+  0%, 30% {
+    opacity: 1;
+  }
+  36%, 100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-carousel-slide {
+    animation: none;
+    opacity: 0;
+  }
+
+  .hero-carousel-slide:nth-child(1) {
+    opacity: 1;
+  }
 }
 .hero-image img,
 .catalogue-spotlight-image img,
