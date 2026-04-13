@@ -57,6 +57,9 @@ const HOST = process.env.HOST || "0.0.0.0";
 const API_KEY = (process.env.GOOGLE_MAPS_API_KEY || "").trim();
 const DEFAULT_PLACE_ID = (process.env.GOOGLE_PLACE_ID || "").trim();
 const DEFAULT_QUERY = (process.env.GOOGLE_PLACE_QUERY || "MULTIPIXELS, 190 Chemin Blanc, 62180 Rang-du-Fliers").trim();
+const GOOGLE_REVIEWS_OUTPUT_PATH = path.join(ROOT, "assets", "data", "google-reviews.json");
+const GOOGLE_REVIEWS_REFRESH_MINUTES = Math.max(15, Number(process.env.GOOGLE_REVIEWS_REFRESH_MINUTES || 240) || 240);
+const GOOGLE_REVIEWS_REFRESH_MS = GOOGLE_REVIEWS_REFRESH_MINUTES * 60 * 1000;
 const CONTACT_TO = (process.env.CONTACT_TO || "contact@multipixels.fr").trim();
 const SMTP_HOST = (process.env.SMTP_HOST || "").trim();
 const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
@@ -87,6 +90,7 @@ const CLIENT_APP_BASE_URL = (process.env.CLIENT_APP_BASE_URL || "https://www.mul
 
 const clientDb = buildClientDb();
 const adminTools = createAdminTools({ root: ROOT, env: process.env });
+let googleReviewsRefreshInFlight = null;
 
 const CONTENT_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -412,6 +416,94 @@ async function getPlaceDetails(placeId) {
   };
 }
 
+async function resolveGooglePlaceId(preferredPlaceId, preferredQuery) {
+  let selectedPlaceId = String(preferredPlaceId || "").trim() || DEFAULT_PLACE_ID;
+  if (selectedPlaceId) return selectedPlaceId;
+
+  const candidates = [String(preferredQuery || "").trim() || DEFAULT_QUERY, "MULTIPIXELS Rang-du-Fliers", "MULTIPIXELS"];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const placeId = await findPlaceIdByQuery(candidate);
+    if (placeId) return placeId;
+  }
+
+  return "";
+}
+
+async function fetchGoogleReviewsPayload(options) {
+  const preferredPlaceId = options && options.placeId ? options.placeId : "";
+  const preferredQuery = options && options.query ? options.query : "";
+
+  const placeId = await resolveGooglePlaceId(preferredPlaceId, preferredQuery);
+  if (!placeId) {
+    throw new Error('PLACE_NOT_FOUND');
+  }
+
+  const place = await getPlaceDetails(placeId);
+  if (!place.ok) {
+    const status = place.googleStatus || "UNKNOWN_ERROR";
+    throw new Error('GOOGLE_PLACE_DETAILS_FAILED:' + status);
+  }
+
+  return {
+    ok: true,
+    source: "google_places_api",
+    generatedAt: new Date().toISOString(),
+    placeId: place.placeId,
+    name: place.name,
+    rating: place.rating,
+    ratingCount: place.ratingCount,
+    url: place.url,
+    reviews: place.reviews
+  };
+}
+
+function persistGoogleReviewsPayload(payload) {
+  fs.mkdirSync(path.dirname(GOOGLE_REVIEWS_OUTPUT_PATH), { recursive: true });
+  fs.writeFileSync(GOOGLE_REVIEWS_OUTPUT_PATH, JSON.stringify(payload, null, 2) + "\n", "utf8");
+}
+
+async function refreshGoogleReviewsCache(reason) {
+  if (!API_KEY) return false;
+  if (googleReviewsRefreshInFlight) return googleReviewsRefreshInFlight;
+
+  const refreshReason = String(reason || "scheduled");
+  googleReviewsRefreshInFlight = (async () => {
+    try {
+      const payload = await fetchGoogleReviewsPayload({});
+      persistGoogleReviewsPayload(payload);
+      console.log('[google-reviews] updated (' + refreshReason + ')');
+      return true;
+    } catch (error) {
+      const message = error && error.message ? error.message : String(error || 'unknown_error');
+      console.error('[google-reviews] refresh failed (' + refreshReason + '): ' + message);
+      return false;
+    } finally {
+      googleReviewsRefreshInFlight = null;
+    }
+  })();
+
+  return googleReviewsRefreshInFlight;
+}
+
+function startGoogleReviewsAutoRefresh() {
+  if (!API_KEY) {
+    console.warn('[google-reviews] GOOGLE_MAPS_API_KEY missing, auto refresh disabled.');
+    return;
+  }
+
+  refreshGoogleReviewsCache('startup');
+
+  const timer = setInterval(() => {
+    refreshGoogleReviewsCache('interval');
+  }, GOOGLE_REVIEWS_REFRESH_MS);
+
+  if (typeof timer.unref === 'function') {
+    timer.unref();
+  }
+
+  console.log('[google-reviews] auto refresh every ' + GOOGLE_REVIEWS_REFRESH_MINUTES + ' min');
+}
 async function handleReviewsApi(res, requestUrl) {
   if (!API_KEY) {
     sendJson(res, 500, {
@@ -424,49 +516,50 @@ async function handleReviewsApi(res, requestUrl) {
   const placeIdFromQuery = (requestUrl.searchParams.get("placeId") || "").trim();
   const queryFromQuery = (requestUrl.searchParams.get("query") || "").trim();
 
-  let selectedPlaceId = placeIdFromQuery || DEFAULT_PLACE_ID;
-  if (!selectedPlaceId) {
-    const candidates = [queryFromQuery || DEFAULT_QUERY, "MULTIPIXELS Rang-du-Fliers", "MULTIPIXELS"];
-    for (const candidate of candidates) {
-      if (!candidate) continue;
-      selectedPlaceId = await findPlaceIdByQuery(candidate);
-      if (selectedPlaceId) break;
-    }
-  }
-
-  if (!selectedPlaceId) {
-    sendJson(res, 404, {
-      ok: false,
-      error: { code: "PLACE_NOT_FOUND", message: "Impossible de trouver la fiche Google à partir des requêtes configurées." }
+  try {
+    const payload = await fetchGoogleReviewsPayload({
+      placeId: placeIdFromQuery,
+      query: queryFromQuery
     });
-    return;
-  }
 
-  const place = await getPlaceDetails(selectedPlaceId);
-  if (!place.ok) {
-    sendJson(res, 502, {
+    if (!placeIdFromQuery && !queryFromQuery) {
+      persistGoogleReviewsPayload(payload);
+    }
+
+    sendJson(res, 200, payload);
+  } catch (error) {
+    const message = error && error.message ? error.message : "";
+
+    if (message === "PLACE_NOT_FOUND") {
+      sendJson(res, 404, {
+        ok: false,
+        error: { code: "PLACE_NOT_FOUND", message: "Impossible de trouver la fiche Google à partir des requêtes configurées." }
+      });
+      return;
+    }
+
+    if (message.startsWith("GOOGLE_PLACE_DETAILS_FAILED:")) {
+      const googleStatus = message.split(":")[1] || "UNKNOWN_ERROR";
+      sendJson(res, 502, {
+        ok: false,
+        error: {
+          code: "GOOGLE_PLACE_DETAILS_FAILED",
+          message: "Google n'a pas retourné les détails de la fiche.",
+          googleStatus
+        }
+      });
+      return;
+    }
+
+    sendJson(res, 500, {
       ok: false,
       error: {
-        code: "GOOGLE_PLACE_DETAILS_FAILED",
-        message: "Google n'a pas retourné les détails de la fiche.",
-        googleStatus: place.googleStatus
+        code: "GOOGLE_REVIEWS_INTERNAL_ERROR",
+        message: "Impossible de récupérer les avis Google pour le moment."
       }
     });
-    return;
   }
-
-  sendJson(res, 200, {
-    ok: true,
-    source: "google_places_api",
-    placeId: place.placeId,
-    name: place.name,
-    rating: place.rating,
-    ratingCount: place.ratingCount,
-    url: place.url,
-    reviews: place.reviews
-  });
 }
-
 function getStripeConfig() {
   return {
     ok: true,
@@ -3589,6 +3682,8 @@ const server = http.createServer(async (req, res) => {
 
   serveStaticFile(req, res, absolutePath);
 });
+
+startGoogleReviewsAutoRefresh();
 
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
