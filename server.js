@@ -398,7 +398,7 @@ async function getPlaceDetails(placeId) {
   }
 
   const result = body.result;
-  const reviews = Array.isArray(result.reviews) ? result.reviews : [];
+  const reviews = Array.isArray(result.reviews) ? result.reviews.slice(0, 4) : [];
 
   return {
     ok: true,
