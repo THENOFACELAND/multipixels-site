@@ -81,8 +81,7 @@
       })
       .filter(function (review) {
         return review.rating > 0 && review.text;
-      })
-      .slice(0, 5);
+      });
 
     if (ratingNode && rating > 0) ratingNode.textContent = String(rating).replace(/\.0$/, "") + "/5";
     if (countNode && ratingCount > 0) countNode.textContent = ratingCount + " avis Google";
@@ -117,6 +116,4 @@
         });
     });
 })();
-
-
 

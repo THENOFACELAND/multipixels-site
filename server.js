@@ -398,7 +398,7 @@ async function getPlaceDetails(placeId) {
   }
 
   const result = body.result;
-  const reviews = Array.isArray(result.reviews) ? result.reviews.slice(0, 5) : [];
+  const reviews = Array.isArray(result.reviews) ? result.reviews : [];
 
   return {
     ok: true,
@@ -3688,39 +3688,4 @@ startGoogleReviewsAutoRefresh();
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
