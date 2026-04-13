@@ -52,7 +52,7 @@
   function buildReviewCard(review) {
     return [
       '<article class="quote-card home-review-card reveal is-visible">',
-      '<div class="home-review-mark" aria-hidden="true">“</div>',
+      '<div class="home-review-mark" aria-hidden="true">\u2605</div>',
       '<div class="home-review-top">',
       '<div class="home-review-meta"><strong>' + escapeHtml(review.author) + '</strong><span>' + escapeHtml(review.time) + '</span></div>',
       '<div class="home-review-stars" aria-label="Note ' + escapeHtml(review.rating) + ' sur 5">' + escapeHtml(buildStars(review.rating)) + '</div>',
@@ -74,8 +74,8 @@
         const normalizedText = cleanText(review.text || "", { preserveLineBreaks: true });
         return {
           author: cleanText(review.author || "Client Google"),
-          text: normalizedText && !/^Avis client Google$/i.test(normalizedText) ? normalizedText : "Avis publié sur Google.",
-          time: cleanText(review.time || "Avis récent"),
+          text: normalizedText && !/^Avis client Google$/i.test(normalizedText) ? normalizedText : "Avis publi\u00e9 sur Google.",
+          time: cleanText(review.time || "Avis r\u00e9cent"),
           rating: Number(review.rating || 0)
         };
       })
@@ -87,7 +87,7 @@
     if (countNode && ratingCount > 0) countNode.textContent = ratingCount + " avis Google";
     if (updatedNode) {
       const label = formatUpdatedAt(payload.generatedAt);
-      if (label) updatedNode.textContent = "Dernière mise à jour : " + label;
+      if (label) updatedNode.textContent = "Derni\u00e8re mise \u00e0 jour : " + label;
     }
     if (linkNode && url) linkNode.href = url;
 
