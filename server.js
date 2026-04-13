@@ -28,6 +28,7 @@ try {
 }
 
 const ROOT = __dirname;
+const DATA_DIR = (process.env.MULTIPIXELS_DATA_DIR || process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(ROOT, 'assets', 'data'));
 
 function loadDotEnvFile() {
   const dotenvPath = path.join(ROOT, ".env");
@@ -57,7 +58,7 @@ const HOST = process.env.HOST || "0.0.0.0";
 const API_KEY = (process.env.GOOGLE_MAPS_API_KEY || "").trim();
 const DEFAULT_PLACE_ID = (process.env.GOOGLE_PLACE_ID || "").trim();
 const DEFAULT_QUERY = (process.env.GOOGLE_PLACE_QUERY || "MULTIPIXELS, 190 Chemin Blanc, 62180 Rang-du-Fliers").trim();
-const GOOGLE_REVIEWS_OUTPUT_PATH = path.join(ROOT, "assets", "data", "google-reviews.json");
+const GOOGLE_REVIEWS_OUTPUT_PATH = path.join(DATA_DIR, 'google-reviews.json');
 const GOOGLE_REVIEWS_REFRESH_MINUTES = Math.max(15, Number(process.env.GOOGLE_REVIEWS_REFRESH_MINUTES || 240) || 240);
 const GOOGLE_REVIEWS_REFRESH_MS = GOOGLE_REVIEWS_REFRESH_MINUTES * 60 * 1000;
 const CONTACT_TO = (process.env.CONTACT_TO || "contact@multipixels.fr").trim();
@@ -74,7 +75,7 @@ const DEFAULT_RESEND_FROM_EMAIL = 'contact@mail.multipixels.fr';
 const RESEND_FROM_EMAIL = (process.env.RESEND_FROM_EMAIL || DEFAULT_RESEND_FROM_EMAIL).trim() || DEFAULT_RESEND_FROM_EMAIL;
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
 const BREVO_API_KEY = (process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY || '').trim();
-const ADMIN_DOCUMENTS_PATH = path.join(ROOT, "assets", "data", "admin-documents.json");
+const ADMIN_DOCUMENTS_PATH = path.join(DATA_DIR, 'admin-documents.json');
 const INVOICE_SEQUENCE_START = Math.max(36, Number(process.env.INVOICE_SEQUENCE_START || 36) || 36);
 const QUOTE_SEQUENCE_START = Math.max(187, Number(process.env.QUOTE_SEQUENCE_START || 187) || 187);
 
@@ -1488,7 +1489,7 @@ function getNextQuoteReference(issueDate, excludeId) {
   const dayCode = formatInvoiceDayCode(issueDate);
   let maxSequence = QUOTE_SEQUENCE_START - 1;
   (store.quotes || []).forEach((quote) => {
-    if (!quote || !quote.downloadedAt) return;
+    if (!quote) return;
     if (excludeId && String(quote.id) === String(excludeId)) return;
     const match = String(quote.reference || '').match(/^(\d+)-(\d{6})$/);
     if (!match || match[2] !== dayCode) return;
@@ -1687,7 +1688,7 @@ async function handleAdminQuotePdfApi(req, res) {
 
   const store = readAdminDocumentsStore();
   const existingQuote = (store.quotes || []).find((entry) => String(entry.id) === String(cleanInvoiceField(body.id, 120))) || null;
-  const officialReference = existingQuote && existingQuote.downloadedAt ? existingQuote.reference : getNextQuoteReference(body.issueDate, existingQuote && existingQuote.id);
+  const officialReference = existingQuote ? existingQuote.reference : getNextQuoteReference(body.issueDate, existingQuote && existingQuote.id);
   const quote = buildQuoteRecord(existingQuote, Object.assign({}, body, { items: items, customerName: customerName }), officialReference);
 
   let pdfBuffer;
@@ -2523,7 +2524,7 @@ function getNextQuoteReference(issueDate, excludeId) {
   const dayCode = formatInvoiceDayCode(issueDate);
   let maxSequence = QUOTE_SEQUENCE_START - 1;
   (store.quotes || []).forEach((quote) => {
-    if (!quote || !quote.downloadedAt) return;
+    if (!quote) return;
     if (excludeId && String(quote.id) === String(excludeId)) return;
     const match = String(quote.reference || '').match(/^(\d+)-(\d{6})$/);
     if (!match || match[2] !== dayCode) return;
@@ -2722,7 +2723,7 @@ async function handleAdminQuotePdfApi(req, res) {
 
   const store = readAdminDocumentsStore();
   const existingQuote = (store.quotes || []).find((entry) => String(entry.id) === String(cleanInvoiceField(body.id, 120))) || null;
-  const officialReference = existingQuote && existingQuote.downloadedAt ? existingQuote.reference : getNextQuoteReference(body.issueDate, existingQuote && existingQuote.id);
+  const officialReference = existingQuote ? existingQuote.reference : getNextQuoteReference(body.issueDate, existingQuote && existingQuote.id);
   const quote = buildQuoteRecord(existingQuote, Object.assign({}, body, { items: items, customerName: customerName }), officialReference);
 
   let pdfBuffer;
