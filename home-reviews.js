@@ -1,4 +1,4 @@
-ï»¿(function setupHomeReviews() {
+(function setupHomeReviews() {
   const grid = document.getElementById("home-reviews-grid");
   if (!grid) return;
 
@@ -46,13 +46,13 @@
 
   function buildStars(rating) {
     const safeRating = Math.max(0, Math.min(5, Number(rating || 0)));
-    return "â˜…".repeat(safeRating) + "â˜†".repeat(5 - safeRating);
+    return "\u2605".repeat(safeRating) + "\u2606".repeat(5 - safeRating);
   }
 
   function buildReviewCard(review) {
     return [
       '<article class="quote-card home-review-card reveal is-visible">',
-      '<div class="home-review-mark" aria-hidden="true">â€œ</div>',
+      '<div class="home-review-mark" aria-hidden="true">“</div>',
       '<div class="home-review-top">',
       '<div class="home-review-meta"><strong>' + escapeHtml(review.author) + '</strong><span>' + escapeHtml(review.time) + '</span></div>',
       '<div class="home-review-stars" aria-label="Note ' + escapeHtml(review.rating) + ' sur 5">' + escapeHtml(buildStars(review.rating)) + '</div>',
@@ -71,15 +71,16 @@
     const reviews = Array.isArray(payload.reviews) ? payload.reviews : [];
     const cleaned = reviews
       .map(function (review) {
+        const normalizedText = cleanText(review.text || "", { preserveLineBreaks: true });
         return {
           author: cleanText(review.author || "Client Google"),
-          text: cleanText(review.text || "", { preserveLineBreaks: true }),
-          time: cleanText(review.time || "Avis rÃ©cent"),
+          text: normalizedText && !/^Avis client Google$/i.test(normalizedText) ? normalizedText : "Avis publié sur Google.",
+          time: cleanText(review.time || "Avis récent"),
           rating: Number(review.rating || 0)
         };
       })
       .filter(function (review) {
-        return review.rating >= 4 && review.text && !/^Avis client Google$/i.test(review.text);
+        return review.rating > 0 && review.text;
       })
       .slice(0, 5);
 
@@ -87,7 +88,7 @@
     if (countNode && ratingCount > 0) countNode.textContent = ratingCount + " avis Google";
     if (updatedNode) {
       const label = formatUpdatedAt(payload.generatedAt);
-      if (label) updatedNode.textContent = "DerniÃ¨re mise Ã  jour : " + label;
+      if (label) updatedNode.textContent = "Dernière mise à jour : " + label;
     }
     if (linkNode && url) linkNode.href = url;
 
@@ -99,14 +100,23 @@
     grid.innerHTML = cleaned.map(buildReviewCard).join("");
   }
 
-  fetch("assets/data/google-reviews.json", { cache: "no-store" })
-    .then(function (response) {
+  function fetchJson(url) {
+    return fetch(url, { cache: "no-store" }).then(function (response) {
       if (!response.ok) throw new Error("reviews_fetch_failed");
       return response.json();
-    })
+    });
+  }
+
+  fetchJson("/api/google-reviews")
     .then(render)
     .catch(function () {
-      /* static fallback already in markup */
+      return fetchJson("assets/data/google-reviews.json")
+        .then(render)
+        .catch(function () {
+          /* static fallback already in markup */
+        });
     });
 })();
+
+
 
