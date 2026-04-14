@@ -419,6 +419,34 @@ function createAdminTools(options) {
     } catch (_) {
       return { quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] };
     }
+
+  function seedInvoiceDataIfEmpty() {
+    const store = readDocumentsStore();
+    const hasClients = Array.isArray(store.invoiceClients) && store.invoiceClients.length > 0;
+    const hasRefs = Array.isArray(store.invoiceReferences) && store.invoiceReferences.length > 0;
+    if (hasClients && hasRefs) return store;
+
+    const fallbackPath = path.join(root, 'assets', 'data', 'admin-documents.json');
+    if (!fs.existsSync(fallbackPath)) return store;
+
+    const fallback = parseJsonSafe(fs.readFileSync(fallbackPath, 'utf8').replace(/^\uFEFF/, ''), {});
+    const fallbackClients = Array.isArray(fallback.invoiceClients) ? fallback.invoiceClients : [];
+    const fallbackRefs = Array.isArray(fallback.invoiceReferences) ? fallback.invoiceReferences : [];
+    let changed = false;
+
+    if (!hasClients && fallbackClients.length) {
+      store.invoiceClients = fallbackClients;
+      changed = true;
+    }
+
+    if (!hasRefs && fallbackRefs.length) {
+      store.invoiceReferences = fallbackRefs;
+      changed = true;
+    }
+
+    if (changed) writeDocumentsStore(store);
+    return store;
+  }
   }
 
   function writeDocumentsStore(payload) {
@@ -535,8 +563,9 @@ function createAdminTools(options) {
     };
   }
 
-  function listInvoiceClients() {
-    return readDocumentsStore().invoiceClients.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr'));
+    function listInvoiceClients() {
+    const seeded = seedInvoiceDataIfEmpty();
+    return seeded.invoiceClients.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr'));
   }
 
   function createInvoiceClient(payload) {
@@ -557,8 +586,9 @@ function createAdminTools(options) {
     return true;
   }
 
-  function listInvoiceReferences() {
-    return readDocumentsStore().invoiceReferences.slice().sort((a, b) => String(a.reference || '').localeCompare(String(b.reference || ''), 'fr'));
+    function listInvoiceReferences() {
+    const seeded = seedInvoiceDataIfEmpty();
+    return seeded.invoiceReferences.slice().sort((a, b) => String(a.reference || '').localeCompare(String(b.reference || ''), 'fr'));
   }
 
   function createInvoiceReference(payload) {
@@ -659,6 +689,7 @@ function createAdminTools(options) {
 module.exports = {
   createAdminTools
 };
+
 
 
 
