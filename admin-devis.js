@@ -1,4 +1,4 @@
-(function setupAdminQuotesPage() {
+﻿(function setupAdminQuotesPage() {
   const auth = window.MultipixelsAdminAuth;
   if (!auth) return;
 
@@ -10,6 +10,7 @@
   const lineItemsNode = document.getElementById('quote-lines');
   const addLineButton = document.getElementById('quote-add-line');
   const newButton = document.getElementById('quote-new');
+  const recalcButton = document.getElementById('quote-recalc');
   const downloadButton = document.getElementById('quote-download');
   const idInput = document.getElementById('quote-id');
   const referenceInput = document.getElementById('quote-reference');
@@ -525,6 +526,7 @@ referenceInput.value = nextReference;
 
   boot();
 })();
+
 
 
 
