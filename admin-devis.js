@@ -374,7 +374,14 @@
     try {
       const currentReference = referenceInput.value || '';
       const payload = await auth.request('/api/admin/quotes/next-reference?issueDate=' + encodeURIComponent(issueDate) + (idInput.value ? '&id=' + encodeURIComponent(idInput.value) : '') + (currentReference ? '&current=' + encodeURIComponent(currentReference) : '')); 
-      referenceInput.value = payload.reference;
+      var nextReference = payload.reference;
+if (currentReference && nextReference === currentReference) {
+var match = String(currentReference).match(/^(\\d+)-(\\d{6})$/);
+if (match) {
+nextReference = String(Number(match[1] || 0) + 1) + '-' + match[2];
+}
+}
+referenceInput.value = nextReference;
       renderPreview();
     } catch (error) {
       setStatus(error.message || 'Impossible de calculer le numero de devis.', 'error');
