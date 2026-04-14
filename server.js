@@ -1,4 +1,4 @@
-﻿const http = require("http");
+const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
@@ -246,7 +246,7 @@ function repairText(value) {
     [/ÃƒÂ¨/g, "è"],
     [/ÃƒÂ©/g, "é"],
     [/Ãƒ«/g, "ë"],
-    [/Ãƒ /g, "Ã "],
+    [/Ãƒ /g, "à"],
     [/ÃƒÂ¹/g, "ù"],
     [/ÃƒÂ¢/g, "â"],
     [/ÃƒÂ´/g, "ô"],
@@ -604,7 +604,7 @@ async function handleReviewsApi(res, requestUrl) {
     if (message === "PLACE_NOT_FOUND") {
       sendJson(res, 404, {
         ok: false,
-        error: { code: "PLACE_NOT_FOUND", message: "Impossible de trouver la fiche Google Ã  partir des requêtes configurées." }
+        error: { code: "PLACE_NOT_FOUND", message: "Impossible de trouver la fiche Google à partir des requêtes configurées." }
       });
       return;
     }
@@ -1289,12 +1289,12 @@ function buildInvoiceEmailHtml(invoice) {
     + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
     + '<div style="margin-top:18px;line-height:1.6;font-size:14px;">190 Chemin Blanc<br/>62180 Rang du Fliers<br/>06 27 14 08 40 | contact@multipixels.fr<br/>N° SIRET : 80 49 81 835 0000 23<br/>Code APE: 18.12Z</div>'
     + '</td><td style="width:290px;vertical-align:top;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;font-weight:700;text-transform:uppercase;text-align:center;">Adresse de facturation</div><div style="padding:16px 18px;text-align:center;line-height:1.6;">' + (addressLines.length ? addressLines.map(escapeInvoiceHtml).join('<br/>') : 'Informations client Ã  compléter') + '</div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;font-weight:700;text-transform:uppercase;text-align:center;">Adresse de facturation</div><div style="padding:16px 18px;text-align:center;line-height:1.6;">' + (addressLines.length ? addressLines.map(escapeInvoiceHtml).join('<br/>') : 'Informations client à compléter') + '</div></div>'
     + '</td></tr></table>'
     + '<table style="width:100%;margin-top:26px;border-collapse:collapse;">'
     + '<tr><th colspan="2" style="text-align:left;background:#bfdbe9;border:1px solid #435774;padding:10px 12px;">FACTURE N° ' + escapeInvoiceHtml(invoice.reference) + '</th></tr>'
     + '<tr><td style="border:1px solid #c6d6e7;padding:8px 12px;">Date de facturation</td><td style="border:1px solid #c6d6e7;padding:8px 12px;font-weight:700;">' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</td></tr>'
-    + '<tr><td colspan="2" style="border:1px solid #c6d6e7;padding:8px 12px;">Paiement Ã  ' + invoice.paymentDueDays + ' jours Ã  réception de la facture</td></tr>'
+    + '<tr><td colspan="2" style="border:1px solid #c6d6e7;padding:8px 12px;">Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture</td></tr>'
     + '</table>'
     + '<table style="width:100%;margin-top:18px;border-collapse:collapse;">'
     + '<thead><tr><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Référence</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Description</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:center;">Qté</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Prix unitaire</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Total TTC</th></tr></thead>'
@@ -1316,7 +1316,7 @@ function buildInvoiceEmailText(invoice) {
     'Date : ' + formatInvoiceDateFr(invoice.issueDate),
     'Total TTC : ' + formatInvoiceMoney(invoice.total),
     '',
-    'Pour toute question, vous pouvez répondre Ã  cet email ou nous contacter Ã  contact@multipixels.fr.',
+    'Pour toute question, vous pouvez répondre à cet email ou nous contacter à contact@multipixels.fr.',
     '',
     'Cordialement,',
     'MULTIPIXELS.FR'
@@ -1342,7 +1342,7 @@ function buildInvoiceEmailHtml(invoice) {
     + '<div style="margin-top:6px;"><strong>Date :</strong> ' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</div>'
     + '<div style="margin-top:6px;"><strong>Total TTC :</strong> ' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div>'
     + '</div>'
-    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas répondre directement Ã  cet email et de nous contacter Ã  <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
+    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas répondre directement à cet email et de nous contacter à <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
     + '</div>'
     + '</div>';
 }
@@ -1376,7 +1376,7 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
     doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client Ã  compléter';
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
     doc.font('Helvetica').fontSize(9);
     const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
     const addressBoxHeight = 22 + addressBodyHeight;
@@ -1394,7 +1394,7 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.font('Helvetica-Bold').text(formatInvoiceDateFr(invoice.issueDate), 420, 294, { width: 90, align: 'right' });
     doc.font('Helvetica');
     doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
-    doc.text('Paiement Ã  ' + invoice.paymentDueDays + ' jours Ã  réception de la facture', 62, 312);
+    doc.text('Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture', 62, 312);
 
     const tableY = 340;
     const colX = [54, 130, 304, 348, 438];
@@ -1666,7 +1666,7 @@ async function buildQuotePdfBuffer(quote) {
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
     doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client Ã  compléter';
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
     doc.font('Helvetica').fontSize(9);
     const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
     const addressBoxHeight = 22 + addressBodyHeight;
@@ -1733,7 +1733,8 @@ async function buildQuotePdfBuffer(quote) {
 
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, signatureBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.font('Helvetica-Bold').fontSize(7.6).fillColor('#10213b').text('Mention « Bon pour accord »\\nSignature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(7.6).fillColor('#10213b').text('Mention « Bon pour accord »
+Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
     doc.font('Helvetica').fontSize(10).text('Date ___ / ___ / ______', sideBoxX + 12, signatureBoxY + signatureBoxHeight - 24, { width: sideBoxWidth - 24 });
 
     const footerY = Math.min(768, signatureBoxY + signatureBoxHeight + 18);
@@ -2385,12 +2386,12 @@ function buildInvoiceEmailHtml(invoice) {
     + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
     + '<div style="margin-top:18px;line-height:1.6;font-size:14px;">190 Chemin Blanc<br/>62180 Rang du Fliers<br/>06 27 14 08 40 | contact@multipixels.fr<br/>N° SIRET : 80 49 81 835 0000 23<br/>Code APE: 18.12Z</div>'
     + '</td><td style="width:290px;vertical-align:top;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;font-weight:700;text-transform:uppercase;text-align:center;">Adresse de facturation</div><div style="padding:16px 18px;text-align:center;line-height:1.6;">' + (addressLines.length ? addressLines.map(escapeInvoiceHtml).join('<br/>') : 'Informations client Ã  compléter') + '</div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;font-weight:700;text-transform:uppercase;text-align:center;">Adresse de facturation</div><div style="padding:16px 18px;text-align:center;line-height:1.6;">' + (addressLines.length ? addressLines.map(escapeInvoiceHtml).join('<br/>') : 'Informations client à compléter') + '</div></div>'
     + '</td></tr></table>'
     + '<table style="width:100%;margin-top:26px;border-collapse:collapse;">'
     + '<tr><th colspan="2" style="text-align:left;background:#bfdbe9;border:1px solid #435774;padding:10px 12px;">FACTURE N° ' + escapeInvoiceHtml(invoice.reference) + '</th></tr>'
     + '<tr><td style="border:1px solid #c6d6e7;padding:8px 12px;">Date de facturation</td><td style="border:1px solid #c6d6e7;padding:8px 12px;font-weight:700;">' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</td></tr>'
-    + '<tr><td colspan="2" style="border:1px solid #c6d6e7;padding:8px 12px;">Paiement Ã  ' + invoice.paymentDueDays + ' jours Ã  réception de la facture</td></tr>'
+    + '<tr><td colspan="2" style="border:1px solid #c6d6e7;padding:8px 12px;">Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture</td></tr>'
     + '</table>'
     + '<table style="width:100%;margin-top:18px;border-collapse:collapse;">'
     + '<thead><tr><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Référence</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Description</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:center;">Qté</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Prix unitaire</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Total TTC</th></tr></thead>'
@@ -2412,7 +2413,7 @@ function buildInvoiceEmailText(invoice) {
     'Date : ' + formatInvoiceDateFr(invoice.issueDate),
     'Total TTC : ' + formatInvoiceMoney(invoice.total),
     '',
-    'Pour toute question, vous pouvez répondre Ã  cet email ou nous contacter Ã  contact@multipixels.fr.',
+    'Pour toute question, vous pouvez répondre à cet email ou nous contacter à contact@multipixels.fr.',
     '',
     'Cordialement,',
     'MULTIPIXELS.FR'
@@ -2448,7 +2449,7 @@ function buildInvoiceEmailHtml(invoice) {
     + '<div style="margin-top:6px;"><strong>Date :</strong> ' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</div>'
     + '<div style="margin-top:6px;"><strong>Total TTC :</strong> ' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div>'
     + '</div>'
-    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas répondre directement Ã  cet email et de nous contacter Ã  <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
+    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas répondre directement à cet email et de nous contacter à <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
     + '</div>'
     + '</div>';
 }
@@ -2482,7 +2483,7 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
     doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client Ã  compléter';
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
     doc.font('Helvetica').fontSize(9);
     const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
     const addressBoxHeight = 22 + addressBodyHeight;
@@ -2500,7 +2501,7 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.font('Helvetica-Bold').text(formatInvoiceDateFr(invoice.issueDate), 420, 294, { width: 90, align: 'right' });
     doc.font('Helvetica');
     doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
-    doc.text('Paiement Ã  ' + invoice.paymentDueDays + ' jours Ã  réception de la facture', 62, 312);
+    doc.text('Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture', 62, 312);
 
     const tableY = 340;
     const colX = [54, 130, 304, 348, 438];
@@ -2716,7 +2717,7 @@ async function buildQuotePdfBuffer(quote) {
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
     doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client Ã  compléter';
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
     doc.font('Helvetica').fontSize(9);
     const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
     const addressBoxHeight = 22 + addressBodyHeight;
@@ -2783,7 +2784,8 @@ async function buildQuotePdfBuffer(quote) {
 
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, signatureBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.font('Helvetica-Bold').fontSize(7.6).fillColor('#10213b').text('Mention « Bon pour accord »\\nSignature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(7.6).fillColor('#10213b').text('Mention « Bon pour accord »
+Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
     doc.font('Helvetica').fontSize(10).text('Date ___ / ___ / ______', sideBoxX + 12, signatureBoxY + signatureBoxHeight - 24, { width: sideBoxWidth - 24 });
 
     const footerY = Math.min(768, signatureBoxY + signatureBoxHeight + 18);
