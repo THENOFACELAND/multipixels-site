@@ -1,4 +1,4 @@
-const http = require("http");
+﻿const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
@@ -29,6 +29,7 @@ try {
 
 const ROOT = __dirname;
 const DATA_DIR = (process.env.MULTIPIXELS_DATA_DIR || process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(ROOT, 'assets', 'data'));
+const ASSET_DATA_DIR = path.join(ROOT, 'assets', 'data');
 
 function loadDotEnvFile() {
   const dotenvPath = path.join(ROOT, ".env");
@@ -52,6 +53,75 @@ function loadDotEnvFile() {
 }
 
 loadDotEnvFile();
+
+function readJsonFileSafe(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return null;
+    const raw = fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '');
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeJsonFileSafe(filePath, payload) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, JSON.stringify(payload, null, 2) + "\n", "utf8");
+}
+
+function seedFileIfMissing(filename) {
+  const targetPath = path.join(DATA_DIR, filename);
+  const sourcePath = path.join(ASSET_DATA_DIR, filename);
+  if (fs.existsSync(targetPath) || !fs.existsSync(sourcePath)) return;
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.copyFileSync(sourcePath, targetPath);
+}
+
+function seedDocumentsStore() {
+  const targetPath = path.join(DATA_DIR, 'admin-documents.json');
+  const sourcePath = path.join(ASSET_DATA_DIR, 'admin-documents.json');
+  if (!fs.existsSync(sourcePath)) return;
+  if (!fs.existsSync(targetPath)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.copyFileSync(sourcePath, targetPath);
+    return;
+  }
+  const target = readJsonFileSafe(targetPath) || {};
+  const source = readJsonFileSafe(sourcePath) || {};
+  const targetClients = Array.isArray(target.invoiceClients) ? target.invoiceClients : [];
+  const targetRefs = Array.isArray(target.invoiceReferences) ? target.invoiceReferences : [];
+  const sourceClients = Array.isArray(source.invoiceClients) ? source.invoiceClients : [];
+  const sourceRefs = Array.isArray(source.invoiceReferences) ? source.invoiceReferences : [];
+  let changed = false;
+
+  if (!targetClients.length && sourceClients.length) {
+    target.invoiceClients = sourceClients;
+    changed = true;
+  }
+
+  if (!targetRefs.length && sourceRefs.length) {
+    target.invoiceReferences = sourceRefs;
+    changed = true;
+  }
+
+  if (changed) {
+    writeJsonFileSafe(targetPath, target);
+  }
+}
+
+function seedPersistentData() {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    seedFileIfMissing('admin-products.json');
+    seedFileIfMissing('client-space.sqlite');
+    seedDocumentsStore();
+  } catch (error) {
+    const message = error && error.message ? error.message : String(error || 'unknown');
+    console.warn('[data-seed] failed: ' + message);
+  }
+}
+
+seedPersistentData();
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
@@ -167,34 +237,34 @@ function repairText(value) {
   if (!repaired) return "";
 
   const replacements = [
-    [/Ã‰/g, "É"],
-    [/Ãˆ/g, "È"],
-    [/Ã€/g, "À"],
-    [/Ã™/g, "Ù"],
-    [/Ã‚/g, "Â"],
-    [/Ãª/g, "ê"],
-    [/Ã¨/g, "è"],
-    [/Ã©/g, "é"],
-    [/Ã«/g, "ë"],
-    [/Ã /g, "à"],
-    [/Ã¹/g, "ù"],
-    [/Ã¢/g, "â"],
-    [/Ã´/g, "ô"],
-    [/Ã®/g, "î"],
-    [/Ã¯/g, "ï"],
-    [/Ã§/g, "ç"],
-    [/Ã»/g, "û"],
-    [/Ã¼/g, "ü"],
-    [/â€™/g, "’"],
-    [/â€œ/g, '"'],
-    [/â€/g, '"'],
-    [/â€“/g, "-"],
-    [/â€”/g, "-"],
-    [/Â/g, ""],
-    [/ðŸ‘/g, "??"],
-    [/ðŸ”¥/g, "??"],
-    [/ðŸ˜Š/g, "??"],
-    [/ï¿½/g, ""]
+    [/Ãƒâ€°/g, "Ã‰"],
+    [/ÃƒË†/g, "Ãˆ"],
+    [/Ãƒâ‚¬/g, "Ã€"],
+    [/Ãƒâ„¢/g, "Ã™"],
+    [/Ãƒâ€š/g, "Ã‚"],
+    [/ÃƒÂª/g, "Ãª"],
+    [/ÃƒÂ¨/g, "Ã¨"],
+    [/ÃƒÂ©/g, "Ã©"],
+    [/ÃƒÂ«/g, "Ã«"],
+    [/Ãƒ /g, "Ã "],
+    [/ÃƒÂ¹/g, "Ã¹"],
+    [/ÃƒÂ¢/g, "Ã¢"],
+    [/ÃƒÂ´/g, "Ã´"],
+    [/ÃƒÂ®/g, "Ã®"],
+    [/ÃƒÂ¯/g, "Ã¯"],
+    [/ÃƒÂ§/g, "Ã§"],
+    [/ÃƒÂ»/g, "Ã»"],
+    [/ÃƒÂ¼/g, "Ã¼"],
+    [/Ã¢â‚¬â„¢/g, "â€™"],
+    [/Ã¢â‚¬Å“/g, '"'],
+    [/Ã¢â‚¬/g, '"'],
+    [/Ã¢â‚¬â€œ/g, "-"],
+    [/Ã¢â‚¬â€/g, "-"],
+    [/Ã‚/g, ""],
+    [/Ã°Å¸â€˜Â/g, "??"],
+    [/Ã°Å¸â€Â¥/g, "??"],
+    [/Ã°Å¸ËœÅ /g, "??"],
+    [/Ã¯Â¿Â½/g, ""]
   ];
 
   replacements.forEach(([pattern, replacement]) => {
@@ -221,7 +291,7 @@ async function handleContactApi(req, res) {
       ok: false,
       error: {
         code: "SMTP_NOT_CONFIGURED",
-        message: "Configuration SMTP incomplète sur le serveur."
+        message: "Configuration SMTP incomplÃ¨te sur le serveur."
       }
     });
     return;
@@ -241,7 +311,7 @@ async function handleContactApi(req, res) {
 
     sendJson(res, 400, {
       ok: false,
-      error: { code: "INVALID_JSON", message: "Format de requête invalide." }
+      error: { code: "INVALID_JSON", message: "Format de requÃªte invalide." }
     });
     return;
   }
@@ -256,7 +326,7 @@ async function handleContactApi(req, res) {
   let attachment = null;
 
   if (website) {
-    sendJson(res, 200, { ok: true, message: "Message envoyé avec succès." });
+    sendJson(res, 200, { ok: true, message: "Message envoyÃ© avec succÃ¨s." });
     return;
   }
 
@@ -269,7 +339,7 @@ async function handleContactApi(req, res) {
     if (!filename || !rawBase64) {
       sendJson(res, 400, {
         ok: false,
-        error: { code: "INVALID_ATTACHMENT", message: "Pièce jointe invalide." }
+        error: { code: "INVALID_ATTACHMENT", message: "PiÃ¨ce jointe invalide." }
       });
       return;
     }
@@ -280,7 +350,7 @@ async function handleContactApi(req, res) {
     if (attachmentBytes > maxAttachmentBytes) {
       sendJson(res, 413, {
         ok: false,
-        error: { code: "ATTACHMENT_TOO_LARGE", message: "Le fichier joint dépasse la limite de 8 Mo." }
+        error: { code: "ATTACHMENT_TOO_LARGE", message: "Le fichier joint dÃ©passe la limite de 8 Mo." }
       });
       return;
     }
@@ -295,7 +365,7 @@ async function handleContactApi(req, res) {
   if (!nom || !email || !tel || !message) {
     sendJson(res, 400, {
       ok: false,
-      error: { code: "VALIDATION_ERROR", message: "Nom, email, téléphone et message sont obligatoires." }
+      error: { code: "VALIDATION_ERROR", message: "Nom, email, tÃ©lÃ©phone et message sont obligatoires." }
     });
     return;
   }
@@ -324,10 +394,10 @@ async function handleContactApi(req, res) {
     "",
     `Nom: ${nom}`,
     `Email: ${email}`,
-    `Téléphone: ${tel || "-"}`,
+    `TÃ©lÃ©phone: ${tel || "-"}`,
     `Service: ${service || "-"}`,
-    `Quantité estimée: ${quantite || "-"}`,
-    `Pièce jointe: ${attachment ? attachment.filename : "-"}`,
+    `QuantitÃ© estimÃ©e: ${quantite || "-"}`,
+    `PiÃ¨ce jointe: ${attachment ? attachment.filename : "-"}`,
     "",
     "Message:",
     message
@@ -350,7 +420,7 @@ async function handleContactApi(req, res) {
     return;
   }
 
-  sendJson(res, 200, { ok: true, message: "Message envoyé avec succès." });
+  sendJson(res, 200, { ok: true, message: "Message envoyÃ© avec succÃ¨s." });
 }
 
 function httpGetJson(urlString) {
@@ -365,7 +435,7 @@ function httpGetJson(urlString) {
             body: JSON.parse(Buffer.concat(chunks).toString("utf8"))
           });
         } catch (_) {
-          reject(new Error("Réponse Google invalide (JSON non parseable)."));
+          reject(new Error("RÃ©ponse Google invalide (JSON non parseable)."));
         }
       });
     }).on("error", reject);
@@ -404,7 +474,7 @@ async function getPlaceDetails(placeId) {
   return {
     ok: true,
     placeId: result.place_id || placeId,
-    name: repairText(result.name || "Établissement Google"),
+    name: repairText(result.name || "Ã‰tablissement Google"),
     rating: Number(result.rating || 0),
     ratingCount: Number(result.user_ratings_total || 0),
     url: repairText(result.url || ""),
@@ -534,7 +604,7 @@ async function handleReviewsApi(res, requestUrl) {
     if (message === "PLACE_NOT_FOUND") {
       sendJson(res, 404, {
         ok: false,
-        error: { code: "PLACE_NOT_FOUND", message: "Impossible de trouver la fiche Google à partir des requêtes configurées." }
+        error: { code: "PLACE_NOT_FOUND", message: "Impossible de trouver la fiche Google Ã  partir des requÃªtes configurÃ©es." }
       });
       return;
     }
@@ -545,7 +615,7 @@ async function handleReviewsApi(res, requestUrl) {
         ok: false,
         error: {
           code: "GOOGLE_PLACE_DETAILS_FAILED",
-          message: "Google n'a pas retourné les détails de la fiche.",
+          message: "Google n'a pas retournÃ© les dÃ©tails de la fiche.",
           googleStatus
         }
       });
@@ -556,7 +626,7 @@ async function handleReviewsApi(res, requestUrl) {
       ok: false,
       error: {
         code: "GOOGLE_REVIEWS_INTERNAL_ERROR",
-        message: "Impossible de récupérer les avis Google pour le moment."
+        message: "Impossible de rÃ©cupÃ©rer les avis Google pour le moment."
       }
     });
   }
@@ -579,7 +649,7 @@ async function handleCheckoutSessionApi(req, res) {
   } catch (error) {
     sendJson(res, 400, {
       ok: false,
-      error: { code: "INVALID_JSON", message: "Corps de requête invalide." }
+      error: { code: "INVALID_JSON", message: "Corps de requÃªte invalide." }
     });
     return;
   }
@@ -598,7 +668,7 @@ async function handleCheckoutSessionApi(req, res) {
       ok: false,
       error: {
         code: "STRIPE_NOT_CONFIGURED",
-        message: "Stripe n'est pas encore configuré sur le serveur. Le tunnel est prêt mais les clés d'environnement doivent être ajoutées."
+        message: "Stripe n'est pas encore configurÃ© sur le serveur. Le tunnel est prÃªt mais les clÃ©s d'environnement doivent Ãªtre ajoutÃ©es."
       }
     });
     return;
@@ -609,7 +679,7 @@ async function handleCheckoutSessionApi(req, res) {
       ok: false,
       error: {
         code: "STRIPE_PACKAGE_MISSING",
-        message: "Le package Stripe n'est pas installé côté serveur. Ajoutez la dépendance avant d'activer le checkout."
+        message: "Le package Stripe n'est pas installÃ© cÃ´tÃ© serveur. Ajoutez la dÃ©pendance avant d'activer le checkout."
       }
     });
     return;
@@ -689,7 +759,7 @@ async function handleCheckoutSessionApi(req, res) {
       ok: false,
       error: {
         code: "STRIPE_CHECKOUT_FAILED",
-        message: error && error.message ? error.message : "Impossible de créer la session Stripe."
+        message: error && error.message ? error.message : "Impossible de crÃ©er la session Stripe."
       }
     });
   }
@@ -943,8 +1013,8 @@ function buildSeedStore() {
             statusTone: 'in-progress',
             createdAt: '2026-03-30T09:00:00.000Z',
             updatedAt: '2026-03-30T09:00:00.000Z',
-            messagePreview: 'Pouvez-vous envoyer la facture au format PDF pour notre comptabilité ?',
-            lastReply: 'Ticket reçu, un retour est prévu sous 24h.'
+            messagePreview: 'Pouvez-vous envoyer la facture au format PDF pour notre comptabilitÃ© ?',
+            lastReply: 'Ticket reÃ§u, un retour est prÃ©vu sous 24h.'
           }
         ]
       }
@@ -1139,7 +1209,7 @@ function buildInvoiceRecord(existingInvoice, payload, forcedReference) {
   const vatRate = Math.max(0, Number(payload.vatRate || 0));
   const total = Number(items.reduce((sum, item) => sum + item.total, 0).toFixed(2));
   const now = new Date().toISOString();
-  const emailSubject = cleanInvoiceField(payload.emailSubject, 220) || ('Votre facture - Multipixels.fr, n° ' + forcedReference);
+  const emailSubject = cleanInvoiceField(payload.emailSubject, 220) || ('Votre facture - Multipixels.fr, nÂ° ' + forcedReference);
   const emailMessage = String(payload.emailMessage || '').trim();
   return {
     id: existingInvoice ? existingInvoice.id : createAdminDocumentId('invoice'),
@@ -1217,23 +1287,23 @@ function buildInvoiceEmailHtml(invoice) {
     + '<img src="https://multipixels.fr/assets/Background/favicon.png" alt="MULTIPIXELS" style="width:88px;height:88px;object-fit:contain;display:block;margin-bottom:12px;" />'
     + '<div style="font-size:30px;font-weight:800;color:#0f2350;">MULTIPIXELS.FR</div>'
     + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
-    + '<div style="margin-top:18px;line-height:1.6;font-size:14px;">190 Chemin Blanc<br/>62180 Rang du Fliers<br/>06 27 14 08 40 | contact@multipixels.fr<br/>N° SIRET : 80 49 81 835 0000 23<br/>Code APE: 18.12Z</div>'
+    + '<div style="margin-top:18px;line-height:1.6;font-size:14px;">190 Chemin Blanc<br/>62180 Rang du Fliers<br/>06 27 14 08 40 | contact@multipixels.fr<br/>NÂ° SIRET : 80 49 81 835 0000 23<br/>Code APE: 18.12Z</div>'
     + '</td><td style="width:290px;vertical-align:top;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;font-weight:700;text-transform:uppercase;text-align:center;">Adresse de facturation</div><div style="padding:16px 18px;text-align:center;line-height:1.6;">' + (addressLines.length ? addressLines.map(escapeInvoiceHtml).join('<br/>') : 'Informations client à compléter') + '</div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;font-weight:700;text-transform:uppercase;text-align:center;">Adresse de facturation</div><div style="padding:16px 18px;text-align:center;line-height:1.6;">' + (addressLines.length ? addressLines.map(escapeInvoiceHtml).join('<br/>') : 'Informations client Ã  complÃ©ter') + '</div></div>'
     + '</td></tr></table>'
     + '<table style="width:100%;margin-top:26px;border-collapse:collapse;">'
-    + '<tr><th colspan="2" style="text-align:left;background:#bfdbe9;border:1px solid #435774;padding:10px 12px;">FACTURE N° ' + escapeInvoiceHtml(invoice.reference) + '</th></tr>'
+    + '<tr><th colspan="2" style="text-align:left;background:#bfdbe9;border:1px solid #435774;padding:10px 12px;">FACTURE NÂ° ' + escapeInvoiceHtml(invoice.reference) + '</th></tr>'
     + '<tr><td style="border:1px solid #c6d6e7;padding:8px 12px;">Date de facturation</td><td style="border:1px solid #c6d6e7;padding:8px 12px;font-weight:700;">' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</td></tr>'
-    + '<tr><td colspan="2" style="border:1px solid #c6d6e7;padding:8px 12px;">Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture</td></tr>'
+    + '<tr><td colspan="2" style="border:1px solid #c6d6e7;padding:8px 12px;">Paiement Ã  ' + invoice.paymentDueDays + ' jours Ã  rÃ©ception de la facture</td></tr>'
     + '</table>'
     + '<table style="width:100%;margin-top:18px;border-collapse:collapse;">'
-    + '<thead><tr><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Référence</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Description</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:center;">Qté</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Prix unitaire</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Total TTC</th></tr></thead>'
+    + '<thead><tr><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">RÃ©fÃ©rence</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Description</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:center;">QtÃ©</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Prix unitaire</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Total TTC</th></tr></thead>'
     + '<tbody>' + rows + '</tbody></table>'
     + '<table style="width:100%;margin-top:24px;border-collapse:collapse;">'
     + '<tr><td style="vertical-align:top;padding-right:12px;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;">Conditions de paiement</div><div style="padding:16px 18px;line-height:1.7;text-align:center;">Méthodes de paiement acceptées :<br/><strong>Chèque, Virement, Espèce, CB</strong><br/><br/>VIREMENT BANCAIRE<br/>Banque : CA Nord de France<br/>IBAN : FR76 1670 6000 5154 0091 5025 361<br/>BIC : AGRIFRPP867<br/>Titulaire du compte : BAUDELOT Guillaume<br/><br/>En cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée</div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;">Conditions de paiement</div><div style="padding:16px 18px;line-height:1.7;text-align:center;">MÃ©thodes de paiement acceptÃ©es :<br/><strong>ChÃ¨que, Virement, EspÃ¨ce, CB</strong><br/><br/>VIREMENT BANCAIRE<br/>Banque : CA Nord de France<br/>IBAN : FR76 1670 6000 5154 0091 5025 361<br/>BIC : AGRIFRPP867<br/>Titulaire du compte : BAUDELOT Guillaume<br/><br/>En cas de retard de paiement, une indemnitÃ© forfaitaire de 40â‚¬ pourra Ãªtre appliquÃ©e</div></div>'
     + '</td><td style="width:220px;vertical-align:top;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;font-weight:700;">TOTAL TTC</div><div style="padding:16px 18px;text-align:center;"><div style="font-size:28px;font-weight:800;">' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div><div style="margin-top:10px;font-size:13px;">' + escapeInvoiceHtml(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention) + '</div></div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;font-weight:700;">TOTAL TTC</div><div style="padding:16px 18px;text-align:center;"><div style="font-size:28px;font-weight:800;">' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div><div style="margin-top:10px;font-size:13px;">' + escapeInvoiceHtml(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquÃ©e') : invoice.vatMention) + '</div></div></div>'
     + '</td></tr></table>'
     + '<div style="margin-top:24px;text-align:center;color:#3867b3;font-weight:700;">www.multipixels.fr</div></div></div>';
 }
@@ -1242,11 +1312,11 @@ function buildInvoiceEmailText(invoice) {
   return [
     'Bonjour,',
     '',
-    'Veuillez trouver en pièce jointe votre facture ' + invoice.reference + '.',
+    'Veuillez trouver en piÃ¨ce jointe votre facture ' + invoice.reference + '.',
     'Date : ' + formatInvoiceDateFr(invoice.issueDate),
     'Total TTC : ' + formatInvoiceMoney(invoice.total),
     '',
-    'Pour toute question, vous pouvez répondre à cet email ou nous contacter à contact@multipixels.fr.',
+    'Pour toute question, vous pouvez rÃ©pondre Ã  cet email ou nous contacter Ã  contact@multipixels.fr.',
     '',
     'Cordialement,',
     'MULTIPIXELS.FR'
@@ -1261,18 +1331,18 @@ function buildInvoiceAttachmentName(invoice) {
 function buildInvoiceEmailHtml(invoice) {
   const intro = invoice.emailMessage
     ? invoice.emailMessage.split(/\r?\n/).map((line) => '<div>' + escapeInvoiceHtml(line) + '</div>').join('')
-    : '<div>Bonjour,</div><div style="margin-top:12px;">Veuillez trouver votre facture en pièce jointe.</div>';
+    : '<div>Bonjour,</div><div style="margin-top:12px;">Veuillez trouver votre facture en piÃ¨ce jointe.</div>';
   return '<div style="font-family:Arial,sans-serif;color:#10213b;background:#eef5fd;padding:24px;">'
     + '<div style="max-width:760px;margin:0 auto;background:#ffffff;border:1px solid #d8e4f2;padding:28px;border-radius:12px;">'
     + '<div style="font-size:28px;font-weight:800;color:#0f2350;">MULTIPIXELS.FR</div>'
     + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
     + '<div style="margin-top:18px;line-height:1.7;font-size:15px;">' + intro + '</div>'
     + '<div style="margin-top:22px;padding:16px 18px;border:1px solid #d7e8f3;background:#f7fbff;border-radius:10px;">'
-    + '<div><strong>Référence :</strong> ' + escapeInvoiceHtml(invoice.reference) + '</div>'
+    + '<div><strong>RÃ©fÃ©rence :</strong> ' + escapeInvoiceHtml(invoice.reference) + '</div>'
     + '<div style="margin-top:6px;"><strong>Date :</strong> ' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</div>'
     + '<div style="margin-top:6px;"><strong>Total TTC :</strong> ' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div>'
     + '</div>'
-    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas répondre directement à cet email et de nous contacter à <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
+    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas rÃ©pondre directement Ã  cet email et de nous contacter Ã  <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
     + '</div>'
     + '</div>';
 }
@@ -1304,9 +1374,9 @@ async function buildInvoicePdfBuffer(invoice) {
 
     doc.font('Helvetica-Bold').fontSize(22).fillColor('#0f2350').text('MULTIPIXELS.FR', 54, 136);
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
-    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nNÂ° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client Ã  complÃ©ter';
     doc.font('Helvetica').fontSize(9);
     const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
     const addressBoxHeight = 22 + addressBodyHeight;
@@ -1317,19 +1387,19 @@ async function buildInvoicePdfBuffer(invoice) {
 
     doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
     doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
-    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('FACTURE N° ' + invoice.reference, 62, 276);
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('FACTURE NÂ° ' + invoice.reference, 62, 276);
     doc.font('Helvetica').fontSize(9);
     doc.rect(54, 288, 471, 18).stroke('#8ca6ba');
     doc.text('Date de facturation', 62, 294);
     doc.font('Helvetica-Bold').text(formatInvoiceDateFr(invoice.issueDate), 420, 294, { width: 90, align: 'right' });
     doc.font('Helvetica');
     doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
-    doc.text('Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture', 62, 312);
+    doc.text('Paiement Ã  ' + invoice.paymentDueDays + ' jours Ã  rÃ©ception de la facture', 62, 312);
 
     const tableY = 340;
     const colX = [54, 130, 304, 348, 438];
     const colW = [76, 174, 44, 90, 87];
-    const headers = ['Référence', 'Description', 'Qté', 'Prix unitaire', 'Total TTC'];
+    const headers = ['RÃ©fÃ©rence', 'Description', 'QtÃ©', 'Prix unitaire', 'Total TTC'];
     headers.forEach(function (header, index) {
       doc.rect(colX[index], tableY, colW[index], 18).fillAndStroke('#d7e8f3', '#8ca6ba');
       doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(8.5).text(header, colX[index] + 4, tableY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
@@ -1355,13 +1425,13 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.rect(54, bottomY, 330, 150).stroke('#435774');
     doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
-    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+    doc.font('Helvetica').fontSize(8.8).text('MÃ©thodes de paiement acceptÃ©es :\n\nChÃ¨que, Virement, EspÃ¨ce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnitÃ© forfaitaire de 40â‚¬ pourra Ãªtre appliquÃ©e', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
 
     doc.rect(404, bottomY, 121, 76).stroke('#435774');
     doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', 404, bottomY + 6, { width: 121, align: 'center' });
     doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(invoice.total), 404, bottomY + 34, { width: 121, align: 'center' });
-    doc.font('Helvetica').fontSize(7.8).text(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquÃ©e') : invoice.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
 
     const footerY = Math.min(744, bottomY + 184);
     doc.moveTo(54, footerY).lineTo(525, footerY).stroke('#c2d4e8');
@@ -1480,8 +1550,8 @@ async function handleAdminSendInvoiceApi(req, res) {
       }]
     });
   } catch (error) {
-    const detail = error && error.message ? String(error.message) : 'Vérifiez la configuration email.';
-    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d’envoyer la facture pour le moment. ' + detail } });
+    const detail = error && error.message ? String(error.message) : 'VÃ©rifiez la configuration email.';
+    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible dâ€™envoyer la facture pour le moment. ' + detail } });
     return;
   }
 
@@ -1594,9 +1664,9 @@ async function buildQuotePdfBuffer(quote) {
 
     doc.font('Helvetica-Bold').fontSize(22).fillColor('#0f2350').text('MULTIPIXELS.FR', 54, 136);
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
-    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nNÂ° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client Ã  complÃ©ter';
     doc.font('Helvetica').fontSize(9);
     const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
     const addressBoxHeight = 22 + addressBodyHeight;
@@ -1607,19 +1677,19 @@ async function buildQuotePdfBuffer(quote) {
 
     doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
     doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
-    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('DEVIS N° ' + quote.reference, 62, 276);
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('DEVIS NÂ° ' + quote.reference, 62, 276);
     doc.font('Helvetica').fontSize(9);
     doc.rect(54, 288, 471, 18).stroke('#8ca6ba');
     doc.text('Date du devis', 62, 294);
     doc.font('Helvetica-Bold').text(formatInvoiceDateFr(quote.issueDate), 420, 294, { width: 90, align: 'right' });
     doc.font('Helvetica');
     doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
-    doc.text('Validité du devis : ' + quote.paymentDueDays + ' jours', 62, 312);
+    doc.text('ValiditÃ© du devis : ' + quote.paymentDueDays + ' jours', 62, 312);
 
     const tableY = 340;
     const colX = [54, 130, 304, 348, 438];
     const colW = [76, 174, 44, 90, 87];
-    const headers = ['Référence', 'Description', 'Qté', 'Prix unitaire', 'Total TTC'];
+    const headers = ['RÃ©fÃ©rence', 'Description', 'QtÃ©', 'Prix unitaire', 'Total TTC'];
     headers.forEach(function (header, index) {
       doc.rect(colX[index], tableY, colW[index], 18).fillAndStroke('#d7e8f3', '#8ca6ba');
       doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(8.5).text(header, colX[index] + 4, tableY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
@@ -1653,17 +1723,17 @@ async function buildQuotePdfBuffer(quote) {
     doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 126).stroke('#435774');
     doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', paymentBoxX, bottomY + 6, { width: paymentBoxWidth, align: 'center' });
-    doc.font('Helvetica').fontSize(8.1).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
+    doc.font('Helvetica').fontSize(8.1).text('MÃ©thodes de paiement acceptÃ©es :\n\nChÃ¨que, Virement, EspÃ¨ce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnitÃ© forfaitaire de 40â‚¬ pourra Ãªtre appliquÃ©e', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
 
     doc.rect(sideBoxX, bottomY, sideBoxWidth, totalBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, bottomY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', sideBoxX, bottomY + 6, { width: sideBoxWidth, align: 'center' });
     doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(quote.total), sideBoxX, bottomY + 34, { width: sideBoxWidth, align: 'center' });
-    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquée') : quote.vatMention, sideBoxX + 10, bottomY + 58, { width: sideBoxWidth - 20, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquÃ©e') : quote.vatMention, sideBoxX + 10, bottomY + 58, { width: sideBoxWidth - 20, align: 'center' });
 
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, signatureBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.font('Helvetica-Bold').fontSize(8.3).fillColor('#10213b').text('Mention « Bon pour accord » + Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(8.3).fillColor('#10213b').text('Mention Â« Bon pour accord Â» + Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
     doc.font('Helvetica').fontSize(10).text('Date ___ / ___ / ______', sideBoxX + 12, signatureBoxY + signatureBoxHeight - 24, { width: sideBoxWidth - 24 });
 
     const footerY = Math.min(768, signatureBoxY + signatureBoxHeight + 18);
@@ -1691,7 +1761,7 @@ async function handleAdminQuotePdfApi(req, res) {
   try {
     body = await parseJsonBody(req, 1024 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -1711,8 +1781,8 @@ async function handleAdminQuotePdfApi(req, res) {
   try {
     pdfBuffer = await buildQuotePdfBuffer(quote);
   } catch (error) {
-    const detail = error && error.message ? String(error.message) : 'Génération PDF impossible.';
-    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_QUOTE_PDF_FAILED', message: 'Impossible de générer le PDF du devis. ' + detail } });
+    const detail = error && error.message ? String(error.message) : 'GÃ©nÃ©ration PDF impossible.';
+    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_QUOTE_PDF_FAILED', message: 'Impossible de gÃ©nÃ©rer le PDF du devis. ' + detail } });
     return;
   }
 
@@ -1743,7 +1813,7 @@ function requireAuthenticatedClient(req, res) {
   const session = (store.sessions || []).find((item) => item.token === token);
   if (!session) {
     writeClientStore(store);
-    sendJson(res, 401, { ok: false, error: { code: 'INVALID_SESSION', message: 'Session invalide ou expirée.' } });
+    sendJson(res, 401, { ok: false, error: { code: 'INVALID_SESSION', message: 'Session invalide ou expirÃ©e.' } });
     return null;
   }
 
@@ -2060,7 +2130,7 @@ async function sendClientEmail(options) {
   }
 
   if (!nodemailer || !SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-    throw new Error('Configuration email incomplète. Ajoutez RESEND_API_KEY, BREVO_API_KEY ou un SMTP complet.');
+    throw new Error('Configuration email incomplÃ¨te. Ajoutez RESEND_API_KEY, BREVO_API_KEY ou un SMTP complet.');
   }
 
   const transporter = nodemailer.createTransport({
@@ -2092,14 +2162,14 @@ async function sendClientEmail(options) {
       } catch (fallbackError) {
         console.error('[invoice-email] SMTP fallback send failed', fallbackError);
         if (/timeout|ETIMEDOUT/i.test(String(fallbackError && fallbackError.message || ''))) {
-          throw new Error('Connection timeout. Sur Railway, utilisez de préférence RESEND_API_KEY ou BREVO_API_KEY.');
+          throw new Error('Connection timeout. Sur Railway, utilisez de prÃ©fÃ©rence RESEND_API_KEY ou BREVO_API_KEY.');
         }
         throw fallbackError;
       }
     }
     console.error('[invoice-email] SMTP send failed', primaryError);
     if (/timeout|ETIMEDOUT/i.test(String(primaryError && primaryError.message || ''))) {
-      throw new Error('Connection timeout. Sur Railway, utilisez de préférence RESEND_API_KEY ou BREVO_API_KEY.');
+      throw new Error('Connection timeout. Sur Railway, utilisez de prÃ©fÃ©rence RESEND_API_KEY ou BREVO_API_KEY.');
     }
     throw primaryError;
   }
@@ -2235,7 +2305,7 @@ function buildInvoiceRecord(existingInvoice, payload, forcedReference) {
   const vatRate = Math.max(0, Number(payload.vatRate || 0));
   const total = Number(items.reduce((sum, item) => sum + item.total, 0).toFixed(2));
   const now = new Date().toISOString();
-  const emailSubject = cleanInvoiceField(payload.emailSubject, 220) || ('Votre facture - Multipixels.fr, n° ' + forcedReference);
+  const emailSubject = cleanInvoiceField(payload.emailSubject, 220) || ('Votre facture - Multipixels.fr, nÂ° ' + forcedReference);
   const emailMessage = String(payload.emailMessage || '').trim();
   return {
     id: existingInvoice ? existingInvoice.id : createAdminDocumentId('invoice'),
@@ -2313,23 +2383,23 @@ function buildInvoiceEmailHtml(invoice) {
     + '<img src="https://multipixels.fr/assets/Background/favicon.png" alt="MULTIPIXELS" style="width:88px;height:88px;object-fit:contain;display:block;margin-bottom:12px;" />'
     + '<div style="font-size:30px;font-weight:800;color:#0f2350;">MULTIPIXELS.FR</div>'
     + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
-    + '<div style="margin-top:18px;line-height:1.6;font-size:14px;">190 Chemin Blanc<br/>62180 Rang du Fliers<br/>06 27 14 08 40 | contact@multipixels.fr<br/>N° SIRET : 80 49 81 835 0000 23<br/>Code APE: 18.12Z</div>'
+    + '<div style="margin-top:18px;line-height:1.6;font-size:14px;">190 Chemin Blanc<br/>62180 Rang du Fliers<br/>06 27 14 08 40 | contact@multipixels.fr<br/>NÂ° SIRET : 80 49 81 835 0000 23<br/>Code APE: 18.12Z</div>'
     + '</td><td style="width:290px;vertical-align:top;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;font-weight:700;text-transform:uppercase;text-align:center;">Adresse de facturation</div><div style="padding:16px 18px;text-align:center;line-height:1.6;">' + (addressLines.length ? addressLines.map(escapeInvoiceHtml).join('<br/>') : 'Informations client à compléter') + '</div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;font-weight:700;text-transform:uppercase;text-align:center;">Adresse de facturation</div><div style="padding:16px 18px;text-align:center;line-height:1.6;">' + (addressLines.length ? addressLines.map(escapeInvoiceHtml).join('<br/>') : 'Informations client Ã  complÃ©ter') + '</div></div>'
     + '</td></tr></table>'
     + '<table style="width:100%;margin-top:26px;border-collapse:collapse;">'
-    + '<tr><th colspan="2" style="text-align:left;background:#bfdbe9;border:1px solid #435774;padding:10px 12px;">FACTURE N° ' + escapeInvoiceHtml(invoice.reference) + '</th></tr>'
+    + '<tr><th colspan="2" style="text-align:left;background:#bfdbe9;border:1px solid #435774;padding:10px 12px;">FACTURE NÂ° ' + escapeInvoiceHtml(invoice.reference) + '</th></tr>'
     + '<tr><td style="border:1px solid #c6d6e7;padding:8px 12px;">Date de facturation</td><td style="border:1px solid #c6d6e7;padding:8px 12px;font-weight:700;">' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</td></tr>'
-    + '<tr><td colspan="2" style="border:1px solid #c6d6e7;padding:8px 12px;">Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture</td></tr>'
+    + '<tr><td colspan="2" style="border:1px solid #c6d6e7;padding:8px 12px;">Paiement Ã  ' + invoice.paymentDueDays + ' jours Ã  rÃ©ception de la facture</td></tr>'
     + '</table>'
     + '<table style="width:100%;margin-top:18px;border-collapse:collapse;">'
-    + '<thead><tr><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Référence</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Description</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:center;">Qté</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Prix unitaire</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Total TTC</th></tr></thead>'
+    + '<thead><tr><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">RÃ©fÃ©rence</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:left;">Description</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:center;">QtÃ©</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Prix unitaire</th><th style="padding:8px;border:1px solid #8ea8bd;background:#d7e8f3;text-align:right;">Total TTC</th></tr></thead>'
     + '<tbody>' + rows + '</tbody></table>'
     + '<table style="width:100%;margin-top:24px;border-collapse:collapse;">'
     + '<tr><td style="vertical-align:top;padding-right:12px;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;">Conditions de paiement</div><div style="padding:16px 18px;line-height:1.7;text-align:center;">Méthodes de paiement acceptées :<br/><strong>Chèque, Virement, Espèce, CB</strong><br/><br/>VIREMENT BANCAIRE<br/>Banque : CA Nord de France<br/>IBAN : FR76 1670 6000 5154 0091 5025 361<br/>BIC : AGRIFRPP867<br/>Titulaire du compte : BAUDELOT Guillaume<br/><br/>En cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée</div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;">Conditions de paiement</div><div style="padding:16px 18px;line-height:1.7;text-align:center;">MÃ©thodes de paiement acceptÃ©es :<br/><strong>ChÃ¨que, Virement, EspÃ¨ce, CB</strong><br/><br/>VIREMENT BANCAIRE<br/>Banque : CA Nord de France<br/>IBAN : FR76 1670 6000 5154 0091 5025 361<br/>BIC : AGRIFRPP867<br/>Titulaire du compte : BAUDELOT Guillaume<br/><br/>En cas de retard de paiement, une indemnitÃ© forfaitaire de 40â‚¬ pourra Ãªtre appliquÃ©e</div></div>'
     + '</td><td style="width:220px;vertical-align:top;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;font-weight:700;">TOTAL TTC</div><div style="padding:16px 18px;text-align:center;"><div style="font-size:28px;font-weight:800;">' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div><div style="margin-top:10px;font-size:13px;">' + escapeInvoiceHtml(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention) + '</div></div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;font-weight:700;">TOTAL TTC</div><div style="padding:16px 18px;text-align:center;"><div style="font-size:28px;font-weight:800;">' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div><div style="margin-top:10px;font-size:13px;">' + escapeInvoiceHtml(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquÃ©e') : invoice.vatMention) + '</div></div></div>'
     + '</td></tr></table>'
     + '<div style="margin-top:24px;text-align:center;color:#3867b3;font-weight:700;">www.multipixels.fr</div></div></div>';
 }
@@ -2338,11 +2408,11 @@ function buildInvoiceEmailText(invoice) {
   return [
     'Bonjour,',
     '',
-    'Veuillez trouver en pièce jointe votre facture ' + invoice.reference + '.',
+    'Veuillez trouver en piÃ¨ce jointe votre facture ' + invoice.reference + '.',
     'Date : ' + formatInvoiceDateFr(invoice.issueDate),
     'Total TTC : ' + formatInvoiceMoney(invoice.total),
     '',
-    'Pour toute question, vous pouvez répondre à cet email ou nous contacter à contact@multipixels.fr.',
+    'Pour toute question, vous pouvez rÃ©pondre Ã  cet email ou nous contacter Ã  contact@multipixels.fr.',
     '',
     'Cordialement,',
     'MULTIPIXELS.FR'
@@ -2357,7 +2427,7 @@ function buildInvoiceAttachmentName(invoice) {
 function buildInvoiceEmailHtml(invoice) {
   const intro = invoice.emailMessage
     ? invoice.emailMessage.split(/\r?\n/).map((line) => '<div>' + escapeInvoiceHtml(line) + '</div>').join('')
-    : '<div>Bonjour,</div><div style="margin-top:12px;">Veuillez trouver votre facture en pièce jointe.</div>';
+    : '<div>Bonjour,</div><div style="margin-top:12px;">Veuillez trouver votre facture en piÃ¨ce jointe.</div>';
   const logoUrl = 'https://www.multipixels.fr/assets/Background/favicon.png';
   return '<div style="font-family:Arial,sans-serif;color:#10213b;background:#eef5fd;padding:24px;">'
     + '<div style="max-width:760px;margin:0 auto;background:#ffffff;border:1px solid #d8e4f2;padding:28px;border-radius:12px;">'
@@ -2374,11 +2444,11 @@ function buildInvoiceEmailHtml(invoice) {
     + '</table>'
     + '<div style="margin-top:18px;line-height:1.7;font-size:15px;">' + intro + '</div>'
     + '<div style="margin-top:22px;padding:16px 18px;border:1px solid #d7e8f3;background:#f7fbff;border-radius:10px;">'
-    + '<div><strong>Référence :</strong> ' + escapeInvoiceHtml(invoice.reference) + '</div>'
+    + '<div><strong>RÃ©fÃ©rence :</strong> ' + escapeInvoiceHtml(invoice.reference) + '</div>'
     + '<div style="margin-top:6px;"><strong>Date :</strong> ' + escapeInvoiceHtml(formatInvoiceDateFr(invoice.issueDate)) + '</div>'
     + '<div style="margin-top:6px;"><strong>Total TTC :</strong> ' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div>'
     + '</div>'
-    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas répondre directement à cet email et de nous contacter à <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
+    + '<div style="margin-top:22px;font-size:14px;line-height:1.6;color:#4b607d;">Pour toute question, merci de ne pas rÃ©pondre directement Ã  cet email et de nous contacter Ã  <a href="mailto:contact@multipixels.fr" style="color:#1c56b3;">contact@multipixels.fr</a> ou au 06 27 14 08 40.</div>'
     + '</div>'
     + '</div>';
 }
@@ -2410,9 +2480,9 @@ async function buildInvoicePdfBuffer(invoice) {
 
     doc.font('Helvetica-Bold').fontSize(22).fillColor('#0f2350').text('MULTIPIXELS.FR', 54, 136);
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
-    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nNÂ° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client Ã  complÃ©ter';
     doc.font('Helvetica').fontSize(9);
     const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
     const addressBoxHeight = 22 + addressBodyHeight;
@@ -2423,19 +2493,19 @@ async function buildInvoicePdfBuffer(invoice) {
 
     doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
     doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
-    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('FACTURE N° ' + invoice.reference, 62, 276);
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('FACTURE NÂ° ' + invoice.reference, 62, 276);
     doc.font('Helvetica').fontSize(9);
     doc.rect(54, 288, 471, 18).stroke('#8ca6ba');
     doc.text('Date de facturation', 62, 294);
     doc.font('Helvetica-Bold').text(formatInvoiceDateFr(invoice.issueDate), 420, 294, { width: 90, align: 'right' });
     doc.font('Helvetica');
     doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
-    doc.text('Paiement à ' + invoice.paymentDueDays + ' jours à réception de la facture', 62, 312);
+    doc.text('Paiement Ã  ' + invoice.paymentDueDays + ' jours Ã  rÃ©ception de la facture', 62, 312);
 
     const tableY = 340;
     const colX = [54, 130, 304, 348, 438];
     const colW = [76, 174, 44, 90, 87];
-    const headers = ['Référence', 'Description', 'Qté', 'Prix unitaire', 'Total TTC'];
+    const headers = ['RÃ©fÃ©rence', 'Description', 'QtÃ©', 'Prix unitaire', 'Total TTC'];
     headers.forEach(function (header, index) {
       doc.rect(colX[index], tableY, colW[index], 18).fillAndStroke('#d7e8f3', '#8ca6ba');
       doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(8.5).text(header, colX[index] + 4, tableY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
@@ -2461,13 +2531,13 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.rect(54, bottomY, 330, 150).stroke('#435774');
     doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
-    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+    doc.font('Helvetica').fontSize(8.8).text('MÃ©thodes de paiement acceptÃ©es :\n\nChÃ¨que, Virement, EspÃ¨ce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnitÃ© forfaitaire de 40â‚¬ pourra Ãªtre appliquÃ©e', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
 
     doc.rect(404, bottomY, 121, 76).stroke('#435774');
     doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', 404, bottomY + 6, { width: 121, align: 'center' });
     doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(invoice.total), 404, bottomY + 34, { width: 121, align: 'center' });
-    doc.font('Helvetica').fontSize(7.8).text(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquÃ©e') : invoice.vatMention, 414, bottomY + 58, { width: 101, align: 'center' });
 
     const footerY = Math.min(744, bottomY + 184);
     doc.moveTo(54, footerY).lineTo(525, footerY).stroke('#c2d4e8');
@@ -2483,7 +2553,7 @@ async function handleAdminSendInvoiceApi(req, res) {
   try {
     body = await parseJsonBody(req, 1024 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -2495,7 +2565,7 @@ async function handleAdminSendInvoiceApi(req, res) {
     return;
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    sendJson(res, 400, { ok: false, error: { code: 'ADMIN_INVOICE_EMAIL_INVALID', message: 'L’adresse email client est invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'ADMIN_INVOICE_EMAIL_INVALID', message: 'Lâ€™adresse email client est invalide.' } });
     return;
   }
 
@@ -2508,8 +2578,8 @@ async function handleAdminSendInvoiceApi(req, res) {
   try {
     pdfBuffer = await buildInvoicePdfBuffer(invoice);
   } catch (error) {
-    const detail = error && error.message ? String(error.message) : 'Génération PDF impossible.';
-    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_INVOICE_PDF_FAILED', message: 'Impossible de générer le PDF de la facture. ' + detail } });
+    const detail = error && error.message ? String(error.message) : 'GÃ©nÃ©ration PDF impossible.';
+    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_INVOICE_PDF_FAILED', message: 'Impossible de gÃ©nÃ©rer le PDF de la facture. ' + detail } });
     return;
   }
 
@@ -2530,8 +2600,8 @@ async function handleAdminSendInvoiceApi(req, res) {
       }]
     });
   } catch (error) {
-    const detail = error && error.message ? String(error.message) : 'Vérifiez la configuration email.';
-    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible d’envoyer la facture pour le moment. ' + detail } });
+    const detail = error && error.message ? String(error.message) : 'VÃ©rifiez la configuration email.';
+    sendJson(res, 502, { ok: false, error: { code: 'ADMIN_INVOICE_SEND_FAILED', message: 'Impossible dâ€™envoyer la facture pour le moment. ' + detail } });
     return;
   }
 
@@ -2644,9 +2714,9 @@ async function buildQuotePdfBuffer(quote) {
 
     doc.font('Helvetica-Bold').fontSize(22).fillColor('#0f2350').text('MULTIPIXELS.FR', 54, 136);
     doc.font('Helvetica-Oblique').fontSize(10).fillColor('#607796').text('votre expert textile', 54, 163);
-    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nN° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
+    doc.font('Helvetica').fontSize(9).fillColor('#10213b').text('190 Chemin Blanc\n62180 Rang du Fliers\n06 27 14 08 40 | contact@multipixels.fr\nNÂ° SIRET : 80 49 81 835 0000 23\nCode APE: 18.12Z', 54, 195, { lineGap: 2 });
 
-    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client à compléter';
+    const addressText = addressLines.length ? addressLines.join('\n') : 'Informations client Ã  complÃ©ter';
     doc.font('Helvetica').fontSize(9);
     const addressBodyHeight = Math.max(62, doc.heightOfString(addressText, { width: 136, align: 'center', lineGap: 2 }) + 14);
     const addressBoxHeight = 22 + addressBodyHeight;
@@ -2657,19 +2727,19 @@ async function buildQuotePdfBuffer(quote) {
 
     doc.lineWidth(1).strokeColor('#435774').rect(54, 270, 471, 54).stroke();
     doc.rect(54, 270, 471, 18).fillAndStroke('#bfdbe9', '#435774');
-    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('DEVIS N° ' + quote.reference, 62, 276);
+    doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('DEVIS NÂ° ' + quote.reference, 62, 276);
     doc.font('Helvetica').fontSize(9);
     doc.rect(54, 288, 471, 18).stroke('#8ca6ba');
     doc.text('Date du devis', 62, 294);
     doc.font('Helvetica-Bold').text(formatInvoiceDateFr(quote.issueDate), 420, 294, { width: 90, align: 'right' });
     doc.font('Helvetica');
     doc.rect(54, 306, 471, 18).stroke('#8ca6ba');
-    doc.text('Validité du devis : ' + quote.paymentDueDays + ' jours', 62, 312);
+    doc.text('ValiditÃ© du devis : ' + quote.paymentDueDays + ' jours', 62, 312);
 
     const tableY = 340;
     const colX = [54, 130, 304, 348, 438];
     const colW = [76, 174, 44, 90, 87];
-    const headers = ['Référence', 'Description', 'Qté', 'Prix unitaire', 'Total TTC'];
+    const headers = ['RÃ©fÃ©rence', 'Description', 'QtÃ©', 'Prix unitaire', 'Total TTC'];
     headers.forEach(function (header, index) {
       doc.rect(colX[index], tableY, colW[index], 18).fillAndStroke('#d7e8f3', '#8ca6ba');
       doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(8.5).text(header, colX[index] + 4, tableY + 5, { width: colW[index] - 8, align: index >= 2 ? 'center' : 'left' });
@@ -2703,17 +2773,17 @@ async function buildQuotePdfBuffer(quote) {
     doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 126).stroke('#435774');
     doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', paymentBoxX, bottomY + 6, { width: paymentBoxWidth, align: 'center' });
-    doc.font('Helvetica').fontSize(8.1).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
+    doc.font('Helvetica').fontSize(8.1).text('MÃ©thodes de paiement acceptÃ©es :\n\nChÃ¨que, Virement, EspÃ¨ce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnitÃ© forfaitaire de 40â‚¬ pourra Ãªtre appliquÃ©e', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
 
     doc.rect(sideBoxX, bottomY, sideBoxWidth, totalBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, bottomY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.font('Helvetica-Bold').fontSize(10).fillColor('#10213b').text('TOTAL TTC', sideBoxX, bottomY + 6, { width: sideBoxWidth, align: 'center' });
     doc.font('Helvetica-Bold').fontSize(18).text(formatInvoiceMoney(quote.total), sideBoxX, bottomY + 34, { width: sideBoxWidth, align: 'center' });
-    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquée') : quote.vatMention, sideBoxX + 10, bottomY + 58, { width: sideBoxWidth - 20, align: 'center' });
+    doc.font('Helvetica').fontSize(7.8).text(quote.vatRate > 0 ? ('TVA ' + quote.vatRate + ' % appliquÃ©e') : quote.vatMention, sideBoxX + 10, bottomY + 58, { width: sideBoxWidth - 20, align: 'center' });
 
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, signatureBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.font('Helvetica-Bold').fontSize(8.3).fillColor('#10213b').text('Mention « Bon pour accord » + Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(8.3).fillColor('#10213b').text('Mention Â« Bon pour accord Â» + Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
     doc.font('Helvetica').fontSize(10).text('Date ___ / ___ / ______', sideBoxX + 12, signatureBoxY + signatureBoxHeight - 24, { width: sideBoxWidth - 24 });
 
     const footerY = Math.min(768, signatureBoxY + signatureBoxHeight + 18);
@@ -2741,7 +2811,7 @@ async function handleAdminQuotePdfApi(req, res) {
   try {
     body = await parseJsonBody(req, 1024 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -2761,8 +2831,8 @@ async function handleAdminQuotePdfApi(req, res) {
   try {
     pdfBuffer = await buildQuotePdfBuffer(quote);
   } catch (error) {
-    const detail = error && error.message ? String(error.message) : 'Génération PDF impossible.';
-    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_QUOTE_PDF_FAILED', message: 'Impossible de générer le PDF du devis. ' + detail } });
+    const detail = error && error.message ? String(error.message) : 'GÃ©nÃ©ration PDF impossible.';
+    sendJson(res, 500, { ok: false, error: { code: 'ADMIN_QUOTE_PDF_FAILED', message: 'Impossible de gÃ©nÃ©rer le PDF du devis. ' + detail } });
     return;
   }
 
@@ -2949,7 +3019,7 @@ async function handleClientRequestPasswordResetApi(req, res) {
   try {
     await sendClientEmail({
       to: user.email,
-      subject: 'Réinitialisation de votre mot de passe MULTIPIXELS',
+      subject: 'RÃ©initialisation de votre mot de passe MULTIPIXELS',
       text: 'Bonjour,\n\nVoici votre lien de r?initialisation : ' + resetUrl + '\n\nCe lien expire dans 30 minutes.',
       html: '<p>Bonjour,</p><p>Voici votre lien de r?initialisation :</p><p><a href="' + resetUrl + '">' + resetUrl + '</a></p><p>Ce lien expire dans 30 minutes.</p>'
     });
@@ -3015,7 +3085,7 @@ async function handleAdminLoginApi(req, res) {
   try {
     body = await parseJsonBody(req, 64 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -3080,7 +3150,7 @@ async function handleAdminCreateProductApi(req, res) {
   try {
     body = await parseJsonBody(req, 16 * 1024 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -3100,7 +3170,7 @@ async function handleAdminUpdateProductApi(req, res) {
   try {
     body = await parseJsonBody(req, 16 * 1024 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -3142,7 +3212,7 @@ async function handleAdminUpdateOrderApi(req, res) {
   try {
     body = await parseJsonBody(req, 64 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -3168,7 +3238,7 @@ async function handleAdminUpdateTicketApi(req, res) {
   try {
     body = await parseJsonBody(req, 64 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -3200,7 +3270,7 @@ async function handleAdminCreateQuoteApi(req, res) {
   try {
     body = await parseJsonBody(req, 512 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -3220,7 +3290,7 @@ async function handleAdminUpdateQuoteApi(req, res) {
   try {
     body = await parseJsonBody(req, 512 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -3269,7 +3339,7 @@ async function handleAdminCreateInvoiceClientApi(req, res) {
   try {
     body = await parseJsonBody(req, 128 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
   if (!sanitizeLine(body.name, 160)) {
@@ -3309,11 +3379,11 @@ async function handleAdminCreateInvoiceReferenceApi(req, res) {
   try {
     body = await parseJsonBody(req, 128 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
   if (!sanitizeLine(body.reference, 80) || !sanitizeLine(body.designation, 260)) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVOICE_REFERENCE_INVALID', message: 'La référence et la désignation sont obligatoires.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVOICE_REFERENCE_INVALID', message: 'La rÃ©fÃ©rence et la dÃ©signation sont obligatoires.' } });
     return;
   }
   const reference = adminTools.createInvoiceReference(body);
@@ -3325,12 +3395,12 @@ function handleAdminDeleteInvoiceReferenceApi(req, res, requestUrl) {
   if (!session) return;
   const referenceId = sanitizeLine(requestUrl.searchParams.get('id'), 120);
   if (!referenceId) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVOICE_REFERENCE_ID_MISSING', message: 'Référence introuvable.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVOICE_REFERENCE_ID_MISSING', message: 'RÃ©fÃ©rence introuvable.' } });
     return;
   }
   const deleted = adminTools.deleteInvoiceReference(referenceId);
   if (!deleted) {
-    sendJson(res, 404, { ok: false, error: { code: 'INVOICE_REFERENCE_NOT_FOUND', message: 'Référence introuvable.' } });
+    sendJson(res, 404, { ok: false, error: { code: 'INVOICE_REFERENCE_NOT_FOUND', message: 'RÃ©fÃ©rence introuvable.' } });
     return;
   }
   sendJson(res, 200, { ok: true, references: adminTools.listInvoiceReferences() });
@@ -3349,7 +3419,7 @@ async function handleAdminCreateInvoiceApi(req, res) {
   try {
     body = await parseJsonBody(req, 512 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -3369,7 +3439,7 @@ async function handleAdminUpdateInvoiceApi(req, res) {
   try {
     body = await parseJsonBody(req, 512 * 1024);
   } catch (_) {
-    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'Requête invalide.' } });
+    sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON', message: 'RequÃªte invalide.' } });
     return;
   }
 
@@ -3720,4 +3790,5 @@ startGoogleReviewsAutoRefresh();
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
