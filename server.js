@@ -1066,6 +1066,13 @@ function getNextInvoiceReference(issueDate, excludeId) {
     const sequence = Number(match[1] || 0);
     if (sequence > maxSequence) maxSequence = sequence;
   });
+  if (currentReference) {
+    const currentMatch = String(currentReference).match(/^(\d+)-(\d{6})$/);
+    if (currentMatch && currentMatch[2] === dayCode) {
+      const currentSeq = Number(currentMatch[1] || 0);
+      if (currentSeq > maxSequence) maxSequence = currentSeq;
+    }
+  }
   return String(maxSequence + 1) + '-' + dayCode;
 }
 
@@ -1368,6 +1375,7 @@ function handleAdminInvoiceNextReferenceApi(req, res, requestUrl) {
   if (!session) return;
   const issueDate = cleanInvoiceField(requestUrl.searchParams.get('issueDate'), 20) || new Date().toISOString().slice(0, 10);
   const documentId = cleanInvoiceField(requestUrl.searchParams.get('id'), 120);
+  const currentReference = cleanInvoiceField(requestUrl.searchParams.get('current'), 80);
   sendJson(res, 200, { ok: true, reference: getNextInvoiceReference(issueDate, documentId) });
 }
 
@@ -1484,7 +1492,7 @@ async function handleAdminSendInvoiceApi(req, res) {
     nextReference: getNextInvoiceReference(invoice.issueDate)
   });
 }
-function getNextQuoteReference(issueDate, excludeId) {
+function getNextQuoteReference(issueDate, excludeId, currentReference) {
   const store = readAdminDocumentsStore();
   const dayCode = formatInvoiceDayCode(issueDate);
   let maxSequence = QUOTE_SEQUENCE_START - 1;
@@ -1496,6 +1504,13 @@ function getNextQuoteReference(issueDate, excludeId) {
     const sequence = Number(match[1] || 0);
     if (sequence > maxSequence) maxSequence = sequence;
   });
+  if (currentReference) {
+    const currentMatch = String(currentReference).match(/^(\d+)-(\d{6})$/);
+    if (currentMatch && currentMatch[2] === dayCode) {
+      const currentSeq = Number(currentMatch[1] || 0);
+      if (currentSeq > maxSequence) maxSequence = currentSeq;
+    }
+  }
   return String(maxSequence + 1) + '-' + dayCode;
 }
 
@@ -1664,7 +1679,8 @@ function handleAdminQuoteNextReferenceApi(req, res, requestUrl) {
 
   const issueDate = cleanInvoiceField(requestUrl.searchParams.get('issueDate'), 20) || new Date().toISOString().slice(0, 10);
   const documentId = cleanInvoiceField(requestUrl.searchParams.get('id'), 120);
-  sendJson(res, 200, { ok: true, reference: getNextQuoteReference(issueDate, documentId) });
+  const currentReference = cleanInvoiceField(requestUrl.searchParams.get('current'), 80);
+  sendJson(res, 200, { ok: true, reference: getNextQuoteReference(issueDate, documentId, currentReference) });
 }
 
 async function handleAdminQuotePdfApi(req, res) {
@@ -2146,6 +2162,13 @@ function getNextInvoiceReference(issueDate, excludeId) {
     const sequence = Number(match[1] || 0);
     if (sequence > maxSequence) maxSequence = sequence;
   });
+  if (currentReference) {
+    const currentMatch = String(currentReference).match(/^(\d+)-(\d{6})$/);
+    if (currentMatch && currentMatch[2] === dayCode) {
+      const currentSeq = Number(currentMatch[1] || 0);
+      if (currentSeq > maxSequence) maxSequence = currentSeq;
+    }
+  }
   return String(maxSequence + 1) + '-' + dayCode;
 }
 
@@ -2519,7 +2542,7 @@ async function handleAdminSendInvoiceApi(req, res) {
     nextReference: getNextInvoiceReference(invoice.issueDate)
   });
 }
-function getNextQuoteReference(issueDate, excludeId) {
+function getNextQuoteReference(issueDate, excludeId, currentReference) {
   const store = readAdminDocumentsStore();
   const dayCode = formatInvoiceDayCode(issueDate);
   let maxSequence = QUOTE_SEQUENCE_START - 1;
@@ -2531,6 +2554,13 @@ function getNextQuoteReference(issueDate, excludeId) {
     const sequence = Number(match[1] || 0);
     if (sequence > maxSequence) maxSequence = sequence;
   });
+  if (currentReference) {
+    const currentMatch = String(currentReference).match(/^(\d+)-(\d{6})$/);
+    if (currentMatch && currentMatch[2] === dayCode) {
+      const currentSeq = Number(currentMatch[1] || 0);
+      if (currentSeq > maxSequence) maxSequence = currentSeq;
+    }
+  }
   return String(maxSequence + 1) + '-' + dayCode;
 }
 
@@ -2699,7 +2729,8 @@ function handleAdminQuoteNextReferenceApi(req, res, requestUrl) {
 
   const issueDate = cleanInvoiceField(requestUrl.searchParams.get('issueDate'), 20) || new Date().toISOString().slice(0, 10);
   const documentId = cleanInvoiceField(requestUrl.searchParams.get('id'), 120);
-  sendJson(res, 200, { ok: true, reference: getNextQuoteReference(issueDate, documentId) });
+  const currentReference = cleanInvoiceField(requestUrl.searchParams.get('current'), 80);
+  sendJson(res, 200, { ok: true, reference: getNextQuoteReference(issueDate, documentId, currentReference) });
 }
 
 async function handleAdminQuotePdfApi(req, res) {

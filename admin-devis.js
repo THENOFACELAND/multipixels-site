@@ -372,7 +372,8 @@
   async function refreshReference() {
     const issueDate = issueDateInput.value || todayIso();
     try {
-      const payload = await auth.request('/api/admin/quotes/next-reference?issueDate=' + encodeURIComponent(issueDate) + (idInput.value ? '&id=' + encodeURIComponent(idInput.value) : ''));
+      const currentReference = referenceInput.value || '';
+      const payload = await auth.request('/api/admin/quotes/next-reference?issueDate=' + encodeURIComponent(issueDate) + (idInput.value ? '&id=' + encodeURIComponent(idInput.value) : '') + (currentReference ? '&current=' + encodeURIComponent(currentReference) : '')); 
       referenceInput.value = payload.reference;
       renderPreview();
     } catch (error) {
@@ -448,6 +449,11 @@
   form.addEventListener('input', renderPreview);
   issueDateInput.addEventListener('change', refreshReference);
   newButton.addEventListener('click', function () { resetForm(); });
+  if (recalcButton) {
+    recalcButton.addEventListener('click', function () {
+      refreshReference();
+    });
+  }
 
   if (clientSelect) {
     clientSelect.addEventListener('change', function () {
