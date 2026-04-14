@@ -406,50 +406,50 @@ function createAdminTools(options) {
 
 
   function readDocumentsStore() {
+  try {
     ensureJsonFile(documentsPath, { quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] });
-    try {
-      const raw = fs.readFileSync(documentsPath, 'utf8').replace(/^\uFEFF/, '');
-      const parsed = JSON.parse(raw);
-      return {
-        quotes: Array.isArray(parsed.quotes) ? parsed.quotes : [],
-        invoices: Array.isArray(parsed.invoices) ? parsed.invoices : [],
-        invoiceClients: Array.isArray(parsed.invoiceClients) ? parsed.invoiceClients : [],
-        invoiceReferences: Array.isArray(parsed.invoiceReferences) ? parsed.invoiceReferences : []
-      };
-    } catch (_) {
-      return { quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] };
-    }
-
-  function seedInvoiceDataIfEmpty() {
-    const store = readDocumentsStore();
-    const hasClients = Array.isArray(store.invoiceClients) && store.invoiceClients.length > 0;
-    const hasRefs = Array.isArray(store.invoiceReferences) && store.invoiceReferences.length > 0;
-    if (hasClients && hasRefs) return store;
-
-    const fallbackPath = path.join(root, 'assets', 'data', 'admin-documents.json');
-    if (!fs.existsSync(fallbackPath)) return store;
-
-    const fallback = parseJsonSafe(fs.readFileSync(fallbackPath, 'utf8').replace(/^\uFEFF/, ''), {});
-    const fallbackClients = Array.isArray(fallback.invoiceClients) ? fallback.invoiceClients : [];
-    const fallbackRefs = Array.isArray(fallback.invoiceReferences) ? fallback.invoiceReferences : [];
-    let changed = false;
-
-    if (!hasClients && fallbackClients.length) {
-      store.invoiceClients = fallbackClients;
-      changed = true;
-    }
-
-    if (!hasRefs && fallbackRefs.length) {
-      store.invoiceReferences = fallbackRefs;
-      changed = true;
-    }
-
-    if (changed) writeDocumentsStore(store);
-    return store;
+    const raw = fs.readFileSync(documentsPath, 'utf8').replace(/^\uFEFF/, '');
+    const parsed = JSON.parse(raw);
+    return {
+      quotes: Array.isArray(parsed.quotes) ? parsed.quotes : [],
+      invoices: Array.isArray(parsed.invoices) ? parsed.invoices : [],
+      invoiceClients: Array.isArray(parsed.invoiceClients) ? parsed.invoiceClients : [],
+      invoiceReferences: Array.isArray(parsed.invoiceReferences) ? parsed.invoiceReferences : []
+    };
+  } catch (_) {
+    return { quotes: [], invoices: [], invoiceClients: [], invoiceReferences: [] };
   }
+}
+
+function seedInvoiceDataIfEmpty() {
+  const store = readDocumentsStore();
+  const hasClients = Array.isArray(store.invoiceClients) && store.invoiceClients.length > 0;
+  const hasRefs = Array.isArray(store.invoiceReferences) && store.invoiceReferences.length > 0;
+  if (hasClients && hasRefs) return store;
+
+  const fallbackPath = path.join(root, 'assets', 'data', 'admin-documents.json');
+  if (!fs.existsSync(fallbackPath)) return store;
+
+  const fallback = parseJsonSafe(fs.readFileSync(fallbackPath, 'utf8').replace(/^\uFEFF/, ''), {});
+  const fallbackClients = Array.isArray(fallback.invoiceClients) ? fallback.invoiceClients : [];
+  const fallbackRefs = Array.isArray(fallback.invoiceReferences) ? fallback.invoiceReferences : [];
+  let changed = false;
+
+  if (!hasClients && fallbackClients.length) {
+    store.invoiceClients = fallbackClients;
+    changed = true;
   }
 
-  function writeDocumentsStore(payload) {
+  if (!hasRefs && fallbackRefs.length) {
+    store.invoiceReferences = fallbackRefs;
+    changed = true;
+  }
+
+  if (changed) writeDocumentsStore(store);
+  return store;
+}
+
+function writeDocumentsStore(payload) {
     fs.writeFileSync(documentsPath, JSON.stringify(payload, null, 2), 'utf8');
   }
 
@@ -689,6 +689,7 @@ function createAdminTools(options) {
 module.exports = {
   createAdminTools
 };
+
 
 
 

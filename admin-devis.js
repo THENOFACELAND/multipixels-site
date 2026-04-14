@@ -35,7 +35,7 @@
 
   if (!form || !statusNode || !previewSheet) return;
 
-  const LOGO_SRC = 'assets/Background/favicon.png';
+  const LOGO_SRC = '/assets/Background/favicon.png';
   const SELLER_LINES = [
     '190 Chemin Blanc',
     '62180 Rang du Fliers',
@@ -526,6 +526,7 @@ referenceInput.value = nextReference;
 
   boot();
 })();
+
 
 
 
