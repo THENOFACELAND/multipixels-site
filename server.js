@@ -239,13 +239,13 @@ function repairText(value) {
   const replacements = [
     [/Ãƒâ€°/g, "É"],
     [/ÃƒË†/g, "Ãˆ"],
-    [/Ãƒâ‚¬/g, "À"],
+    [/Ãƒ€/g, "À"],
     [/Ãƒâ„¢/g, "Ã™"],
     [/Ãƒâ€š/g, "Ã‚"],
     [/ÃƒÂª/g, "ê"],
     [/ÃƒÂ¨/g, "è"],
     [/ÃƒÂ©/g, "é"],
-    [/ÃƒÂ«/g, "ë"],
+    [/Ãƒ«/g, "ë"],
     [/Ãƒ /g, "Ã "],
     [/ÃƒÂ¹/g, "ù"],
     [/ÃƒÂ¢/g, "â"],
@@ -253,13 +253,13 @@ function repairText(value) {
     [/ÃƒÂ®/g, "î"],
     [/ÃƒÂ¯/g, "ï"],
     [/ÃƒÂ§/g, "ç"],
-    [/ÃƒÂ»/g, "û"],
+    [/Ãƒ»/g, "û"],
     [/ÃƒÂ¼/g, "ü"],
-    [/ââ‚¬â„¢/g, "â€™"],
-    [/ââ‚¬Å“/g, '"'],
-    [/ââ‚¬/g, '"'],
-    [/ââ‚¬â€œ/g, "-"],
-    [/ââ‚¬â€/g, "-"],
+    [/â€â„¢/g, "â€™"],
+    [/â€Å“/g, '"'],
+    [/â€/g, '"'],
+    [/â€â€œ/g, "-"],
+    [/â€â€/g, "-"],
     [/Ã‚/g, ""],
     [/Ã°Å¸â€˜Â/g, "??"],
     [/Ã°Å¸â€Â¥/g, "??"],
@@ -1301,7 +1301,7 @@ function buildInvoiceEmailHtml(invoice) {
     + '<tbody>' + rows + '</tbody></table>'
     + '<table style="width:100%;margin-top:24px;border-collapse:collapse;">'
     + '<tr><td style="vertical-align:top;padding-right:12px;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;">Conditions de paiement</div><div style="padding:16px 18px;line-height:1.7;text-align:center;">Méthodes de paiement acceptées :<br/><strong>Chèque, Virement, Espèce, CB</strong><br/><br/>VIREMENT BANCAIRE<br/>Banque : CA Nord de France<br/>IBAN : FR76 1670 6000 5154 0091 5025 361<br/>BIC : AGRIFRPP867<br/>Titulaire du compte : BAUDELOT Guillaume<br/><br/>En cas de retard de paiement, une indemnité forfaitaire de 40â‚¬ pourra être appliquée</div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;">Conditions de paiement</div><div style="padding:16px 18px;line-height:1.7;text-align:center;">Méthodes de paiement acceptées :<br/><strong>Chèque, Virement, Espèce, CB</strong><br/><br/>VIREMENT BANCAIRE<br/>Banque : CA Nord de France<br/>IBAN : FR76 1670 6000 5154 0091 5025 361<br/>BIC : AGRIFRPP867<br/>Titulaire du compte : BAUDELOT Guillaume<br/><br/>En cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée</div></div>'
     + '</td><td style="width:220px;vertical-align:top;">'
     + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;font-weight:700;">TOTAL TTC</div><div style="padding:16px 18px;text-align:center;"><div style="font-size:28px;font-weight:800;">' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div><div style="margin-top:10px;font-size:13px;">' + escapeInvoiceHtml(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention) + '</div></div></div>'
     + '</td></tr></table>'
@@ -1425,7 +1425,7 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.rect(54, bottomY, 330, 150).stroke('#435774');
     doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
-    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40â‚¬ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
 
     doc.rect(404, bottomY, 121, 76).stroke('#435774');
     doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
@@ -1723,7 +1723,7 @@ async function buildQuotePdfBuffer(quote) {
     doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 126).stroke('#435774');
     doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', paymentBoxX, bottomY + 6, { width: paymentBoxWidth, align: 'center' });
-    doc.font('Helvetica').fontSize(8.1).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40â‚¬ pourra être appliquée', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
+    doc.font('Helvetica').fontSize(8.1).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
 
     doc.rect(sideBoxX, bottomY, sideBoxWidth, totalBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, bottomY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
@@ -1733,7 +1733,7 @@ async function buildQuotePdfBuffer(quote) {
 
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, signatureBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.font('Helvetica-Bold').fontSize(8.3).fillColor('#10213b').text('Mention Â« Bon pour accord Â» + Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(7.6).fillColor('#10213b').text('Mention « Bon pour accord »\\nSignature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
     doc.font('Helvetica').fontSize(10).text('Date ___ / ___ / ______', sideBoxX + 12, signatureBoxY + signatureBoxHeight - 24, { width: sideBoxWidth - 24 });
 
     const footerY = Math.min(768, signatureBoxY + signatureBoxHeight + 18);
@@ -2397,7 +2397,7 @@ function buildInvoiceEmailHtml(invoice) {
     + '<tbody>' + rows + '</tbody></table>'
     + '<table style="width:100%;margin-top:24px;border-collapse:collapse;">'
     + '<tr><td style="vertical-align:top;padding-right:12px;">'
-    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;">Conditions de paiement</div><div style="padding:16px 18px;line-height:1.7;text-align:center;">Méthodes de paiement acceptées :<br/><strong>Chèque, Virement, Espèce, CB</strong><br/><br/>VIREMENT BANCAIRE<br/>Banque : CA Nord de France<br/>IBAN : FR76 1670 6000 5154 0091 5025 361<br/>BIC : AGRIFRPP867<br/>Titulaire du compte : BAUDELOT Guillaume<br/><br/>En cas de retard de paiement, une indemnité forfaitaire de 40â‚¬ pourra être appliquée</div></div>'
+    + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;">Conditions de paiement</div><div style="padding:16px 18px;line-height:1.7;text-align:center;">Méthodes de paiement acceptées :<br/><strong>Chèque, Virement, Espèce, CB</strong><br/><br/>VIREMENT BANCAIRE<br/>Banque : CA Nord de France<br/>IBAN : FR76 1670 6000 5154 0091 5025 361<br/>BIC : AGRIFRPP867<br/>Titulaire du compte : BAUDELOT Guillaume<br/><br/>En cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée</div></div>'
     + '</td><td style="width:220px;vertical-align:top;">'
     + '<div style="border:1px solid #435774;"><div style="padding:8px 12px;background:#bfdbe9;text-align:center;font-weight:700;">TOTAL TTC</div><div style="padding:16px 18px;text-align:center;"><div style="font-size:28px;font-weight:800;">' + escapeInvoiceHtml(formatInvoiceMoney(invoice.total)) + '</div><div style="margin-top:10px;font-size:13px;">' + escapeInvoiceHtml(invoice.vatRate > 0 ? ('TVA ' + invoice.vatRate + ' % appliquée') : invoice.vatMention) + '</div></div></div>'
     + '</td></tr></table>'
@@ -2531,7 +2531,7 @@ async function buildInvoicePdfBuffer(invoice) {
     doc.rect(54, bottomY, 330, 150).stroke('#435774');
     doc.rect(54, bottomY, 330, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', 54, bottomY + 6, { width: 330, align: 'center' });
-    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40â‚¬ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
+    doc.font('Helvetica').fontSize(8.8).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', 72, bottomY + 34, { width: 294, align: 'center', lineGap: 2 });
 
     doc.rect(404, bottomY, 121, 76).stroke('#435774');
     doc.rect(404, bottomY, 121, 20).fillAndStroke('#bfdbe9', '#435774');
@@ -2773,7 +2773,7 @@ async function buildQuotePdfBuffer(quote) {
     doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 126).stroke('#435774');
     doc.rect(paymentBoxX, bottomY, paymentBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
     doc.fillColor('#10213b').font('Helvetica-Bold').fontSize(10).text('Conditions de paiement', paymentBoxX, bottomY + 6, { width: paymentBoxWidth, align: 'center' });
-    doc.font('Helvetica').fontSize(8.1).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40â‚¬ pourra être appliquée', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
+    doc.font('Helvetica').fontSize(8.1).text('Méthodes de paiement acceptées :\n\nChèque, Virement, Espèce, CB\n\nVIREMENT BANCAIRE\nBanque : CA Nord de France\nIBAN : FR76 1670 6000 5154 0091 5025 361\nBIC : AGRIFRPP867\nTitulaire du compte : BAUDELOT Guillaume\n\nEn cas de retard de paiement, une indemnité forfaitaire de 40€ pourra être appliquée', paymentBoxX + 16, bottomY + 30, { width: paymentBoxWidth - 32, align: 'center', lineGap: 1.5 });
 
     doc.rect(sideBoxX, bottomY, sideBoxWidth, totalBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, bottomY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
@@ -2783,7 +2783,7 @@ async function buildQuotePdfBuffer(quote) {
 
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, signatureBoxHeight).stroke('#435774');
     doc.rect(sideBoxX, signatureBoxY, sideBoxWidth, 20).fillAndStroke('#bfdbe9', '#435774');
-    doc.font('Helvetica-Bold').fontSize(8.3).fillColor('#10213b').text('Mention Â« Bon pour accord Â» + Signature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(7.6).fillColor('#10213b').text('Mention « Bon pour accord »\\nSignature', sideBoxX + 8, signatureBoxY + 5, { width: sideBoxWidth - 16, align: 'center' });
     doc.font('Helvetica').fontSize(10).text('Date ___ / ___ / ______', sideBoxX + 12, signatureBoxY + signatureBoxHeight - 24, { width: sideBoxWidth - 24 });
 
     const footerY = Math.min(768, signatureBoxY + signatureBoxHeight + 18);
@@ -3790,6 +3790,7 @@ startGoogleReviewsAutoRefresh();
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
+
 
 
 
