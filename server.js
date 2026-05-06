@@ -1248,7 +1248,7 @@ function buildInvoiceEmailHtml(invoice) {
     + intro
     + '<table style="width:100%;margin-top:24px;border-collapse:collapse;">'
     + '<tr><td style="vertical-align:top;padding-right:20px;">'
-    + '<img src="https://multipixels.fr/assets/Background/favicon.png" alt="MULTIPIXELS" style="width:88px;height:88px;object-fit:contain;display:block;margin-bottom:12px;" />'
+    + '<img src="https://www.multipixels.fr/assets/Background/favicon.png" alt="MULTIPIXELS" style="width:88px;height:88px;object-fit:contain;display:block;margin-bottom:12px;" />'
     + '<div style="font-size:30px;font-weight:800;color:#0f2350;">MULTIPIXELS.FR</div>'
     + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
     + '<div style="margin-top:18px;line-height:1.6;font-size:14px;">190 Chemin Blanc<br/>62180 Rang du Fliers<br/>06 27 14 08 40 | contact@multipixels.fr<br/>NÃƒâ€šÃ‚Â° SIRET : 80 49 81 835 0000 23<br/>Code APE: 18.12Z</div>'
@@ -2344,7 +2344,7 @@ function buildInvoiceEmailHtml(invoice) {
     + intro
     + '<table style="width:100%;margin-top:24px;border-collapse:collapse;">'
     + '<tr><td style="vertical-align:top;padding-right:20px;">'
-    + '<img src="https://multipixels.fr/assets/Background/favicon.png" alt="MULTIPIXELS" style="width:88px;height:88px;object-fit:contain;display:block;margin-bottom:12px;" />'
+    + '<img src="https://www.multipixels.fr/assets/Background/favicon.png" alt="MULTIPIXELS" style="width:88px;height:88px;object-fit:contain;display:block;margin-bottom:12px;" />'
     + '<div style="font-size:30px;font-weight:800;color:#0f2350;">MULTIPIXELS.FR</div>'
     + '<div style="color:#587094;font-style:italic;margin-top:4px;">votre expert textile</div>'
     + '<div style="margin-top:18px;line-height:1.6;font-size:14px;">190 Chemin Blanc<br/>62180 Rang du Fliers<br/>06 27 14 08 40 | contact@multipixels.fr<br/>NÃƒâ€šÃ‚Â° SIRET : 80 49 81 835 0000 23<br/>Code APE: 18.12Z</div>'

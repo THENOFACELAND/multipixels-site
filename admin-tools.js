@@ -1,7 +1,12 @@
 ﻿const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { DatabaseSync } = require('node:sqlite');
+let DatabaseSync = null;
+try {
+  ({ DatabaseSync } = require('node:sqlite'));
+} catch (_) {
+  DatabaseSync = null;
+}
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -70,6 +75,7 @@ function createAdminTools(options) {
   }
 
   function openDb() {
+    if (!DatabaseSync) return null;
     return new DatabaseSync(dbPath);
   }
 
@@ -162,6 +168,7 @@ function createAdminTools(options) {
 
   function listClients() {
     const db = openDb();
+    if (!db) return [];
     try {
       return db.prepare(`
         SELECT
@@ -205,6 +212,7 @@ function createAdminTools(options) {
 
   function listOrders() {
     const db = openDb();
+    if (!db) return [];
     try {
       return db.prepare(`
         SELECT o.*, u.firstName, u.lastName, u.company, u.email
@@ -236,6 +244,7 @@ function createAdminTools(options) {
 
   function listTickets() {
     const db = openDb();
+    if (!db) return [];
     try {
       return db.prepare(`
         SELECT t.*, u.firstName, u.lastName, u.company, u.email
@@ -611,6 +620,7 @@ function writeDocumentsStore(payload) {
 
   function updateOrder(orderId, payload) {
     const db = openDb();
+    if (!db) return null;
     try {
       const current = db.prepare('SELECT * FROM client_orders WHERE id = ?').get(String(orderId));
       if (!current) return null;
@@ -634,6 +644,7 @@ function writeDocumentsStore(payload) {
 
   function updateTicket(ticketId, payload) {
     const db = openDb();
+    if (!db) return null;
     try {
       const current = db.prepare('SELECT * FROM client_tickets WHERE id = ?').get(String(ticketId));
       if (!current) return null;

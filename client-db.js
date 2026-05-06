@@ -1,7 +1,12 @@
 ﻿const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { DatabaseSync } = require('node:sqlite');
+let DatabaseSync = null;
+try {
+  ({ DatabaseSync } = require('node:sqlite'));
+} catch (_) {
+  DatabaseSync = null;
+}
 
 const APP_DATA_DIR = path.join(__dirname, 'assets', 'data');
 const LEGACY_JSON_PATH = path.join(APP_DATA_DIR, 'client-space.json');
@@ -153,7 +158,193 @@ function mapUserRow(row) {
   };
 }
 
+function createMemoryClientDb() {
+  const users = [];
+  const sessions = new Map();
+  const resets = new Map();
+  const orders = [];
+  const tickets = [];
+
+  function cleanupSessions() {
+    const now = Date.now();
+    Array.from(sessions.entries()).forEach(function (entry) {
+      if (Number((entry[1] && entry[1].expiresAtMs) || 0) <= now) sessions.delete(entry[0]);
+    });
+    Array.from(resets.entries()).forEach(function (entry) {
+      const value = entry[1] || {};
+      if (value.usedAt || Number(value.expiresAtMs || 0) <= now) resets.delete(entry[0]);
+    });
+  }
+
+  function findUserByEmail(email) {
+    const normalized = String(email || '').trim().toLowerCase();
+    return users.find((user) => String(user.email || '').toLowerCase() === normalized) || null;
+  }
+
+  function findUserById(id) {
+    return users.find((user) => user.id === id) || null;
+  }
+
+  return {
+    cleanupSessions,
+    findUserByEmail,
+    findUserById,
+    createUser(payload) {
+      const passwordRecord = createPasswordRecord(payload.password);
+      const user = {
+        id: createId('client'),
+        accountType: payload.accountType === 'professionnel' ? 'professionnel' : 'particulier',
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        company: payload.company || '',
+        email: String(payload.email || '').toLowerCase(),
+        phone: payload.phone || '',
+        addressLine1: payload.addressLine1 || '',
+        addressLine2: payload.addressLine2 || '',
+        postalCode: payload.postalCode || '',
+        city: payload.city || '',
+        createdAt: nowIso(),
+        lastLoginAt: null,
+        passwordSalt: passwordRecord.salt,
+        passwordHash: passwordRecord.hash
+      };
+      users.push(user);
+      return user;
+    },
+    verifyUser(email, password) {
+      const user = findUserByEmail(email);
+      if (!user || !verifyPassword(password, user)) return null;
+      return user;
+    },
+    touchLastLogin(userId) {
+      const user = findUserById(userId);
+      if (!user) return null;
+      user.lastLoginAt = nowIso();
+      return user;
+    },
+    createSession(userId) {
+      cleanupSessions();
+      const token = crypto.randomBytes(24).toString('hex');
+      sessions.set(token, { userId, expiresAtMs: Date.now() + SESSION_TTL_MS });
+      return token;
+    },
+    getSession(token) {
+      cleanupSessions();
+      const session = sessions.get(token);
+      if (!session) return null;
+      const user = findUserById(session.userId);
+      if (!user) return null;
+      session.expiresAtMs = Date.now() + SESSION_TTL_MS;
+      sessions.set(token, session);
+      return { token, user };
+    },
+    deleteSession(token) { sessions.delete(token); },
+    listOrders(userId) { return orders.filter((order) => order.userId === userId).map(serializeOrder); },
+    listTickets(userId) { return tickets.filter((ticket) => ticket.userId === userId).map(serializeTicket); },
+    getDashboard(userId) {
+      const user = findUserById(userId);
+      const userOrders = this.listOrders(userId);
+      const userTickets = this.listTickets(userId);
+      return {
+        user: user ? toPublicUser(user) : null,
+        stats: {
+          totalOrders: userOrders.length,
+          activeOrders: userOrders.filter((order) => order.status !== 'delivered' && order.status !== 'closed').length,
+          totalTickets: userTickets.length,
+          openTickets: userTickets.filter((ticket) => ticket.status !== 'closed').length
+        },
+        orders: userOrders,
+        tickets: userTickets
+      };
+    },
+    createTicket(userId, payload) {
+      const ticket = {
+        id: createId('sav'),
+        userId,
+        orderReference: payload.orderReference || '',
+        subject: payload.subject,
+        category: payload.category || 'SAV',
+        status: 'open',
+        statusLabel: 'Ouvert',
+        statusTone: 'in-progress',
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+        messagePreview: String(payload.message || '').slice(0, 180),
+        lastReply: 'Ticket recu, notre equipe reviendra vers vous sous 24 a 48h.'
+      };
+      tickets.push(ticket);
+      return serializeTicket(ticket);
+    },
+    updateProfile(userId, payload) {
+      const user = findUserById(userId);
+      if (!user) return null;
+      user.firstName = payload.firstName;
+      user.lastName = payload.lastName;
+      user.company = payload.company || '';
+      user.phone = payload.phone || '';
+      user.addressLine1 = payload.addressLine1 || '';
+      user.addressLine2 = payload.addressLine2 || '';
+      user.postalCode = payload.postalCode || '';
+      user.city = payload.city || '';
+      user.accountType = payload.accountType === 'professionnel' ? 'professionnel' : 'particulier';
+      return user;
+    },
+    createPasswordReset(userId) {
+      cleanupSessions();
+      const token = crypto.randomBytes(24).toString('hex');
+      const createdAt = nowIso();
+      const expiresAt = new Date(Date.now() + RESET_TTL_MS).toISOString();
+      resets.set(token, { userId, expiresAtMs: Date.now() + RESET_TTL_MS, usedAt: null });
+      return { token, createdAt, expiresAt };
+    },
+    resetPassword(token, newPassword) {
+      cleanupSessions();
+      const reset = resets.get(token);
+      if (!reset || reset.usedAt) return null;
+      const user = findUserById(reset.userId);
+      if (!user) return null;
+      const passwordRecord = createPasswordRecord(newPassword);
+      user.passwordSalt = passwordRecord.salt;
+      user.passwordHash = passwordRecord.hash;
+      reset.usedAt = nowIso();
+      resets.set(token, reset);
+      return user;
+    },
+    createCheckoutDraft(userId, payload) {
+      const order = {
+        id: createId('cmd'),
+        userId,
+        reference: createReference('MP'),
+        title: payload.title || 'Commande en cours de paiement',
+        status: 'payment',
+        statusLabel: 'Paiement initialise',
+        statusTone: 'pending',
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+        estimatedShipDate: null,
+        total: Number(payload.total || 0),
+        deliveryMode: payload.deliveryMode || '',
+        clientNote: payload.clientNote || '',
+        itemsJson: JSON.stringify(payload.items || []),
+        timelineJson: JSON.stringify([]),
+        stripeSessionId: '',
+        stripePaymentStatus: 'pending'
+      };
+      orders.push(order);
+      return order;
+    },
+    attachStripeSession(orderId, sessionId) {
+      const order = orders.find((entry) => entry.id === orderId);
+      if (order) {
+        order.stripeSessionId = sessionId;
+        order.updatedAt = nowIso();
+      }
+    }
+  };
+}
+
 function buildClientDb() {
+  if (!DatabaseSync) return createMemoryClientDb();
   ensureDirectory(path.dirname(DB_PATH));
   const db = new DatabaseSync(DB_PATH);
   db.exec(`
