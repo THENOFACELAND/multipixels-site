@@ -159,8 +159,85 @@ const CLIENT_STORE_PATH = path.join(ROOT, "assets", "data", "client-space.json")
 const CLIENT_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const CLIENT_APP_BASE_URL = (process.env.CLIENT_APP_BASE_URL || "https://www.multipixels.fr").trim();
 
-const clientDb = buildClientDb();
-const adminTools = createAdminTools({ root: ROOT, env: process.env });
+function createSafeClientDbFallback() {
+  return {
+    cleanupSessions() {},
+    findUserByEmail() { return null; },
+    findUserById() { return null; },
+    createUser() { return null; },
+    verifyUser() { return null; },
+    touchLastLogin() { return null; },
+    createSession() { return ''; },
+    getSession() { return null; },
+    deleteSession() {},
+    listOrders() { return []; },
+    listTickets() { return []; },
+    getDashboard() {
+      return {
+        user: null,
+        stats: { totalOrders: 0, activeOrders: 0, totalTickets: 0, openTickets: 0 },
+        orders: [],
+        tickets: []
+      };
+    },
+    createTicket() { return null; },
+    updateProfile() { return null; },
+    createPasswordReset() { return null; },
+    resetPassword() { return null; },
+    createCheckoutDraft() { return null; },
+    attachStripeSession() {}
+  };
+}
+
+function createSafeAdminToolsFallback() {
+  return {
+    login() { return null; },
+    logout() { return true; },
+    getSession() { return null; },
+    getDashboard() { return { stats: {}, recentOrders: [], recentTickets: [], recentClients: [], products: [] }; },
+    listClients() { return []; },
+    listOrders() { return []; },
+    listTickets() { return []; },
+    listProducts() { return []; },
+    createProduct() { return null; },
+    updateProduct() { return null; },
+    deleteProduct() { return false; },
+    listQuotes() { return []; },
+    listInvoices() { return []; },
+    createQuote() { return null; },
+    createInvoice() { return null; },
+    updateQuote() { return null; },
+    updateInvoice() { return null; },
+    deleteQuote() { return false; },
+    deleteInvoice() { return false; },
+    listInvoiceClients() { return []; },
+    createInvoiceClient() { return null; },
+    deleteInvoiceClient() { return false; },
+    listInvoiceReferences() { return []; },
+    createInvoiceReference() { return null; },
+    deleteInvoiceReference() { return false; },
+    updateOrder() { return null; },
+    updateTicket() { return null; }
+  };
+}
+
+let clientDb;
+try {
+  clientDb = buildClientDb();
+} catch (error) {
+  const message = error && error.message ? error.message : String(error || 'unknown');
+  console.error('[boot] clientDb init failed:', message);
+  clientDb = createSafeClientDbFallback();
+}
+
+let adminTools;
+try {
+  adminTools = createAdminTools({ root: ROOT, env: process.env });
+} catch (error) {
+  const message = error && error.message ? error.message : String(error || 'unknown');
+  console.error('[boot] adminTools init failed:', message);
+  adminTools = createSafeAdminToolsFallback();
+}
 let googleReviewsRefreshInFlight = null;
 
 const CONTENT_TYPES = {
