@@ -43,6 +43,28 @@
     return payload;
   }
 
+  async function requestWithFallback(endpoints, options) {
+    let lastError = null;
+    for (const endpoint of endpoints) {
+      try {
+        return await auth.request(endpoint, options);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error('Erreur administrateur.');
+  }
+
+  async function requestInvoiceClients(pathname, options) {
+    const base = pathname || '/api/admin/invoice-clients';
+    const legacy = base.replace('/invoice-clients', '/facture-clients');
+    return requestWithFallback([base, legacy], options);
+  }
+
+  async function requestInvoiceReferences(options) {
+    return requestWithFallback(['/api/admin/invoice-references', '/api/admin/facture-references'], options);
+  }
+
   function renderClients(clients) {
     const list = Array.isArray(clients) ? clients : [];
     if (clientCount) clientCount.textContent = list.length + ' client' + (list.length > 1 ? 's' : '');
@@ -82,12 +104,12 @@
   }
 
   async function loadClients() {
-    const payload = await auth.request('/api/admin/invoice-clients');
+    const payload = await requestInvoiceClients();
     renderClients(payload.clients || []);
   }
 
   async function loadReferences() {
-    const payload = await auth.request('/api/admin/invoice-references');
+    const payload = await requestInvoiceReferences();
     renderReferences(payload.references || []);
   }
 
@@ -120,7 +142,7 @@
       if (!payload.name) return setStatus('Le nom du client est obligatoire.', 'error');
       setStatus('Ajout du client en cours...', 'muted');
       try {
-        const response = await auth.request('/api/admin/invoice-clients', { method: 'POST', body: JSON.stringify(payload) });
+        const response = await requestInvoiceClients('/api/admin/invoice-clients', { method: 'POST', body: JSON.stringify(payload) });
         clientForm.reset();
         if (clientForm.country) clientForm.country.value = 'France';
         renderClients(response.clients || []);
@@ -130,12 +152,15 @@
       }
     });
     if (clientReset) clientReset.addEventListener('click', function () { clientForm.reset(); if (clientForm.country) clientForm.country.value = 'France'; });
-    clientList.addEventListener('click', async function (event) {
+    if (clientList) clientList.addEventListener('click', async function (event) {
       const button = event.target.closest('[data-invoice-client-delete]');
       if (!button) return;
       if (!window.confirm('Supprimer ce client de la base facture ?')) return;
       try {
-        const response = await auth.request('/api/admin/invoice-clients?id=' + encodeURIComponent(button.getAttribute('data-invoice-client-delete')), { method: 'DELETE' });
+        const response = await requestInvoiceClients(
+          '/api/admin/invoice-clients?id=' + encodeURIComponent(button.getAttribute('data-invoice-client-delete')),
+          { method: 'DELETE' }
+        );
         renderClients(response.clients || []);
         setStatus('Client supprimé.', 'success');
       } catch (error) {
@@ -151,7 +176,7 @@
       if (!payload.reference || !payload.designation) return setStatus('Référence et désignation sont obligatoires.', 'error');
       setStatus('Ajout de la référence en cours...', 'muted');
       try {
-        const response = await auth.request('/api/admin/invoice-references', { method: 'POST', body: JSON.stringify(payload) });
+        const response = await requestInvoiceReferences({ method: 'POST', body: JSON.stringify(payload) });
         referenceForm.reset();
         renderReferences(response.references || []);
         setStatus('Référence ajoutée à la base facture.', 'success');
@@ -160,12 +185,18 @@
       }
     });
     if (referenceReset) referenceReset.addEventListener('click', function () { referenceForm.reset(); });
-    referenceList.addEventListener('click', async function (event) {
+    if (referenceList) referenceList.addEventListener('click', async function (event) {
       const button = event.target.closest('[data-invoice-reference-delete]');
       if (!button) return;
       if (!window.confirm('Supprimer cette référence facture ?')) return;
       try {
-        const response = await auth.request('/api/admin/invoice-references?id=' + encodeURIComponent(button.getAttribute('data-invoice-reference-delete')), { method: 'DELETE' });
+        const response = await requestWithFallback(
+          [
+            '/api/admin/invoice-references?id=' + encodeURIComponent(button.getAttribute('data-invoice-reference-delete')),
+            '/api/admin/facture-references?id=' + encodeURIComponent(button.getAttribute('data-invoice-reference-delete'))
+          ],
+          { method: 'DELETE' }
+        );
         renderReferences(response.references || []);
         setStatus('Référence supprimée.', 'success');
       } catch (error) {

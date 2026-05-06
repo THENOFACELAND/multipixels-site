@@ -20,9 +20,18 @@
       throw new Error('Le serveur MULTIPIXELS ne répond pas. Lancez `npm start` puis ouvrez http://localhost:3000/admin.html');
     }
 
-    const payload = await response.json().catch(function () { return {}; });
+    const raw = await response.text().catch(function () { return ''; });
+    let payload = {};
+    try {
+      payload = raw ? JSON.parse(raw) : {};
+    } catch (_) {
+      payload = {};
+    }
     if (!response.ok || payload.ok === false) {
-      const message = payload && payload.error && payload.error.message ? payload.error.message : 'Erreur administrateur.';
+      const fallback = 'Erreur administrateur (HTTP ' + response.status + ').';
+      const message = payload && payload.error && payload.error.message
+        ? payload.error.message
+        : (raw && raw.trim() ? raw.trim().slice(0, 180) : fallback);
       throw new Error(message);
     }
     return payload;
