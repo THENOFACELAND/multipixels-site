@@ -1165,7 +1165,7 @@ function formatInvoiceDayCode(issueDate) {
   return String(now.getDate()).padStart(2, '0') + String(now.getMonth() + 1).padStart(2, '0') + String(now.getFullYear()).slice(2);
 }
 
-function getNextInvoiceReference(issueDate, excludeId) {
+function getNextInvoiceReference(issueDate, excludeId, currentReference) {
   const store = readAdminDocumentsStore();
   const dayCode = formatInvoiceDayCode(issueDate);
   let maxSequence = INVOICE_SEQUENCE_START - 1;
@@ -1487,7 +1487,7 @@ function handleAdminInvoiceNextReferenceApi(req, res, requestUrl) {
   const issueDate = cleanInvoiceField(requestUrl.searchParams.get('issueDate'), 20) || new Date().toISOString().slice(0, 10);
   const documentId = cleanInvoiceField(requestUrl.searchParams.get('id'), 120);
   const currentReference = cleanInvoiceField(requestUrl.searchParams.get('current'), 80);
-  sendJson(res, 200, { ok: true, reference: getNextInvoiceReference(issueDate, documentId) });
+  sendJson(res, 200, { ok: true, reference: getNextInvoiceReference(issueDate, documentId, currentReference) });
 }
 
 async function handleAdminInvoicePdfApi(req, res) {
@@ -2261,7 +2261,7 @@ function formatInvoiceDayCode(issueDate) {
   return String(now.getDate()).padStart(2, '0') + String(now.getMonth() + 1).padStart(2, '0') + String(now.getFullYear()).slice(2);
 }
 
-function getNextInvoiceReference(issueDate, excludeId) {
+function getNextInvoiceReference(issueDate, excludeId, currentReference) {
   const store = readAdminDocumentsStore();
   const dayCode = formatInvoiceDayCode(issueDate);
   let maxSequence = INVOICE_SEQUENCE_START - 1;
